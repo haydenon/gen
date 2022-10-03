@@ -1,5 +1,5 @@
 {
-  "name": "@haydenon/jen",
+  "name": "@haydenon/gen",
   "version": "0.0.1",
   "description": "A library for easily setting up data generation",
   "main": "lib/index.js",
@@ -23,6 +23,16 @@
   "files": [
     "lib"
   ],
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./inbuilt": {
+      "types": "./lib/inbuilt/index.d.ts",
+      "default": "./lib/inbuilt/index.js"
+    }
+  },
   "jest": {
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
