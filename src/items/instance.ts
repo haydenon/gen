@@ -1,5 +1,6 @@
-import { InputMap, Item, OutputMap } from './item';
+import { OutputMap, PropertyValues } from './item';
+import { OutputDefinition, PropertyType } from './properties';
 
-export interface ItemInstance {
-  item: Item<InputMap, OutputMap>;
+export interface ItemInstance<Outputs extends OutputMap> {
+  values: PropertyValues<OutputDefinition<PropertyType>, Outputs>;
 }

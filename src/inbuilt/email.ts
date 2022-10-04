@@ -1,18 +1,20 @@
 import { InputMap, Item, ItemInstance } from '../items';
-import { PropertyType } from '../items/properties';
+import { PropertyTypes } from '../items/properties';
 
 const emailOutputs = {
   value: {
-    type: PropertyType.String,
+    type: PropertyTypes.String,
   },
 };
 
 type EmailOutputs = typeof emailOutputs;
 
 class EmailDefinition extends Item<InputMap, EmailOutputs> {
-  create(): ItemInstance {
+  async create(): Promise<ItemInstance<EmailOutputs>> {
     return {
-      item: this,
+      values: {
+        value: 'test@example.com',
+      },
     };
   }
 }
