@@ -1,14 +1,14 @@
-import { InputMap, Item, ItemInstance, OutputMap } from '../items';
-import { DesiredState } from '../items/desired-state';
+import { InputMap, Resource, ResourceInstance, OutputMap } from '../resources';
+import { DesiredState } from '../resources/desired-state';
 
-type Desired = DesiredState<InputMap, Item<InputMap, OutputMap>>;
+type Desired = DesiredState<InputMap, Resource<InputMap, OutputMap>>;
 
 interface StateNode {
   state: Desired;
   depth: number;
   dependencies: StateNode[];
   depedendents: StateNode[];
-  output?: ItemInstance<OutputMap>;
+  output?: ResourceInstance<OutputMap>;
   error?: GenerationError;
 }
 
@@ -18,7 +18,7 @@ class GeneratorState {
 
   private constructor(
     private stateNodes: StateNode[],
-    public resolve: (results: ItemInstance<OutputMap>[]) => void,
+    public resolve: (results: ResourceInstance<OutputMap>[]) => void,
     public reject: (error: Error) => void,
     public options: GeneratorOptions
   ) {
@@ -59,7 +59,7 @@ class GeneratorState {
       this.reject(new GenerationResultError('Generation stalled'));
     } else {
       this.resolve(
-        this.stateNodes.map((n) => n.output as ItemInstance<OutputMap>)
+        this.stateNodes.map((n) => n.output as ResourceInstance<OutputMap>)
       );
     }
   }
@@ -68,7 +68,7 @@ class GeneratorState {
     this.inProgressCount++;
   }
 
-  markCreated(state: Desired, output: ItemInstance<OutputMap>): void {
+  markCreated(state: Desired, output: ResourceInstance<OutputMap>): void {
     const node = this.stateNodes.find((n) => n.state === state);
     if (!node) {
       throw new Error('Node does not exist');
@@ -106,7 +106,7 @@ class GeneratorState {
   static create(
     state: Desired[],
     [resolve, reject]: [
-      (results: ItemInstance<OutputMap>[]) => void,
+      (results: ResourceInstance<OutputMap>[]) => void,
       (error: Error) => void
     ],
     options: GeneratorOptions
@@ -134,17 +134,17 @@ class GeneratorState {
 const CONCURRENT_CREATIONS = 10;
 
 interface GeneratorOptions {
-  onCreate?: (item: ItemInstance<OutputMap>) => void;
+  onCreate?: (resource: ResourceInstance<OutputMap>) => void;
   onError?: (error: GenerationError) => void;
 }
 
 export class Generator {
-  constructor(private items: Item<InputMap, OutputMap>[]) {}
+  constructor(private resources: Resource<InputMap, OutputMap>[]) {}
 
   async generateState(
-    state: DesiredState<InputMap, Item<InputMap, OutputMap>>[],
+    state: DesiredState<InputMap, Resource<InputMap, OutputMap>>[],
     options?: GeneratorOptions
-  ): Promise<ItemInstance<OutputMap>[]> {
+  ): Promise<ResourceInstance<OutputMap>[]> {
     return new Promise((res, rej) => {
       const generatorState = GeneratorState.create(
         state,
@@ -181,14 +181,14 @@ export class Generator {
 
   private async createDesiredState(
     state: Desired
-  ): Promise<ItemInstance<OutputMap>> {
-    const created = await state.item.create(state.values);
+  ): Promise<ResourceInstance<OutputMap>> {
+    const created = await state.resource.create(state.values);
     return created;
   }
 
   private notifyItemSuccess(
     generatorState: GeneratorState,
-    instance: ItemInstance<OutputMap>
+    instance: ResourceInstance<OutputMap>
   ) {
     if (generatorState.options.onCreate) {
       try {

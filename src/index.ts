@@ -1,4 +1,4 @@
-export * from './items';
+export * from './resources';
 export * from './inbuilt';
 export * from './generator';
 

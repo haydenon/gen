@@ -1,4 +1,4 @@
-import { InputMap, Item, OutputMap } from './item';
+import { InputMap, Resource, OutputMap } from './resource';
 
 export type PropertyType = 'Boolean' | 'Number' | 'String';
 
@@ -12,15 +12,31 @@ export const PropertyTypes: {
   String: 'String',
 };
 
+export type PropertyValueType<T extends { type: PropertyType }> = ValueType<
+  T['type']
+>;
+
+type ValueType<T extends PropertyType> = T extends 'String'
+  ? string
+  : T extends 'Number'
+  ? number
+  : boolean;
+
+export interface Constraint<T extends PropertyType> {
+  isValid: (value: ValueType<T>) => boolean;
+  generateConstrainedValue: () => ValueType<T>;
+}
+
 export interface PropertyDefinition<T extends PropertyType> {
   type: T;
+  constraint?: Constraint<T>;
 }
 
 export type PrimativeProperty<T extends PropertyType> = PropertyDefinition<T>;
 
 export interface LinkProperty<T extends PropertyType>
   extends PropertyDefinition<T> {
-  item: Item<InputMap, OutputMap>;
+  item: Resource<InputMap, OutputMap>;
   output: string | number | symbol;
 }
 
@@ -34,11 +50,25 @@ export function getLink<
   In extends InputMap,
   Out extends OutputMap,
   OutField extends keyof Out
->(item: Item<In, Out>, field: OutField): LinkProperty<Out[OutField]['type']> {
+>(
+  resource: Resource<In, Out>,
+  field: OutField
+): LinkProperty<Out[OutField]['type']> {
   return {
-    type: item.outputs[field].type,
-    item,
+    type: resource.outputs[field].type,
+    item: resource,
     output: field,
+    constraint: resource.outputs[field].constraint,
+  };
+}
+
+export function constrained<T extends PropertyType>(
+  property: PropertyDefinition<T>,
+  constraint: Constraint<T>
+): PropertyDefinition<T> {
+  return {
+    ...property,
+    constraint,
   };
 }
 

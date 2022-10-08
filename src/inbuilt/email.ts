@@ -1,16 +1,27 @@
-import { InputMap, Item, ItemInstance } from '../items';
-import { PropertyTypes } from '../items/properties';
+import { InputMap, Resource, ResourceInstance } from '../resources';
+import { Constraint, constrained, Primatives } from '../resources/properties';
+
+const EMAIL_REGEX =
+  // eslint-disable-next-line no-control-regex
+  /^(?:[a-z0-9!#$%&'*+=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
+
+export const EmailConstraint: Constraint<'String'> = {
+  isValid: (value: string): boolean => EMAIL_REGEX.test(value),
+  generateConstrainedValue: function (): string {
+    throw new Error('Function not implemented.');
+  },
+};
+
+export const EmailProperty = constrained(Primatives.String, EmailConstraint);
 
 const emailOutputs = {
-  value: {
-    type: PropertyTypes.String,
-  },
+  value: EmailProperty,
 };
 
 type EmailOutputs = typeof emailOutputs;
 
-class EmailDefinition extends Item<InputMap, EmailOutputs> {
-  async create(): Promise<ItemInstance<EmailOutputs>> {
+class EmailDefinition extends Resource<InputMap, EmailOutputs> {
+  async create(): Promise<ResourceInstance<EmailOutputs>> {
     return {
       values: {
         value: 'test@example.com',
