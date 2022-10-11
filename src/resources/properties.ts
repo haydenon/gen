@@ -1,4 +1,4 @@
-import { InputMap, Resource, OutputMap } from './resource';
+import { InputMap, Resource, OutputMap, InputValues } from './resource';
 
 export type PropertyType = 'Boolean' | 'Number' | 'String';
 
@@ -16,15 +16,25 @@ export type PropertyValueType<T extends { type: PropertyType }> = ValueType<
   T['type']
 >;
 
-type ValueType<T extends PropertyType> = T extends 'String'
+export type ValueType<T extends PropertyType> = T extends 'String'
   ? string
   : T extends 'Number'
   ? number
-  : boolean;
+  : T extends 'Boolean'
+  ? boolean
+  : never;
+
+export type Type<T> = T extends string
+  ? 'String'
+  : T extends number
+  ? 'Number'
+  : T extends boolean
+  ? 'Boolean'
+  : never;
 
 export interface Constraint<T extends PropertyType> {
-  isValid: (value: ValueType<T>) => boolean;
-  generateConstrainedValue: () => ValueType<T>;
+  isValid?: (value: ValueType<T>) => boolean;
+  generateConstrainedValue: (values: InputValues<InputMap>) => ValueType<T>;
 }
 
 export interface PropertyDefinition<T extends PropertyType> {
@@ -69,6 +79,17 @@ export function constrained<T extends PropertyType>(
   return {
     ...property,
     constraint,
+  };
+}
+
+export function createDepdendentConstraint<
+  Inputs extends InputMap,
+  Prop extends PropertyType
+>(func: (values: InputValues<Inputs>) => ValueType<Prop>): Constraint<Prop> {
+  return {
+    generateConstrainedValue: func as (
+      values: InputValues<InputMap>
+    ) => ValueType<Prop>,
   };
 }
 

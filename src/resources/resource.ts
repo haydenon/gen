@@ -12,7 +12,14 @@ interface PropertyMap<DefinitionType extends PropertyDefinition<PropertyType>> {
 }
 
 export type InputMap = PropertyMap<InputDefinition<PropertyType>>;
+export abstract class InputBase implements InputMap {
+  [name: string]: InputDefinition<PropertyType>;
+}
+
 export type OutputMap = PropertyMap<OutputDefinition<PropertyType>>;
+export abstract class OutputBase implements OutputMap {
+  [name: string]: OutputDefinition<PropertyType>;
+}
 
 export type PropertyValues<
   DefinitionType extends PropertyDefinition<PropertyType>,
@@ -31,8 +38,8 @@ export type InputValues<Inputs extends InputMap> = PropertyValues<
 >;
 
 export abstract class Resource<
-  Inputs extends InputMap,
-  Outputs extends OutputMap
+  Inputs extends InputBase,
+  Outputs extends OutputBase
 > {
   constructor(public inputs: Inputs, public outputs: Outputs) {}
   abstract create(

@@ -44,6 +44,7 @@
     "testRegex": "^.+\\.spec\\.ts$"
   },
   "dependencies": {
+    "@faker-js/faker": "^7.5.0",
     "prettier": "^2.7.1"
   }
 }

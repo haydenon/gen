@@ -2,16 +2,16 @@ import { InputMap, InputValues, Resource, OutputMap } from '.';
 
 export interface DesiredState<
   Inputs extends InputMap,
-  I extends Resource<Inputs, OutputMap>
+  Item extends Resource<Inputs, OutputMap>
 > {
-  resource: I;
-  values: InputValues<Inputs>;
+  resource: Item;
+  values: Partial<InputValues<Inputs>>;
 }
 
-export function createDesiredState<I extends Resource<InputMap, OutputMap>>(
-  resource: I,
-  values: InputValues<I['inputs']>
-): DesiredState<I['inputs'], I> {
+export function createDesiredState<Item extends Resource<InputMap, OutputMap>>(
+  resource: Item,
+  values: Partial<InputValues<Item['inputs']>>
+): DesiredState<Item['inputs'], Item> {
   return {
     resource,
     values,

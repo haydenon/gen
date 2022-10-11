@@ -1,4 +1,14 @@
-import { InputMap, Resource, ResourceInstance, OutputMap } from '../resources';
+import { faker } from '@faker-js/faker';
+import {
+  InputMap,
+  Resource,
+  ResourceInstance,
+  OutputMap,
+  InputValues,
+  InputDefinition,
+  PropertyType,
+  ValueType,
+} from '../resources';
 import { DesiredState } from '../resources/desired-state';
 
 type Desired = DesiredState<InputMap, Resource<InputMap, OutputMap>>;
@@ -182,8 +192,72 @@ export class Generator {
   private async createDesiredState(
     state: Desired
   ): Promise<ResourceInstance<OutputMap>> {
-    const created = await state.resource.create(state.values);
+    const created = await state.resource.create(this.getInputs(state));
     return created;
+  }
+
+  private getInputs(state: Desired): InputValues<InputMap> {
+    let currentInput: string | undefined;
+    const values = state.values;
+    const getForKey = (key: string) => {
+      // TODO: Make sure error is reported correctly
+      if (currentInput === key) {
+        throw new Error(
+          `Circular property generation from property '${currentInput}' on resource '${state.resource.constructor.name}'`
+        );
+      }
+
+      const inputDef = state.resource.inputs[key];
+      if (!inputDef) {
+        throw new Error(
+          `Property '${currentInput}' does not exist on resource '${state.resource.constructor.name}'`
+        );
+      }
+
+      if (key in values) {
+        return values[key];
+      }
+
+      return (values[key] = this.getValue(inputDef, inputProxy));
+    };
+
+    const inputProxy: InputValues<InputMap> = {};
+    for (const prop of Object.keys(state.resource.inputs)) {
+      Object.defineProperty(inputProxy, prop, {
+        get: () => getForKey(prop),
+      });
+    }
+
+    for (const inputKey of Object.keys(state.resource.inputs)) {
+      if (!(inputKey in values)) {
+        currentInput = inputKey;
+        values[inputKey] = this.getValue(
+          state.resource.inputs[inputKey],
+          inputProxy
+        );
+      }
+    }
+    return values as InputValues<InputMap>;
+  }
+
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  private getValue(
+    input: InputDefinition<PropertyType>,
+    inputs: InputValues<InputMap>
+  ): any {
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    if (input.constraint) {
+      return input.constraint.generateConstrainedValue(inputs);
+    }
+
+    switch (input.type) {
+      case 'String':
+        return `${faker.word.adjective()}  ${faker.word.noun()}`;
+      case 'Number':
+        return faker.datatype.number();
+      case 'Boolean':
+        return faker.datatype.boolean();
+    }
   }
 
   private notifyItemSuccess(

@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import { InputMap, Resource, ResourceInstance } from '../resources';
 import { Constraint, constrained, Primatives } from '../resources/properties';
 
@@ -8,7 +9,7 @@ const EMAIL_REGEX =
 export const EmailConstraint: Constraint<'String'> = {
   isValid: (value: string): boolean => EMAIL_REGEX.test(value),
   generateConstrainedValue: function (): string {
-    throw new Error('Function not implemented.');
+    return faker.internet.exampleEmail();
   },
 };
 
