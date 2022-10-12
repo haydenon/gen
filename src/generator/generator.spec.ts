@@ -29,23 +29,31 @@ class MockOutputs extends InputBase {
 }
 
 class MockDefinition extends Resource<MockInputs, MockOutputs> {
-  constructor() {
+  constructor(private time?: number) {
     super(new MockInputs(), new MockOutputs());
   }
 
   create(
     inputs: PropertyValues<InputDefinition<PropertyType>, MockInputs>
   ): Promise<ResourceInstance<MockOutputs>> {
-    return Promise.resolve({
+    const instance = {
       values: {
         text: inputs.text,
         number: inputs.number,
         boolean: inputs.boolean,
       },
+    };
+    if (!this.time || this.time <= 0) {
+      return Promise.resolve(instance);
+    }
+
+    return new Promise((res) => {
+      setTimeout(() => res(instance), this.time);
     });
   }
 }
 const MockResource = new MockDefinition();
+const DelayResource = new MockDefinition(100);
 
 class StallDefinition extends Resource<MockInputs, MockOutputs> {
   constructor() {
@@ -146,23 +154,27 @@ describe('Generator', () => {
       ]);
     });
 
-    test('returns rejected promise when failing', async () => {
-      // Arrange
-      const generator = new Generator([ErrorResource]);
-      const errorState = createDesiredState(ErrorResource, {});
-      const desiredState: DesiredState<
-        InputMap,
-        Resource<InputMap, OutputMap>
-      >[] = [errorState];
+    [
+      createDesiredState(ErrorResource, {}),
+      createDesiredState(StallResource, {}),
+    ].forEach((errorState) =>
+      test('returns rejected promise when failing', async () => {
+        // Arrange
+        const generator = new Generator([ErrorResource]);
+        const desiredState: DesiredState<
+          InputMap,
+          Resource<InputMap, OutputMap>
+        >[] = [errorState];
 
-      // Act
-      const result = generator.generateState(desiredState);
+        // Act
+        const result = generator.generateState(desiredState);
 
-      // Assert
-      await expect(result).rejects.toEqual(
-        new GenerationResultError('Generation encountered errors', [])
-      );
-    });
+        // Assert
+        await expect(result).rejects.toEqual(
+          new GenerationResultError('Generation encountered errors', [])
+        );
+      })
+    );
 
     test('still returns rejected promise when some resources are created and others error', async () => {
       // Arrange
@@ -243,6 +255,23 @@ describe('Generator', () => {
       expect(onError).toHaveBeenCalledWith(
         new GenerationError(new Error('Failed to create'), errorState)
       );
+    });
+  });
+
+  describe('Volume', () => {
+    test('can handle creating many resources at once', async () => {
+      // Arrange
+      const generator = new Generator([DelayResource]);
+      const count = 100;
+      const state = [...new Array(count).keys()].map(() =>
+        createDesiredState(DelayResource, {})
+      );
+
+      // Act
+      const result = await generator.generateState(state);
+
+      // Assert
+      expect(result).toHaveLength(count);
     });
   });
 });
