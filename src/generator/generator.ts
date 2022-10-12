@@ -203,11 +203,8 @@ export class Generator {
         state.resource.createTimeoutMillis ?? DEFAULT_CREATE_TIMEOUT;
       const timerId = setTimeout(() => {
         rej(
-          new GenerationError(
-            new Error(
-              `Creating desired state item '${state.name}' of resource '${state.resource.constructor.name}' timed out`
-            ),
-            state
+          new Error(
+            `Creating desired state item '${state.name}' of resource '${state.resource.constructor.name}' timed out`
           )
         );
       }, timeout);
@@ -216,6 +213,10 @@ export class Generator {
         .then((instance) => {
           clearTimeout(timerId);
           res(instance);
+        })
+        .catch((err) => {
+          clearTimeout(timerId);
+          rej(err);
         });
       return created;
     });
