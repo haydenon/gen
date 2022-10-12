@@ -7,11 +7,12 @@ import {
   InputValues,
   InputDefinition,
   PropertyType,
-  ValueType,
 } from '../resources';
 import { DesiredState } from '../resources/desired-state';
 
 type Desired = DesiredState<InputMap, Resource<InputMap, OutputMap>>;
+
+const DEFAULT_CREATE_TIMEOUT = 30 * 1000;
 
 interface StateNode {
   state: Desired;
@@ -95,7 +96,10 @@ class GeneratorState {
       throw new Error('Node does not exist');
     }
 
-    node.error = new GenerationError(error, state);
+    node.error =
+      error instanceof GenerationError
+        ? error
+        : new GenerationError(error, state);
     this.inProgressCount--;
   }
 
@@ -184,7 +188,9 @@ export class Generator {
           this.runRound(generatorState);
         })
         .catch((err: Error) => {
+          generatorState.markFailed(stateItem, err);
           this.notifyItemError(generatorState, err, stateItem);
+          this.runRound(generatorState);
         });
     }
   }
@@ -192,8 +198,27 @@ export class Generator {
   private async createDesiredState(
     state: Desired
   ): Promise<ResourceInstance<OutputMap>> {
-    const created = await state.resource.create(this.getInputs(state));
-    return created;
+    return new Promise((res, rej) => {
+      const timeout =
+        state.resource.createTimeoutMillis ?? DEFAULT_CREATE_TIMEOUT;
+      const timerId = setTimeout(() => {
+        rej(
+          new GenerationError(
+            new Error(
+              `Creating desired state item '${state.name}' of resource '${state.resource.constructor.name}' timed out`
+            ),
+            state
+          )
+        );
+      }, timeout);
+      const created = state.resource
+        .create(this.getInputs(state))
+        .then((instance) => {
+          clearTimeout(timerId);
+          res(instance);
+        });
+      return created;
+    });
   }
 
   private getInputs(state: Desired): InputValues<InputMap> {

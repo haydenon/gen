@@ -45,4 +45,5 @@ export abstract class Resource<
   abstract create(
     inputs: InputValues<Inputs>
   ): Promise<ResourceInstance<Outputs>>;
+  createTimeoutMillis?: number;
 }
