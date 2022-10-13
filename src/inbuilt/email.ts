@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { InputMap, Resource, ResourceInstance } from '../resources';
+import { PropertyMap, Resource, ResourceInstance } from '../resources';
 import { Constraint, constrained, Primatives } from '../resources/properties';
 
 const EMAIL_REGEX =
@@ -21,7 +21,7 @@ const emailOutputs = {
 
 type EmailOutputs = typeof emailOutputs;
 
-class EmailDefinition extends Resource<InputMap, EmailOutputs> {
+class EmailDefinition extends Resource<PropertyMap, EmailOutputs> {
   async create(): Promise<ResourceInstance<EmailOutputs>> {
     return {
       values: {

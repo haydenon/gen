@@ -1,49 +1,29 @@
 import { ResourceInstance } from './instance';
 import {
-  InputDefinition,
-  OutputDefinition,
   PropertyDefinition,
   PropertyType,
   PropertyValueType,
 } from './properties';
 
-interface PropertyMap<DefinitionType extends PropertyDefinition<PropertyType>> {
-  [name: string]: DefinitionType;
+export interface PropertyMap {
+  [name: string]: PropertyDefinition<PropertyType>;
 }
 
-export type InputMap = PropertyMap<InputDefinition<PropertyType>>;
-export abstract class InputBase implements InputMap {
-  [name: string]: InputDefinition<PropertyType>;
-}
-
-export type OutputMap = PropertyMap<OutputDefinition<PropertyType>>;
-export abstract class OutputBase implements OutputMap {
-  [name: string]: OutputDefinition<PropertyType>;
-}
-
-export type PropertyValues<
-  DefinitionType extends PropertyDefinition<PropertyType>,
-  Props extends PropertyMap<DefinitionType>
-> = {
+export type PropertyValues<Props extends PropertyMap> = {
   [P in keyof Props]: PropertyValueType<Props[P]>;
 };
 
-export type OutputValues<Outputs extends OutputMap> = PropertyValues<
-  OutputDefinition<PropertyType>,
-  Outputs
->;
-export type InputValues<Inputs extends InputMap> = PropertyValues<
-  InputDefinition<PropertyType>,
-  Inputs
->;
+export abstract class PropertiesBase implements PropertyMap {
+  [name: string]: PropertyDefinition<PropertyType>;
+}
 
 export abstract class Resource<
-  Inputs extends InputBase,
-  Outputs extends OutputBase
+  Inputs extends PropertyMap,
+  Outputs extends PropertyMap
 > {
   constructor(public inputs: Inputs, public outputs: Outputs) {}
   abstract create(
-    inputs: InputValues<Inputs>
+    inputs: PropertyValues<Inputs>
   ): Promise<ResourceInstance<Outputs>>;
   createTimeoutMillis?: number;
 }

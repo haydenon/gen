@@ -1,4 +1,4 @@
-import { InputMap, Resource, OutputMap, InputValues } from './resource';
+import { Resource, PropertyValues, PropertyMap } from './resource';
 
 export type PropertyType = 'Boolean' | 'Number' | 'String';
 
@@ -34,7 +34,9 @@ export type Type<T> = T extends string
 
 export interface Constraint<T extends PropertyType> {
   isValid?: (value: ValueType<T>) => boolean;
-  generateConstrainedValue: (values: InputValues<InputMap>) => ValueType<T>;
+  generateConstrainedValue: (
+    values: PropertyValues<PropertyMap>
+  ) => ValueType<T>;
 }
 
 export interface PropertyDefinition<T extends PropertyType> {
@@ -46,29 +48,22 @@ export type PrimativeProperty<T extends PropertyType> = PropertyDefinition<T>;
 
 export interface LinkProperty<T extends PropertyType>
   extends PropertyDefinition<T> {
-  item: Resource<InputMap, OutputMap>;
-  output: string | number | symbol;
+  item: Resource<PropertyMap, PropertyMap>;
+  outputAccessor: (outputs: PropertyValues<PropertyMap>) => ValueType<T>;
 }
 
-export type InputDefinition<T extends PropertyType> =
-  | PrimativeProperty<T>
-  | LinkProperty<T>;
-
-export type OutputDefinition<T extends PropertyType> = PropertyDefinition<T>;
-
-export function getLink<
-  In extends InputMap,
-  Out extends OutputMap,
-  OutField extends keyof Out
->(
-  resource: Resource<In, Out>,
-  field: OutField
-): LinkProperty<Out[OutField]['type']> {
+export function getLink<Out extends PropertyMap, Prop extends PropertyType>(
+  resource: Resource<PropertyMap, Out>,
+  fieldAccessor: (outputs: Out) => PropertyDefinition<Prop>
+): LinkProperty<Prop> {
+  const outputProperty = fieldAccessor(resource.outputs);
   return {
-    type: resource.outputs[field].type,
+    type: outputProperty.type,
     item: resource,
-    output: field,
-    constraint: resource.outputs[field].constraint,
+    // The accessor is common between property access and value access
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    outputAccessor: fieldAccessor as any,
+    constraint: outputProperty.constraint,
   };
 }
 
@@ -83,12 +78,12 @@ export function constrained<T extends PropertyType>(
 }
 
 export function createDepdendentConstraint<
-  Inputs extends InputMap,
+  Inputs extends PropertyMap,
   Prop extends PropertyType
->(func: (values: InputValues<Inputs>) => ValueType<Prop>): Constraint<Prop> {
+>(func: (values: PropertyValues<Inputs>) => ValueType<Prop>): Constraint<Prop> {
   return {
     generateConstrainedValue: func as (
-      values: InputValues<InputMap>
+      values: PropertyValues<PropertyMap>
     ) => ValueType<Prop>,
   };
 }

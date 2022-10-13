@@ -1,16 +1,15 @@
 import { faker } from '@faker-js/faker';
 import {
-  InputMap,
   Resource,
   ResourceInstance,
-  OutputMap,
-  InputValues,
-  InputDefinition,
+  PropertyMap,
+  PropertyValues,
   PropertyType,
+  PropertyDefinition,
 } from '../resources';
 import { DesiredState } from '../resources/desired-state';
 
-type Desired = DesiredState<InputMap, Resource<InputMap, OutputMap>>;
+type Desired = DesiredState<PropertyMap, Resource<PropertyMap, PropertyMap>>;
 
 const DEFAULT_CREATE_TIMEOUT = 30 * 1000;
 
@@ -19,7 +18,7 @@ interface StateNode {
   depth: number;
   dependencies: StateNode[];
   depedendents: StateNode[];
-  output?: ResourceInstance<OutputMap>;
+  output?: ResourceInstance<PropertyMap>;
   error?: GenerationError;
 }
 
@@ -29,7 +28,7 @@ class GeneratorState {
 
   private constructor(
     private stateNodes: StateNode[],
-    public resolve: (results: ResourceInstance<OutputMap>[]) => void,
+    public resolve: (results: ResourceInstance<PropertyMap>[]) => void,
     public reject: (error: Error) => void,
     public options: GeneratorOptions
   ) {
@@ -70,7 +69,7 @@ class GeneratorState {
       this.reject(new GenerationResultError('Generation stalled'));
     } else {
       this.resolve(
-        this.stateNodes.map((n) => n.output as ResourceInstance<OutputMap>)
+        this.stateNodes.map((n) => n.output as ResourceInstance<PropertyMap>)
       );
     }
   }
@@ -79,7 +78,7 @@ class GeneratorState {
     this.inProgressCount++;
   }
 
-  markCreated(state: Desired, output: ResourceInstance<OutputMap>): void {
+  markCreated(state: Desired, output: ResourceInstance<PropertyMap>): void {
     const node = this.stateNodes.find((n) => n.state === state);
     if (!node) {
       throw new Error('Node does not exist');
@@ -120,7 +119,7 @@ class GeneratorState {
   static create(
     state: Desired[],
     [resolve, reject]: [
-      (results: ResourceInstance<OutputMap>[]) => void,
+      (results: ResourceInstance<PropertyMap>[]) => void,
       (error: Error) => void
     ],
     options: GeneratorOptions
@@ -148,17 +147,17 @@ class GeneratorState {
 const CONCURRENT_CREATIONS = 10;
 
 interface GeneratorOptions {
-  onCreate?: (resource: ResourceInstance<OutputMap>) => void;
+  onCreate?: (resource: ResourceInstance<PropertyMap>) => void;
   onError?: (error: GenerationError) => void;
 }
 
 export class Generator {
-  constructor(private resources: Resource<InputMap, OutputMap>[]) {}
+  constructor(private resources: Resource<PropertyMap, PropertyMap>[]) {}
 
   async generateState(
-    state: DesiredState<InputMap, Resource<InputMap, OutputMap>>[],
+    state: DesiredState<PropertyMap, Resource<PropertyMap, PropertyMap>>[],
     options?: GeneratorOptions
-  ): Promise<ResourceInstance<OutputMap>[]> {
+  ): Promise<ResourceInstance<PropertyMap>[]> {
     return new Promise((res, rej) => {
       const generatorState = GeneratorState.create(
         state,
@@ -197,7 +196,7 @@ export class Generator {
 
   private async createDesiredState(
     state: Desired
-  ): Promise<ResourceInstance<OutputMap>> {
+  ): Promise<ResourceInstance<PropertyMap>> {
     return new Promise((res, rej) => {
       const timeout =
         state.resource.createTimeoutMillis ?? DEFAULT_CREATE_TIMEOUT;
@@ -222,7 +221,7 @@ export class Generator {
     });
   }
 
-  private getInputs(state: Desired): InputValues<InputMap> {
+  private getInputs(state: Desired): PropertyValues<PropertyMap> {
     let currentInput: string | undefined;
     const values = state.values;
     const getForKey = (key: string) => {
@@ -247,7 +246,7 @@ export class Generator {
       return (values[key] = this.getValue(inputDef, inputProxy));
     };
 
-    const inputProxy: InputValues<InputMap> = {};
+    const inputProxy: PropertyValues<PropertyMap> = {};
     for (const prop of Object.keys(state.resource.inputs)) {
       Object.defineProperty(inputProxy, prop, {
         get: () => getForKey(prop),
@@ -263,13 +262,13 @@ export class Generator {
         );
       }
     }
-    return values as InputValues<InputMap>;
+    return values as PropertyValues<PropertyMap>;
   }
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   private getValue(
-    input: InputDefinition<PropertyType>,
-    inputs: InputValues<InputMap>
+    input: PropertyDefinition<PropertyType>,
+    inputs: PropertyValues<PropertyMap>
   ): any {
     /* eslint-enable @typescript-eslint/no-explicit-any */
     if (input.constraint) {
@@ -288,7 +287,7 @@ export class Generator {
 
   private notifyItemSuccess(
     generatorState: GeneratorState,
-    instance: ResourceInstance<OutputMap>
+    instance: ResourceInstance<PropertyMap>
   ) {
     if (generatorState.options.onCreate) {
       try {

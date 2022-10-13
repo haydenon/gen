@@ -1,28 +1,24 @@
 import {
   createDesiredState,
   DesiredState,
-  InputBase,
-  InputDefinition,
-  InputMap,
-  InputValues,
-  OutputMap,
+  PropertyMap,
   Primatives,
   PropertyDefinition,
-  PropertyType,
   PropertyValues,
   Resource,
   ResourceInstance,
   Type,
+  PropertiesBase,
 } from '../resources';
 import { GenerationError, GenerationResultError, Generator } from './generator';
 
-class MockInputs extends InputBase {
+class MockInputs extends PropertiesBase {
   text: PropertyDefinition<Type<string>> = Primatives.String;
   number: PropertyDefinition<Type<number>> = Primatives.Number;
   boolean: PropertyDefinition<Type<boolean>> = Primatives.Boolean;
 }
 
-class MockOutputs extends InputBase {
+class MockOutputs extends PropertiesBase {
   text: PropertyDefinition<Type<string>> = Primatives.String;
   number: PropertyDefinition<Type<number>> = Primatives.Number;
   boolean: PropertyDefinition<Type<boolean>> = Primatives.Boolean;
@@ -34,7 +30,7 @@ class MockDefinition extends Resource<MockInputs, MockOutputs> {
   }
 
   create(
-    inputs: PropertyValues<InputDefinition<PropertyType>, MockInputs>
+    inputs: PropertyValues<MockInputs>
   ): Promise<ResourceInstance<MockOutputs>> {
     const instance = {
       values: {
@@ -88,29 +84,29 @@ describe('Generator', () => {
     test('generates resources with explicit inputs', async () => {
       // Arrange
       const generator = new Generator([MockResource]);
-      const inputValues: InputValues<MockInputs> = {
+      const PropertyValues: PropertyValues<MockInputs> = {
         text: 'Test',
         boolean: true,
         number: 2,
       };
       const desiredState: DesiredState<
-        InputMap,
-        Resource<InputMap, OutputMap>
-      >[] = [createDesiredState(MockResource, inputValues)];
+        PropertyMap,
+        Resource<PropertyMap, PropertyMap>
+      >[] = [createDesiredState(MockResource, PropertyValues)];
 
       // Act
       const result = await generator.generateState(desiredState);
 
       // Assert
-      expect(result).toEqual([{ values: inputValues }]);
+      expect(result).toEqual([{ values: PropertyValues }]);
     });
 
     test('generates resources with no inputs', async () => {
       // Arrange
       const generator = new Generator([MockResource]);
       const desiredState: DesiredState<
-        InputMap,
-        Resource<InputMap, OutputMap>
+        PropertyMap,
+        Resource<PropertyMap, PropertyMap>
       >[] = [createDesiredState(MockResource, {})];
 
       // Act
@@ -135,8 +131,8 @@ describe('Generator', () => {
       const generator = new Generator([ErrorResource]);
       const successState = createDesiredState(MockResource, {});
       const desiredState: DesiredState<
-        InputMap,
-        Resource<InputMap, OutputMap>
+        PropertyMap,
+        Resource<PropertyMap, PropertyMap>
       >[] = [successState];
 
       // Act
@@ -162,8 +158,8 @@ describe('Generator', () => {
         // Arrange
         const generator = new Generator([ErrorResource]);
         const desiredState: DesiredState<
-          InputMap,
-          Resource<InputMap, OutputMap>
+          PropertyMap,
+          Resource<PropertyMap, PropertyMap>
         >[] = [errorState];
 
         // Act
@@ -181,8 +177,8 @@ describe('Generator', () => {
       const generator = new Generator([ErrorResource]);
       const errorState = createDesiredState(ErrorResource, {});
       const desiredState: DesiredState<
-        InputMap,
-        Resource<InputMap, OutputMap>
+        PropertyMap,
+        Resource<PropertyMap, PropertyMap>
       >[] = [errorState, createDesiredState(MockResource, {})];
 
       // Act
@@ -199,8 +195,8 @@ describe('Generator', () => {
       const generator = new Generator([ErrorResource]);
       const successState = createDesiredState(MockResource, {});
       const desiredState: DesiredState<
-        InputMap,
-        Resource<InputMap, OutputMap>
+        PropertyMap,
+        Resource<PropertyMap, PropertyMap>
       >[] = [
         successState,
         createDesiredState(ErrorResource, {}),
@@ -231,8 +227,8 @@ describe('Generator', () => {
       const stalledState = createDesiredState(StallResource, {});
       const errorState = createDesiredState(ErrorResource, {});
       const desiredState: DesiredState<
-        InputMap,
-        Resource<InputMap, OutputMap>
+        PropertyMap,
+        Resource<PropertyMap, PropertyMap>
       >[] = [stalledState, errorState, createDesiredState(MockResource, {})];
 
       const onError = jest.fn();

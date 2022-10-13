@@ -1,6 +1,5 @@
-import { OutputMap, PropertyValues } from './resource';
-import { OutputDefinition, PropertyType } from './properties';
+import { PropertyMap, PropertyValues } from './resource';
 
-export interface ResourceInstance<Outputs extends OutputMap> {
-  values: PropertyValues<OutputDefinition<PropertyType>, Outputs>;
+export interface ResourceInstance<Outputs extends PropertyMap> {
+  values: PropertyValues<Outputs>;
 }
