@@ -83,19 +83,18 @@ describe('Generator', () => {
   describe('Inputs', () => {
     test('generates resources with explicit inputs', async () => {
       // Arrange
-      const generator = new Generator([MockResource]);
       const PropertyValues: PropertyValues<MockInputs> = {
         text: 'Test',
         boolean: true,
         number: 2,
       };
-      const desiredState: DesiredState<
-        PropertyMap,
-        Resource<PropertyMap, PropertyMap>
-      >[] = [createDesiredState(MockResource, PropertyValues)];
+      const desiredState: DesiredState[] = [
+        createDesiredState(MockResource, PropertyValues),
+      ];
+      const generator = Generator.create(desiredState);
 
       // Act
-      const result = await generator.generateState(desiredState);
+      const result = await generator.generateState();
 
       // Assert
       expect(result).toEqual([{ values: PropertyValues }]);
@@ -103,14 +102,13 @@ describe('Generator', () => {
 
     test('generates resources with no inputs', async () => {
       // Arrange
-      const generator = new Generator([MockResource]);
-      const desiredState: DesiredState<
-        PropertyMap,
-        Resource<PropertyMap, PropertyMap>
-      >[] = [createDesiredState(MockResource, {})];
+      const desiredState: DesiredState[] = [
+        createDesiredState(MockResource, {}),
+      ];
+      const generator = Generator.create(desiredState);
 
       // Act
-      const result = await generator.generateState(desiredState);
+      const result = await generator.generateState();
 
       // Assert
       expect(result).toEqual([
@@ -128,15 +126,12 @@ describe('Generator', () => {
   describe('Results and notifications', () => {
     test('returns resolved promise when succeeding', async () => {
       // Arrange
-      const generator = new Generator([ErrorResource]);
       const successState = createDesiredState(MockResource, {});
-      const desiredState: DesiredState<
-        PropertyMap,
-        Resource<PropertyMap, PropertyMap>
-      >[] = [successState];
+      const desiredState: DesiredState[] = [successState];
+      const generator = Generator.create(desiredState);
 
       // Act
-      const result = await generator.generateState(desiredState);
+      const result = await generator.generateState();
 
       // Assert
       expect(result).toStrictEqual([
@@ -156,14 +151,11 @@ describe('Generator', () => {
     ].forEach((errorState) =>
       test('returns rejected promise when failing', async () => {
         // Arrange
-        const generator = new Generator([ErrorResource]);
-        const desiredState: DesiredState<
-          PropertyMap,
-          Resource<PropertyMap, PropertyMap>
-        >[] = [errorState];
+        const desiredState: DesiredState[] = [errorState];
+        const generator = Generator.create(desiredState);
 
         // Act
-        const result = generator.generateState(desiredState);
+        const result = generator.generateState();
 
         // Assert
         await expect(result).rejects.toEqual(
@@ -174,15 +166,15 @@ describe('Generator', () => {
 
     test('still returns rejected promise when some resources are created and others error', async () => {
       // Arrange
-      const generator = new Generator([ErrorResource]);
       const errorState = createDesiredState(ErrorResource, {});
-      const desiredState: DesiredState<
-        PropertyMap,
-        Resource<PropertyMap, PropertyMap>
-      >[] = [errorState, createDesiredState(MockResource, {})];
+      const desiredState: DesiredState[] = [
+        errorState,
+        createDesiredState(MockResource, {}),
+      ];
+      const generator = Generator.create(desiredState);
 
       // Act
-      const result = generator.generateState(desiredState);
+      const result = generator.generateState();
 
       // Assert
       await expect(result).rejects.toEqual(
@@ -192,23 +184,17 @@ describe('Generator', () => {
 
     test('notifies successes when resources succeed', async () => {
       // Arrange
-      const generator = new Generator([ErrorResource]);
       const successState = createDesiredState(MockResource, {});
-      const desiredState: DesiredState<
-        PropertyMap,
-        Resource<PropertyMap, PropertyMap>
-      >[] = [
+      const desiredState: DesiredState[] = [
         successState,
         createDesiredState(ErrorResource, {}),
         createDesiredState(StallResource, {}),
       ];
-
       const onCreate = jest.fn();
+      const generator = Generator.create(desiredState, { onCreate });
 
       // Act
-      await generator
-        .generateState(desiredState, { onCreate })
-        .catch(() => undefined);
+      await generator.generateState().catch(() => undefined);
 
       // Assert
       expect(onCreate).toHaveBeenCalledTimes(1);
@@ -223,20 +209,18 @@ describe('Generator', () => {
 
     test('notifies errors when resources fail', async () => {
       // Arrange
-      const generator = new Generator([ErrorResource]);
       const stalledState = createDesiredState(StallResource, {});
       const errorState = createDesiredState(ErrorResource, {});
-      const desiredState: DesiredState<
-        PropertyMap,
-        Resource<PropertyMap, PropertyMap>
-      >[] = [stalledState, errorState, createDesiredState(MockResource, {})];
-
+      const desiredState: DesiredState[] = [
+        stalledState,
+        errorState,
+        createDesiredState(MockResource, {}),
+      ];
       const onError = jest.fn();
+      const generator = Generator.create(desiredState, { onError });
 
       // Act
-      await generator
-        .generateState(desiredState, { onError })
-        .catch(() => undefined);
+      await generator.generateState().catch(() => undefined);
 
       // Assert
       expect(onError).toHaveBeenCalledTimes(2);
@@ -257,14 +241,14 @@ describe('Generator', () => {
   describe('Volume', () => {
     test('can handle creating many resources at once', async () => {
       // Arrange
-      const generator = new Generator([DelayResource]);
       const count = 100;
       const state = [...new Array(count).keys()].map(() =>
         createDesiredState(DelayResource, {})
       );
+      const generator = Generator.create(state);
 
       // Act
-      const result = await generator.generateState(state);
+      const result = await generator.generateState();
 
       // Assert
       expect(result).toHaveLength(count);

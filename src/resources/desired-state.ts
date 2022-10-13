@@ -1,25 +1,20 @@
 import { PropertyMap, Resource, PropertyValues } from '.';
 
-export interface DesiredState<
-  Inputs extends PropertyMap,
-  Item extends Resource<Inputs, PropertyMap>
-> {
+export interface DesiredState {
   name: string;
-  resource: Item;
-  values: Partial<PropertyValues<Inputs>>;
+  resource: Resource<PropertyMap, PropertyMap>;
+  values: Partial<PropertyValues<PropertyMap>>;
 }
 
 let randomId = 1;
 
-export function createDesiredState<
-  Item extends Resource<PropertyMap, PropertyMap>
->(
-  resource: Item,
-  values: Partial<PropertyValues<Item['inputs']>>,
+export function createDesiredState(
+  resource: Resource<PropertyMap, PropertyMap>,
+  values: Partial<PropertyValues<PropertyMap>>,
   name?: string
-): DesiredState<Item['inputs'], Item> {
+): DesiredState {
   return {
-    name: name || `__desiredState${randomId++}`,
+    name: name || `__anonymousStateItem${randomId++}`,
     resource,
     values,
   };

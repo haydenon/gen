@@ -52,6 +52,13 @@ export interface LinkProperty<T extends PropertyType>
   outputAccessor: (outputs: PropertyValues<PropertyMap>) => ValueType<T>;
 }
 
+export function isLinkProperty(
+  property: PropertyDefinition<PropertyType>
+): property is LinkProperty<PropertyType> {
+  const prop = property as any;
+  return prop.item && prop.outputAccessor;
+}
+
 export function getLink<Out extends PropertyMap, Prop extends PropertyType>(
   resource: Resource<PropertyMap, Out>,
   fieldAccessor: (outputs: Out) => PropertyDefinition<Prop>
@@ -61,7 +68,6 @@ export function getLink<Out extends PropertyMap, Prop extends PropertyType>(
     type: outputProperty.type,
     item: resource,
     // The accessor is common between property access and value access
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     outputAccessor: fieldAccessor as any,
     constraint: outputProperty.constraint,
   };
