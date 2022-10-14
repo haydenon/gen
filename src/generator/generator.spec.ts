@@ -1,7 +1,6 @@
 import {
   createDesiredState,
   DesiredState,
-  PropertyMap,
   Primatives,
   PropertyDefinition,
   PropertyValues,
@@ -9,6 +8,7 @@ import {
   ResourceInstance,
   Type,
   PropertiesBase,
+  getLink,
 } from '../resources';
 import { GenerationError, GenerationResultError, Generator } from './generator';
 
@@ -18,7 +18,9 @@ class MockInputs extends PropertiesBase {
   boolean: PropertyDefinition<Type<boolean>> = Primatives.Boolean;
 }
 
+let mockId = 1;
 class MockOutputs extends PropertiesBase {
+  id: PropertyDefinition<Type<number>> = Primatives.Number;
   text: PropertyDefinition<Type<string>> = Primatives.String;
   number: PropertyDefinition<Type<number>> = Primatives.Number;
   boolean: PropertyDefinition<Type<boolean>> = Primatives.Boolean;
@@ -34,6 +36,7 @@ class MockDefinition extends Resource<MockInputs, MockOutputs> {
   ): Promise<ResourceInstance<MockOutputs>> {
     const instance = {
       values: {
+        id: mockId++,
         text: inputs.text,
         number: inputs.number,
         boolean: inputs.boolean,
@@ -79,11 +82,64 @@ class ErrorDefinition extends Resource<MockInputs, MockOutputs> {
 }
 const ErrorResource = new ErrorDefinition();
 
+let subId = 1;
+class SubInputs extends PropertiesBase {
+  mockId: PropertyDefinition<Type<number>> = getLink(MockResource, (m) => m.id);
+}
+class SubOutputs extends PropertiesBase {
+  mockId: PropertyDefinition<Type<number>> = Primatives.Number;
+  id: PropertyDefinition<Type<number>> = Primatives.Number;
+}
+class SubDefinition extends Resource<SubInputs, SubOutputs> {
+  constructor() {
+    super(new SubInputs(), new SubOutputs());
+  }
+
+  create(
+    inputs: PropertyValues<SubInputs>
+  ): Promise<ResourceInstance<SubOutputs>> {
+    return Promise.resolve({
+      values: {
+        ...inputs,
+        id: subId++,
+      },
+    });
+  }
+}
+const SubResource = new SubDefinition();
+
+let subSubId = 1;
+class SubSubInputs extends PropertiesBase {
+  subId: PropertyDefinition<Type<number>> = getLink(SubResource, (s) => s.id);
+}
+class SubSubOutputs extends PropertiesBase {
+  subId: PropertyDefinition<Type<number>> = Primatives.Number;
+  id: PropertyDefinition<Type<number>> = Primatives.Number;
+}
+class SubSubDefinition extends Resource<SubSubInputs, SubSubOutputs> {
+  constructor() {
+    super(new SubSubInputs(), new SubSubOutputs());
+  }
+
+  create(
+    inputs: PropertyValues<SubSubInputs>
+  ): Promise<ResourceInstance<SubSubOutputs>> {
+    return Promise.resolve({
+      values: {
+        ...inputs,
+        id: subSubId++,
+      },
+    });
+  }
+}
+const SubSubResource = new SubSubDefinition();
+
 describe('Generator', () => {
   describe('Inputs', () => {
     test('generates resources with explicit inputs', async () => {
       // Arrange
       const PropertyValues: PropertyValues<MockInputs> = {
+        id: expect.any(Number),
         text: 'Test',
         boolean: true,
         number: 2,
@@ -114,6 +170,7 @@ describe('Generator', () => {
       expect(result).toEqual([
         {
           values: {
+            id: expect.any(Number),
             text: expect.any(String),
             number: expect.any(Number),
             boolean: expect.any(Boolean),
@@ -137,6 +194,7 @@ describe('Generator', () => {
       expect(result).toStrictEqual([
         {
           values: {
+            id: expect.any(Number),
             text: expect.any(String),
             number: expect.any(Number),
             boolean: expect.any(Boolean),
@@ -200,6 +258,7 @@ describe('Generator', () => {
       expect(onCreate).toHaveBeenCalledTimes(1);
       expect(onCreate).toHaveBeenCalledWith({
         values: {
+          id: expect.any(Number),
           text: expect.any(String),
           number: expect.any(Number),
           boolean: expect.any(Boolean),

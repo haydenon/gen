@@ -357,7 +357,6 @@ export class Generator {
       }
     }
 
-    console.log(nodes);
     return nodes;
   }
 }
