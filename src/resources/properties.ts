@@ -1,6 +1,10 @@
 import { Resource, PropertyValues, PropertyMap } from './resource';
 
-export type PropertyType = 'Boolean' | 'Number' | 'String';
+type NonUndefinableType = 'Boolean' | 'Number' | 'String';
+type NonNullableType =
+  | NonUndefinableType
+  | `Undefinable(${NonUndefinableType})`;
+export type PropertyType = NonNullableType | `Nullable(${NonNullableType})`;
 
 export const PropertyTypes: {
   Boolean: 'Boolean';
@@ -12,25 +16,37 @@ export const PropertyTypes: {
   String: 'String',
 };
 
-export type PropertyValueType<T extends { type: PropertyType }> = ValueForType<
-  T['type']
->;
+export type PropertyValueType<T extends { type: PropertyType }> =
+  TypeForProperty<T['type']>;
 
-export type ValueForType<T extends PropertyType> = T extends 'String'
+type NonUndefinableTypeForProperty<T> = T extends 'String'
   ? string
   : T extends 'Number'
   ? number
   : T extends 'Boolean'
   ? boolean
   : never;
+type NonNullableTypeForProperty<T> = T extends `Undefinable(${infer Type})`
+  ? NonUndefinableTypeForProperty<Type> | undefined
+  : NonUndefinableTypeForProperty<T>;
+export type TypeForProperty<T extends PropertyType> =
+  T extends `Nullable(${infer Type})`
+    ? NonNullableTypeForProperty<Type> | null
+    : NonNullableTypeForProperty<T>;
 
-export type ValueType<T> = T extends string
+type NonUndefinableValueType<T> = T extends string
   ? 'String'
   : T extends number
   ? 'Number'
   : T extends boolean
   ? 'Boolean'
   : never;
+type NonNullableValueType<T> = undefined extends T
+  ? `Undefinable(${NonUndefinableValueType<T>})`
+  : NonUndefinableValueType<T>;
+export type ValueType<T> = null extends T
+  ? `Nullable(${NonNullableValueType<T>})`
+  : NonNullableValueType<T>;
 
 export interface Constraint<T> {
   isValid?: (value: T) => boolean;
@@ -99,3 +115,21 @@ export const Primatives = {
   Boolean: createPrimative<boolean>(PropertyTypes.Boolean),
   Number: createPrimative<number>(PropertyTypes.Number),
 };
+
+export function nullable<T>(
+  prop: PropertyDefinition<T>
+): PropertyDefinition<T | null> {
+  return { ...prop, type: `Nullable(${prop.type})` } as any;
+}
+
+export function undefinable<T>(
+  prop: PropertyDefinition<T>
+): PropertyDefinition<T | undefined> {
+  return { ...prop, type: `Undefinable(${prop.type})` } as any;
+}
+
+export function undefinableOrNullable<T>(
+  prop: PropertyDefinition<T>
+): PropertyDefinition<T | null | undefined> {
+  return { ...prop, type: `Nullable(Undefinable(${prop.type}))` } as any;
+}

@@ -32,9 +32,7 @@ class MockDefinition extends Resource<MockBase, MockOutputs> {
     super(new MockBase(), new MockOutputs());
   }
 
-  create(
-    inputs: PropertyValues<MockBase>
-  ): Promise<PropertyValues<MockOutputs>> {
+  create(inputs: PropertyValues<MockBase>): Promise<OutputValues<MockOutputs>> {
     const instance = {
       id: mockId++,
       text: inputs.text,
@@ -137,7 +135,6 @@ describe('Generator', () => {
     test('generates resources with explicit inputs', async () => {
       // Arrange
       const PropertyValues: PropertyValues<MockBase> = {
-        id: expect.any(Number),
         text: 'Test',
         boolean: true,
         number: 2,
