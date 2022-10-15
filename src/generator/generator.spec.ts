@@ -126,6 +126,13 @@ class SubSubDefinition extends Resource<SubSubInputs, SubSubOutputs> {
 }
 const SubSubResource = new SubSubDefinition();
 
+const anyMockResource = {
+  id: expect.any(Number),
+  text: expect.any(String),
+  number: expect.any(Number),
+  boolean: expect.any(Boolean),
+};
+
 describe('Generator', () => {
   describe('Inputs', () => {
     test('generates resources with explicit inputs', async () => {
@@ -144,7 +151,9 @@ describe('Generator', () => {
       const result = await generator.generateState();
 
       // Assert
-      expect(result).toEqual([{ desiredState: state, values: PropertyValues }]);
+      expect(result).toEqual([
+        { desiredState: state, outputs: PropertyValues },
+      ]);
     });
 
     test('generates resources with no inputs', async () => {
@@ -160,12 +169,7 @@ describe('Generator', () => {
       expect(result).toEqual([
         {
           desiredState: state,
-          values: {
-            id: expect.any(Number),
-            text: expect.any(String),
-            number: expect.any(Number),
-            boolean: expect.any(Boolean),
-          },
+          outputs: anyMockResource,
         },
       ]);
     });
@@ -185,7 +189,7 @@ describe('Generator', () => {
       expect(result).toStrictEqual([
         {
           desiredState: successState,
-          values: {
+          outputs: {
             id: expect.any(Number),
             text: expect.any(String),
             number: expect.any(Number),
@@ -250,7 +254,7 @@ describe('Generator', () => {
       expect(onCreate).toHaveBeenCalledTimes(1);
       expect(onCreate).toHaveBeenCalledWith({
         desiredState: successState,
-        values: {
+        outputs: {
           id: expect.any(Number),
           text: expect.any(String),
           number: expect.any(Number),
@@ -318,7 +322,18 @@ describe('Generator', () => {
 
       // Assert
       expect(result).toHaveLength(3);
-      // expect(result).toEqual();
+      expect(result).toEqual([
+        expect.anything(),
+        expect.anything(),
+        {
+          desiredState: {
+            name: expect.any(String),
+            resource: MockResource,
+            inputs: {},
+          },
+          outputs: anyMockResource,
+        },
+      ]);
     });
   });
 });

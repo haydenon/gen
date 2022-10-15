@@ -39,12 +39,12 @@ function getStateWithDependentResources(state: DesiredState[]): DesiredState[] {
       const input = item.resource.inputs[inputKey];
       // TODO: Support nullable inputs
       if (
-        !(inputKey in item.values) &&
+        !(inputKey in item.inputs) &&
         !input.constraint?.generateConstrainedValue &&
         isLinkProperty(input)
       ) {
         const dependentState = createDesiredState(input.item, {});
-        item.values[inputKey] = new ResourceLink(
+        item.inputs[inputKey] = new ResourceLink(
           dependentState,
           input.outputAccessor
         ) as any;
@@ -142,7 +142,7 @@ export class Generator {
         .then((outputs) => {
           const instance: ResourceInstance<PropertyMap> = {
             desiredState: state,
-            values: outputs,
+            outputs,
           };
           clearTimeout(timerId);
           res(instance);
@@ -157,7 +157,7 @@ export class Generator {
 
   private getInputs(state: DesiredState): PropertyValues<PropertyMap> {
     let currentInput: string | undefined;
-    const values = state.values;
+    const values = { ...state.inputs };
     const getForKey = (key: string) => {
       // TODO: Make sure error is reported correctly
       if (currentInput === key) {
@@ -226,7 +226,7 @@ export class Generator {
       throw new Error('Dependent state should already be created');
     }
 
-    return resourceLink.outputAccessor(linkedValue.output.values);
+    return resourceLink.outputAccessor(linkedValue.output.outputs);
   }
 
   private notifyItemSuccess(instance: ResourceInstance<PropertyMap>) {
@@ -351,7 +351,7 @@ export class Generator {
     }));
 
     for (const node of nodes) {
-      for (const linkProp of Object.values(node.state.values).filter((v) =>
+      for (const linkProp of Object.values(node.state.inputs).filter((v) =>
         isResourceLink(v)
       )) {
         const link = linkProp as any as ResourceLink;
