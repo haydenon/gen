@@ -12,11 +12,11 @@ export const PropertyTypes: {
   String: 'String',
 };
 
-export type PropertyValueType<T extends { type: PropertyType }> = ValueType<
+export type PropertyValueType<T extends { type: PropertyType }> = ValueForType<
   T['type']
 >;
 
-export type ValueType<T extends PropertyType> = T extends 'String'
+export type ValueForType<T extends PropertyType> = T extends 'String'
   ? string
   : T extends 'Number'
   ? number
@@ -24,7 +24,7 @@ export type ValueType<T extends PropertyType> = T extends 'String'
   ? boolean
   : never;
 
-export type Type<T> = T extends string
+export type ValueType<T> = T extends string
   ? 'String'
   : T extends number
   ? 'Number'
@@ -32,22 +32,19 @@ export type Type<T> = T extends string
   ? 'Boolean'
   : never;
 
-export interface Constraint<T extends PropertyType> {
-  isValid?: (value: ValueType<T>) => boolean;
-  generateConstrainedValue: (
-    values: PropertyValues<PropertyMap>
-  ) => ValueType<T>;
+export interface Constraint<T> {
+  isValid?: (value: T) => boolean;
+  generateConstrainedValue: (values: PropertyValues<PropertyMap>) => T;
 }
 
-export interface PropertyDefinition<T extends PropertyType> {
-  type: T;
+export interface PropertyDefinition<T> {
+  type: ValueType<T>;
   constraint?: Constraint<T>;
 }
 
-export type PrimativeProperty<T extends PropertyType> = PropertyDefinition<T>;
+export type PrimativeProperty<T> = PropertyDefinition<T>;
 
-export interface LinkProperty<T extends PropertyType>
-  extends PropertyDefinition<T> {
+export interface LinkProperty<T> extends PropertyDefinition<T> {
   item: Resource<PropertyMap, PropertyMap>;
   outputAccessor: (outputs: PropertyValues<PropertyMap>) => ValueType<T>;
 }
@@ -59,7 +56,7 @@ export function isLinkProperty(
   return prop.item && prop.outputAccessor;
 }
 
-export function getLink<Out extends PropertyMap, Prop extends PropertyType>(
+export function getLink<Out extends PropertyMap, Prop>(
   resource: Resource<PropertyMap, Out>,
   fieldAccessor: (outputs: Out) => PropertyDefinition<Prop>
 ): LinkProperty<Prop> {
@@ -73,7 +70,7 @@ export function getLink<Out extends PropertyMap, Prop extends PropertyType>(
   };
 }
 
-export function constrained<T extends PropertyType>(
+export function constrained<T>(
   property: PropertyDefinition<T>,
   constraint: Constraint<T>
 ): PropertyDefinition<T> {
@@ -83,25 +80,22 @@ export function constrained<T extends PropertyType>(
   };
 }
 
-export function createDepdendentConstraint<
-  Inputs extends PropertyMap,
-  Prop extends PropertyType
->(func: (values: PropertyValues<Inputs>) => ValueType<Prop>): Constraint<Prop> {
+export function createDepdendentConstraint<Inputs extends PropertyMap, Prop>(
+  func: (values: PropertyValues<Inputs>) => Prop
+): Constraint<Prop> {
   return {
     generateConstrainedValue: func as (
       values: PropertyValues<PropertyMap>
-    ) => ValueType<Prop>,
+    ) => Prop,
   };
 }
 
-const createPrimative = <T extends PropertyType>(
-  type: T
-): PrimativeProperty<T> => ({
+const createPrimative = <T>(type: ValueType<T>): PrimativeProperty<T> => ({
   type,
 });
 
 export const Primatives = {
-  String: createPrimative(PropertyTypes.String),
-  Boolean: createPrimative(PropertyTypes.Boolean),
-  Number: createPrimative(PropertyTypes.Number),
+  String: createPrimative<string>(PropertyTypes.String),
+  Boolean: createPrimative<boolean>(PropertyTypes.Boolean),
+  Number: createPrimative<number>(PropertyTypes.Number),
 };

@@ -203,7 +203,7 @@ export class Generator {
   }
 
   private getValue(
-    input: PropertyDefinition<PropertyType>,
+    input: PropertyDefinition<any>,
     inputs: PropertyValues<PropertyMap>
   ): any {
     if (input.constraint) {

@@ -5,7 +5,6 @@ import {
   PropertyDefinition,
   PropertyValues,
   Resource,
-  Type,
   PropertiesBase,
   getLink,
   OutputValues,
@@ -17,27 +16,24 @@ import {
   ResourceLink,
 } from './generator';
 
-class MockInputs extends PropertiesBase {
-  text: PropertyDefinition<Type<string>> = Primatives.String;
-  number: PropertyDefinition<Type<number>> = Primatives.Number;
-  boolean: PropertyDefinition<Type<boolean>> = Primatives.Boolean;
+class MockBase extends PropertiesBase {
+  text: PropertyDefinition<string> = Primatives.String;
+  number: PropertyDefinition<number> = Primatives.Number;
+  boolean: PropertyDefinition<boolean> = Primatives.Boolean;
 }
 
 let mockId = 1;
-class MockOutputs extends PropertiesBase {
-  id: PropertyDefinition<Type<number>> = Primatives.Number;
-  text: PropertyDefinition<Type<string>> = Primatives.String;
-  number: PropertyDefinition<Type<number>> = Primatives.Number;
-  boolean: PropertyDefinition<Type<boolean>> = Primatives.Boolean;
+class MockOutputs extends MockBase {
+  id: PropertyDefinition<number> = Primatives.Number;
 }
 
-class MockDefinition extends Resource<MockInputs, MockOutputs> {
+class MockDefinition extends Resource<MockBase, MockOutputs> {
   constructor(private time?: number) {
-    super(new MockInputs(), new MockOutputs());
+    super(new MockBase(), new MockOutputs());
   }
 
   create(
-    inputs: PropertyValues<MockInputs>
+    inputs: PropertyValues<MockBase>
   ): Promise<PropertyValues<MockOutputs>> {
     const instance = {
       id: mockId++,
@@ -57,9 +53,9 @@ class MockDefinition extends Resource<MockInputs, MockOutputs> {
 const MockResource = new MockDefinition();
 const DelayResource = new MockDefinition(100);
 
-class StallDefinition extends Resource<MockInputs, MockOutputs> {
+class StallDefinition extends Resource<MockBase, MockOutputs> {
   constructor() {
-    super(new MockInputs(), new MockOutputs());
+    super(new MockBase(), new MockOutputs());
   }
 
   create(): Promise<OutputValues<MockOutputs>> {
@@ -72,9 +68,9 @@ class StallDefinition extends Resource<MockInputs, MockOutputs> {
 }
 const StallResource = new StallDefinition();
 
-class ErrorDefinition extends Resource<MockInputs, MockOutputs> {
+class ErrorDefinition extends Resource<MockBase, MockOutputs> {
   constructor() {
-    super(new MockInputs(), new MockOutputs());
+    super(new MockBase(), new MockOutputs());
   }
 
   create(): Promise<OutputValues<MockOutputs>> {
@@ -86,19 +82,18 @@ class ErrorDefinition extends Resource<MockInputs, MockOutputs> {
 const ErrorResource = new ErrorDefinition();
 
 let subId = 1;
-class SubInputs extends PropertiesBase {
-  mockId: PropertyDefinition<Type<number>> = getLink(MockResource, (m) => m.id);
+class SubBase extends PropertiesBase {
+  mockId: PropertyDefinition<number> = getLink(MockResource, (m) => m.id);
 }
-class SubOutputs extends PropertiesBase {
-  mockId: PropertyDefinition<Type<number>> = Primatives.Number;
-  id: PropertyDefinition<Type<number>> = Primatives.Number;
+class SubOutputs extends SubBase {
+  id: PropertyDefinition<number> = Primatives.Number;
 }
-class SubDefinition extends Resource<SubInputs, SubOutputs> {
+class SubDefinition extends Resource<SubBase, SubOutputs> {
   constructor() {
-    super(new SubInputs(), new SubOutputs());
+    super(new SubBase(), new SubOutputs());
   }
 
-  create(inputs: PropertyValues<SubInputs>): Promise<OutputValues<SubOutputs>> {
+  create(inputs: PropertyValues<SubBase>): Promise<OutputValues<SubOutputs>> {
     return Promise.resolve({
       ...inputs,
       id: subId++,
@@ -108,20 +103,19 @@ class SubDefinition extends Resource<SubInputs, SubOutputs> {
 const SubResource = new SubDefinition();
 
 let subSubId = 1;
-class SubSubInputs extends PropertiesBase {
-  subId: PropertyDefinition<Type<number>> = getLink(SubResource, (s) => s.id);
+class SubSubBase extends PropertiesBase {
+  subId: PropertyDefinition<number> = getLink(SubResource, (s) => s.id);
 }
-class SubSubOutputs extends PropertiesBase {
-  subId: PropertyDefinition<Type<number>> = Primatives.Number;
-  id: PropertyDefinition<Type<number>> = Primatives.Number;
+class SubSubOutputs extends SubSubBase {
+  id: PropertyDefinition<number> = Primatives.Number;
 }
-class SubSubDefinition extends Resource<SubSubInputs, SubSubOutputs> {
+class SubSubDefinition extends Resource<SubSubBase, SubSubOutputs> {
   constructor() {
-    super(new SubSubInputs(), new SubSubOutputs());
+    super(new SubSubBase(), new SubSubOutputs());
   }
 
   create(
-    inputs: PropertyValues<SubSubInputs>
+    inputs: PropertyValues<SubSubBase>
   ): Promise<OutputValues<SubSubOutputs>> {
     return Promise.resolve({
       ...inputs,
@@ -142,7 +136,7 @@ describe('Generator', () => {
   describe('Inputs', () => {
     test('generates resources with explicit inputs', async () => {
       // Arrange
-      const PropertyValues: PropertyValues<MockInputs> = {
+      const PropertyValues: PropertyValues<MockBase> = {
         id: expect.any(Number),
         text: 'Test',
         boolean: true,

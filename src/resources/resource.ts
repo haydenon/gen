@@ -1,11 +1,7 @@
-import {
-  PropertyDefinition,
-  PropertyType,
-  PropertyValueType,
-} from './properties';
+import { PropertyDefinition, PropertyValueType } from './properties';
 
 export interface PropertyMap {
-  [name: string]: PropertyDefinition<PropertyType>;
+  [name: string]: PropertyDefinition<any>;
 }
 
 export type PropertyValues<Props extends PropertyMap> = {
@@ -25,7 +21,7 @@ export type OutputValues<Props extends PropertyMap> = RemoveIndex<
 >;
 
 export abstract class PropertiesBase implements PropertyMap {
-  [name: string]: PropertyDefinition<PropertyType>;
+  [name: string]: PropertyDefinition<any>;
 }
 
 export abstract class Resource<
