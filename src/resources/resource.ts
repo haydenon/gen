@@ -1,4 +1,3 @@
-import { ResourceInstance } from './instance';
 import {
   PropertyDefinition,
   PropertyType,
@@ -13,6 +12,18 @@ export type PropertyValues<Props extends PropertyMap> = {
   [P in keyof Props]: PropertyValueType<Props[P]>;
 };
 
+type RemoveIndex<T> = {
+  [K in keyof T as string extends K
+    ? never
+    : number extends K
+    ? never
+    : K]: T[K];
+};
+
+export type OutputValues<Props extends PropertyMap> = RemoveIndex<
+  PropertyValues<Props>
+>;
+
 export abstract class PropertiesBase implements PropertyMap {
   [name: string]: PropertyDefinition<PropertyType>;
 }
@@ -24,6 +35,6 @@ export abstract class Resource<
   constructor(public inputs: Inputs, public outputs: Outputs) {}
   abstract create(
     inputs: PropertyValues<Inputs>
-  ): Promise<ResourceInstance<Outputs>>;
+  ): Promise<OutputValues<Outputs>>;
   createTimeoutMillis?: number;
 }

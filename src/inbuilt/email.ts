@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { PropertyMap, Resource, ResourceInstance } from '../resources';
+import { PropertyMap, PropertyValues, Resource } from '../resources';
 import { Constraint, constrained, Primatives } from '../resources/properties';
 
 const EMAIL_REGEX =
@@ -22,11 +22,9 @@ const emailOutputs = {
 type EmailOutputs = typeof emailOutputs;
 
 class EmailDefinition extends Resource<PropertyMap, EmailOutputs> {
-  async create(): Promise<ResourceInstance<EmailOutputs>> {
+  async create(): Promise<PropertyValues<EmailOutputs>> {
     return {
-      values: {
-        value: 'test@example.com',
-      },
+      value: 'test@example.com',
     };
   }
 }

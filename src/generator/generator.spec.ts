@@ -5,10 +5,10 @@ import {
   PropertyDefinition,
   PropertyValues,
   Resource,
-  ResourceInstance,
   Type,
   PropertiesBase,
   getLink,
+  OutputValues,
 } from '../resources';
 import { GenerationError, GenerationResultError, Generator } from './generator';
 
@@ -33,14 +33,12 @@ class MockDefinition extends Resource<MockInputs, MockOutputs> {
 
   create(
     inputs: PropertyValues<MockInputs>
-  ): Promise<ResourceInstance<MockOutputs>> {
+  ): Promise<PropertyValues<MockOutputs>> {
     const instance = {
-      values: {
-        id: mockId++,
-        text: inputs.text,
-        number: inputs.number,
-        boolean: inputs.boolean,
-      },
+      id: mockId++,
+      text: inputs.text,
+      number: inputs.number,
+      boolean: inputs.boolean,
     };
     if (!this.time || this.time <= 0) {
       return Promise.resolve(instance);
@@ -59,7 +57,7 @@ class StallDefinition extends Resource<MockInputs, MockOutputs> {
     super(new MockInputs(), new MockOutputs());
   }
 
-  create(): Promise<ResourceInstance<MockOutputs>> {
+  create(): Promise<OutputValues<MockOutputs>> {
     return new Promise(() => {
       //
     });
@@ -74,7 +72,7 @@ class ErrorDefinition extends Resource<MockInputs, MockOutputs> {
     super(new MockInputs(), new MockOutputs());
   }
 
-  create(): Promise<ResourceInstance<MockOutputs>> {
+  create(): Promise<OutputValues<MockOutputs>> {
     return Promise.reject(new Error('Failed to create'));
   }
 
@@ -95,14 +93,10 @@ class SubDefinition extends Resource<SubInputs, SubOutputs> {
     super(new SubInputs(), new SubOutputs());
   }
 
-  create(
-    inputs: PropertyValues<SubInputs>
-  ): Promise<ResourceInstance<SubOutputs>> {
+  create(inputs: PropertyValues<SubInputs>): Promise<OutputValues<SubOutputs>> {
     return Promise.resolve({
-      values: {
-        ...inputs,
-        id: subId++,
-      },
+      ...inputs,
+      id: subId++,
     });
   }
 }
@@ -123,12 +117,10 @@ class SubSubDefinition extends Resource<SubSubInputs, SubSubOutputs> {
 
   create(
     inputs: PropertyValues<SubSubInputs>
-  ): Promise<ResourceInstance<SubSubOutputs>> {
+  ): Promise<OutputValues<SubSubOutputs>> {
     return Promise.resolve({
-      values: {
-        ...inputs,
-        id: subSubId++,
-      },
+      ...inputs,
+      id: subSubId++,
     });
   }
 }
@@ -144,23 +136,21 @@ describe('Generator', () => {
         boolean: true,
         number: 2,
       };
-      const desiredState: DesiredState[] = [
-        createDesiredState(MockResource, PropertyValues),
-      ];
+      const state = createDesiredState(MockResource, PropertyValues);
+      const desiredState: DesiredState[] = [state];
       const generator = Generator.create(desiredState);
 
       // Act
       const result = await generator.generateState();
 
       // Assert
-      expect(result).toEqual([{ values: PropertyValues }]);
+      expect(result).toEqual([{ desiredState: state, values: PropertyValues }]);
     });
 
     test('generates resources with no inputs', async () => {
       // Arrange
-      const desiredState: DesiredState[] = [
-        createDesiredState(MockResource, {}),
-      ];
+      const state = createDesiredState(MockResource, {});
+      const desiredState: DesiredState[] = [state];
       const generator = Generator.create(desiredState);
 
       // Act
@@ -169,6 +159,7 @@ describe('Generator', () => {
       // Assert
       expect(result).toEqual([
         {
+          desiredState: state,
           values: {
             id: expect.any(Number),
             text: expect.any(String),
@@ -193,6 +184,7 @@ describe('Generator', () => {
       // Assert
       expect(result).toStrictEqual([
         {
+          desiredState: successState,
           values: {
             id: expect.any(Number),
             text: expect.any(String),
@@ -257,6 +249,7 @@ describe('Generator', () => {
       // Assert
       expect(onCreate).toHaveBeenCalledTimes(1);
       expect(onCreate).toHaveBeenCalledWith({
+        desiredState: successState,
         values: {
           id: expect.any(Number),
           text: expect.any(String),
@@ -311,6 +304,21 @@ describe('Generator', () => {
 
       // Assert
       expect(result).toHaveLength(count);
+    });
+  });
+
+  describe('Linked resources', () => {
+    test('can create anonymous depdendencies', async () => {
+      // Arrange
+      const state = [createDesiredState(SubSubResource, {})];
+      const generator = Generator.create(state);
+
+      // Act
+      const result = await generator.generateState();
+
+      // Assert
+      expect(result).toHaveLength(3);
+      // expect(result).toEqual();
     });
   });
 });

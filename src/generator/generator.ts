@@ -139,7 +139,11 @@ export class Generator {
       }, timeout);
       const created = state.resource
         .create(this.getInputs(state))
-        .then((instance) => {
+        .then((outputs) => {
+          const instance: ResourceInstance<PropertyMap> = {
+            desiredState: state,
+            values: outputs,
+          };
           clearTimeout(timerId);
           res(instance);
         })
