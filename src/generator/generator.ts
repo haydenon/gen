@@ -21,7 +21,7 @@ interface StateNode {
   error?: GenerationError;
 }
 
-class ResourceLink {
+export class ResourceLink {
   constructor(
     public item: DesiredState,
     public outputAccessor: (

@@ -10,7 +10,12 @@ import {
   getLink,
   OutputValues,
 } from '../resources';
-import { GenerationError, GenerationResultError, Generator } from './generator';
+import {
+  GenerationError,
+  GenerationResultError,
+  Generator,
+  ResourceLink,
+} from './generator';
 
 class MockInputs extends PropertiesBase {
   text: PropertyDefinition<Type<string>> = Primatives.String;
@@ -322,18 +327,51 @@ describe('Generator', () => {
 
       // Assert
       expect(result).toHaveLength(3);
-      expect(result).toEqual([
-        expect.anything(),
-        expect.anything(),
-        {
-          desiredState: {
-            name: expect.any(String),
-            resource: MockResource,
-            inputs: {},
-          },
-          outputs: anyMockResource,
+      const mockResource = result.find(
+        (i) => i.desiredState.resource === MockResource
+      );
+      expect(mockResource).toEqual({
+        desiredState: {
+          name: expect.any(String),
+          resource: MockResource,
+          inputs: {},
         },
-      ]);
+        outputs: anyMockResource,
+      });
+
+      const subResource = result.find(
+        (i) => i.desiredState.resource === SubResource
+      );
+      expect(subResource).toEqual({
+        desiredState: {
+          name: expect.any(String),
+          resource: SubResource,
+          inputs: {
+            mockId: expect.any(ResourceLink),
+          },
+        },
+        outputs: {
+          id: expect.any(Number),
+          mockId: mockResource?.outputs.id,
+        },
+      });
+
+      const subSubResource = result.find(
+        (i) => i.desiredState.resource === SubSubResource
+      );
+      expect(subSubResource).toEqual({
+        desiredState: {
+          name: expect.any(String),
+          resource: SubSubResource,
+          inputs: {
+            subId: expect.any(ResourceLink),
+          },
+        },
+        outputs: {
+          id: expect.any(Number),
+          subId: subResource?.outputs.id,
+        },
+      });
     });
   });
 });
