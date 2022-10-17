@@ -3,14 +3,13 @@ import {
   OutputValues,
   PropertiesBase,
   PropertyMap,
-  PropertyValues,
   Resource,
 } from '../resources';
 import {
   Constraint,
-  constrained,
-  Primatives,
   PropertyDefinition,
+  Props,
+  def,
 } from '../resources/properties';
 
 const EMAIL_REGEX =
@@ -24,7 +23,9 @@ export const EmailConstraint: Constraint<string> = {
   },
 };
 
-export const EmailProperty = constrained(Primatives.String, EmailConstraint);
+export const EmailProperty = def(Props.String, {
+  constraint: EmailConstraint,
+});
 
 class EmailOutputs extends PropertiesBase {
   value: PropertyDefinition<string> = EmailProperty;

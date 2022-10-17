@@ -1,27 +1,42 @@
 import { Resource, PropertyValues, PropertyMap } from './resource';
 
-// export type ValidTypes = string | number | boolean | null | undefined;
-
 enum MetaType {
-  Nullable,
-  Undefinable,
+  Nullable = 'Nullable',
+  Undefinable = 'Undefinable',
+  Array = 'Array',
+  Complex = 'Complex',
+}
+
+interface ArrayType {
+  type: MetaType.Array;
+  inner: PropertyType;
 }
 
 interface Nullable {
   type: MetaType.Nullable;
-  inner: NonNullableType;
+  inner: PropertyType;
 }
 
 interface Undefinable {
   type: MetaType.Undefinable;
-  inner: NonUndefinableType;
+  inner: PropertyType;
 }
 
-type NonUndefinableType = 'Boolean' | 'Number' | 'String';
-type NonNullableType = NonUndefinableType | Undefinable;
-export type PropertyType = NonNullableType | Nullable;
+interface ComplexType {
+  type: MetaType.Complex;
+  fields: { [name: string]: PropertyType };
+}
 
-export const PropertyTypes: {
+export type PropertyType =
+  | 'Boolean'
+  | 'Number'
+  | 'String'
+  | ArrayType
+  | Nullable
+  | Undefinable
+  | ComplexType;
+
+export const Props: {
   Boolean: 'Boolean';
   Number: 'Number';
   String: 'String';
@@ -31,42 +46,29 @@ export const PropertyTypes: {
   String: 'String',
 };
 
-export type PropertyValueType<T extends { type: PropertyType }> =
-  TypeForProperty<T['type']>;
+type NonUndefined<T> = null extends T ? NonNullable<T> | null : NonNullable<T>;
+type NonNull<T> = undefined extends T
+  ? NonNullable<T> | undefined
+  : NonNullable<T>;
 
-type NonUndefinableTypeForProperty<T> = T extends 'String'
-  ? string
-  : T extends 'Number'
-  ? number
-  : T extends 'Boolean'
-  ? boolean
-  : never;
-type NonNullableTypeForProperty<T> = T extends {
-  type: MetaType.Undefinable;
-  inner: infer Type;
-}
-  ? NonUndefinableTypeForProperty<Type> | undefined
-  : NonUndefinableTypeForProperty<T>;
-export type TypeForProperty<T extends PropertyType> = T extends {
-  type: MetaType.Nullable;
-  inner: infer Type;
-}
-  ? NonNullableTypeForProperty<Type> | null
-  : NonNullableTypeForProperty<T>;
-
-type NonUndefinableValueType<T> = T extends string
+export type PropertyTypeForValue<T> = null extends T
+  ? { type: MetaType.Nullable; inner: PropertyTypeForValue<NonNull<T>> }
+  : undefined extends T
+  ? { type: MetaType.Undefinable; inner: PropertyTypeForValue<NonUndefined<T>> }
+  : T extends (infer Type)[]
+  ? { type: MetaType.Array; inner: PropertyTypeForValue<Type> }
+  : T extends object
+  ? {
+      type: MetaType.Complex;
+      fields: { [K in keyof T]: PropertyTypeForValue<T[K]> };
+    }
+  : T extends string
   ? 'String'
   : T extends number
   ? 'Number'
   : T extends boolean
   ? 'Boolean'
   : never;
-type NonNullableValueType<T> = undefined extends T
-  ? { type: MetaType.Undefinable; inner: NonUndefinableValueType<T> }
-  : NonUndefinableValueType<T>;
-export type ValueType<T> = null extends T
-  ? { type: MetaType.Nullable; inner: NonUndefinableValueType<T> }
-  : NonNullableValueType<T>;
 
 export interface Constraint<T> {
   isValid?: (value: T) => boolean;
@@ -74,15 +76,25 @@ export interface Constraint<T> {
 }
 
 export interface PropertyDefinition<T> {
-  type: ValueType<T>;
+  type: PropertyTypeForValue<T>;
   constraint?: Constraint<T>;
 }
 
-export type PrimativeProperty<T> = PropertyDefinition<T>;
+export function def<T>(
+  type: PropertyTypeForValue<T>,
+  properties?: Partial<Omit<PropertyDefinition<T>, 'type'>>
+): PropertyDefinition<T> {
+  return {
+    type,
+    ...(properties || {}),
+  };
+}
 
 export interface LinkProperty<T> extends PropertyDefinition<T> {
   item: Resource<PropertyMap, PropertyMap>;
-  outputAccessor: (outputs: PropertyValues<PropertyMap>) => ValueType<T>;
+  outputAccessor: (
+    outputs: PropertyValues<PropertyMap>
+  ) => PropertyTypeForValue<T>;
 }
 
 export function isLinkProperty(
@@ -106,6 +118,28 @@ export function getLink<Out extends PropertyMap, Prop>(
   };
 }
 
+export function array<Prop extends PropertyType>(
+  prop: Prop
+): { type: MetaType.Array; inner: Prop } {
+  return {
+    type: MetaType.Array,
+    inner: prop,
+  };
+}
+
+// Fields extends { [field: string]: PropertyType }
+type ComplexFields<T> = { [F in keyof T]: PropertyTypeForValue<T[F]> };
+
+export function complex<T>(fields: ComplexFields<T>): {
+  type: MetaType.Complex;
+  fields: ComplexFields<T>;
+} {
+  return {
+    type: MetaType.Complex,
+    fields,
+  };
+}
+
 export function constrained<T>(
   property: PropertyDefinition<T>,
   constraint: Constraint<T>
@@ -126,36 +160,23 @@ export function createDepdendentConstraint<Inputs extends PropertyMap, Prop>(
   };
 }
 
-const createPrimative = <T>(type: ValueType<T>): PrimativeProperty<T> => ({
-  type,
-});
-
-export const Primatives = {
-  String: createPrimative<string>(PropertyTypes.String),
-  Boolean: createPrimative<boolean>(PropertyTypes.Boolean),
-  Number: createPrimative<number>(PropertyTypes.Number),
-};
-
-export function nullable<T>(
-  prop: PropertyDefinition<T>
-): PropertyDefinition<T | null> {
-  return {
-    ...prop,
-    type: { type: MetaType.Nullable, inner: prop.type },
-  } as any;
+export function nullable<Prop extends PropertyType>(
+  prop: Prop
+): { type: MetaType.Nullable; inner: Prop } {
+  return { type: MetaType.Nullable, inner: prop };
 }
 
-export function undefinable<T>(
-  prop: PropertyDefinition<T>
-): PropertyDefinition<T | undefined> {
-  return {
-    ...prop,
-    type: { type: MetaType.Undefinable, inner: prop.type },
-  } as any;
+export function undefinable<Prop extends PropertyType>(
+  prop: Prop
+): { type: MetaType.Undefinable; inner: Prop } {
+  return { type: MetaType.Undefinable, inner: prop };
 }
 
-export function undefinableOrNullable<T>(
-  prop: PropertyDefinition<T>
-): PropertyDefinition<T | null | undefined> {
+export function undefinableOrNullable<Prop extends PropertyType>(
+  prop: Prop
+): {
+  type: MetaType.Nullable;
+  inner: { type: MetaType.Undefinable; inner: Prop };
+} {
   return nullable(undefinable(prop));
 }

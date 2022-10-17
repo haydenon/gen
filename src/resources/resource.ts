@@ -1,8 +1,12 @@
-import { PropertyDefinition, PropertyValueType } from './properties';
+import { PropertyDefinition } from './properties';
 
 export interface PropertyMap {
   [name: string]: PropertyDefinition<unknown>;
 }
+
+type PropertyValueType<Prop> = Prop extends PropertyDefinition<infer Type>
+  ? Type
+  : never;
 
 export type PropertyValues<Props extends PropertyMap> = {
   [P in keyof Props]: PropertyValueType<Props[P]>;

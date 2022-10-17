@@ -6,7 +6,7 @@ import {
   PropertyType,
   PropertyDefinition,
   isLinkProperty,
-  ValueType,
+  PropertyTypeForValue,
 } from '../resources';
 import { createDesiredState, DesiredState } from '../resources/desired-state';
 
@@ -26,7 +26,7 @@ export class ResourceLink {
     public item: DesiredState,
     public outputAccessor: (
       output: PropertyValues<PropertyMap>
-    ) => ValueType<PropertyType>
+    ) => PropertyTypeForValue<PropertyType>
   ) {}
 }
 const isResourceLink = (value: any): value is ResourceLink =>
