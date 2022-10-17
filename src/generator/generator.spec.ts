@@ -8,6 +8,7 @@ import {
   PropertiesBase,
   getLink,
   OutputValues,
+  InputValues,
 } from '../resources';
 import {
   GenerationError,
@@ -134,7 +135,7 @@ describe('Generator', () => {
   describe('Inputs', () => {
     test('generates resources with explicit inputs', async () => {
       // Arrange
-      const PropertyValues: PropertyValues<MockBase> = {
+      const PropertyValues: InputValues<MockBase> = {
         text: 'Test',
         boolean: true,
         number: 2,

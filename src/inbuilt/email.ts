@@ -1,6 +1,17 @@
 import { faker } from '@faker-js/faker';
-import { PropertyMap, PropertyValues, Resource } from '../resources';
-import { Constraint, constrained, Primatives } from '../resources/properties';
+import {
+  OutputValues,
+  PropertiesBase,
+  PropertyMap,
+  PropertyValues,
+  Resource,
+} from '../resources';
+import {
+  Constraint,
+  constrained,
+  Primatives,
+  PropertyDefinition,
+} from '../resources/properties';
 
 const EMAIL_REGEX =
   // eslint-disable-next-line no-control-regex
@@ -15,18 +26,16 @@ export const EmailConstraint: Constraint<string> = {
 
 export const EmailProperty = constrained(Primatives.String, EmailConstraint);
 
-const emailOutputs = {
-  value: EmailProperty,
-};
-
-type EmailOutputs = typeof emailOutputs;
+class EmailOutputs extends PropertiesBase {
+  value: PropertyDefinition<string> = EmailProperty;
+}
 
 class EmailDefinition extends Resource<PropertyMap, EmailOutputs> {
-  async create(): Promise<PropertyValues<EmailOutputs>> {
+  async create(): Promise<OutputValues<EmailOutputs>> {
     return {
       value: 'test@example.com',
     };
   }
 }
 
-export const Email = new EmailDefinition({}, emailOutputs);
+export const Email = new EmailDefinition({}, new EmailOutputs());

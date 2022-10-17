@@ -1,4 +1,4 @@
-import { PropertyMap, Resource, PropertyValues } from '.';
+import { PropertyMap, Resource, PropertyValues, InputValues } from '.';
 
 export interface DesiredState {
   name: string;
@@ -10,7 +10,7 @@ let randomId = 1;
 
 export function createDesiredState(
   resource: Resource<PropertyMap, PropertyMap>,
-  inputs: Partial<PropertyValues<PropertyMap>>,
+  inputs: Partial<InputValues<PropertyMap>>,
   name?: string
 ): DesiredState {
   return {

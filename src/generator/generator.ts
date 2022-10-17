@@ -46,7 +46,7 @@ function getStateWithDependentResources(state: DesiredState[]): DesiredState[] {
         const dependentState = createDesiredState(input.item, {});
         item.inputs[inputKey] = new ResourceLink(
           dependentState,
-          input.outputAccessor
+          input.outputAccessor as (outputs: PropertyValues<PropertyMap>) => any
         ) as any;
         newState.push(dependentState);
       }
@@ -210,7 +210,8 @@ export class Generator {
       return input.constraint.generateConstrainedValue(inputs);
     }
 
-    switch (input.type) {
+    switch (input.type as PropertyType) {
+      // TODO: Nullable & undefinable handling
       case 'String':
         return `${faker.word.adjective()}  ${faker.word.noun()}`;
       case 'Number':

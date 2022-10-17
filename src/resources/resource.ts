@@ -1,7 +1,7 @@
 import { PropertyDefinition, PropertyValueType } from './properties';
 
 export interface PropertyMap {
-  [name: string]: PropertyDefinition<any>;
+  [name: string]: PropertyDefinition<unknown>;
 }
 
 export type PropertyValues<Props extends PropertyMap> = {
@@ -15,6 +15,10 @@ type RemoveIndex<T> = {
     ? never
     : K]: T[K];
 };
+
+export type InputValues<Props extends PropertyMap> = RemoveIndex<
+  PropertyValues<Props>
+>;
 
 export type OutputValues<Props extends PropertyMap> = RemoveIndex<
   PropertyValues<Props>

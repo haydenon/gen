@@ -1,10 +1,25 @@
 import { Resource, PropertyValues, PropertyMap } from './resource';
 
+// export type ValidTypes = string | number | boolean | null | undefined;
+
+enum MetaType {
+  Nullable,
+  Undefinable,
+}
+
+interface Nullable {
+  type: MetaType.Nullable;
+  inner: NonNullableType;
+}
+
+interface Undefinable {
+  type: MetaType.Undefinable;
+  inner: NonUndefinableType;
+}
+
 type NonUndefinableType = 'Boolean' | 'Number' | 'String';
-type NonNullableType =
-  | NonUndefinableType
-  | `Undefinable(${NonUndefinableType})`;
-export type PropertyType = NonNullableType | `Nullable(${NonNullableType})`;
+type NonNullableType = NonUndefinableType | Undefinable;
+export type PropertyType = NonNullableType | Nullable;
 
 export const PropertyTypes: {
   Boolean: 'Boolean';
@@ -26,13 +41,18 @@ type NonUndefinableTypeForProperty<T> = T extends 'String'
   : T extends 'Boolean'
   ? boolean
   : never;
-type NonNullableTypeForProperty<T> = T extends `Undefinable(${infer Type})`
+type NonNullableTypeForProperty<T> = T extends {
+  type: MetaType.Undefinable;
+  inner: infer Type;
+}
   ? NonUndefinableTypeForProperty<Type> | undefined
   : NonUndefinableTypeForProperty<T>;
-export type TypeForProperty<T extends PropertyType> =
-  T extends `Nullable(${infer Type})`
-    ? NonNullableTypeForProperty<Type> | null
-    : NonNullableTypeForProperty<T>;
+export type TypeForProperty<T extends PropertyType> = T extends {
+  type: MetaType.Nullable;
+  inner: infer Type;
+}
+  ? NonNullableTypeForProperty<Type> | null
+  : NonNullableTypeForProperty<T>;
 
 type NonUndefinableValueType<T> = T extends string
   ? 'String'
@@ -42,10 +62,10 @@ type NonUndefinableValueType<T> = T extends string
   ? 'Boolean'
   : never;
 type NonNullableValueType<T> = undefined extends T
-  ? `Undefinable(${NonUndefinableValueType<T>})`
+  ? { type: MetaType.Undefinable; inner: NonUndefinableValueType<T> }
   : NonUndefinableValueType<T>;
 export type ValueType<T> = null extends T
-  ? `Nullable(${NonNullableValueType<T>})`
+  ? { type: MetaType.Nullable; inner: NonUndefinableValueType<T> }
   : NonNullableValueType<T>;
 
 export interface Constraint<T> {
@@ -66,8 +86,8 @@ export interface LinkProperty<T> extends PropertyDefinition<T> {
 }
 
 export function isLinkProperty(
-  property: PropertyDefinition<PropertyType>
-): property is LinkProperty<PropertyType> {
+  property: PropertyDefinition<unknown>
+): property is LinkProperty<unknown> {
   const prop = property as any;
   return prop.item && prop.outputAccessor;
 }
@@ -119,17 +139,23 @@ export const Primatives = {
 export function nullable<T>(
   prop: PropertyDefinition<T>
 ): PropertyDefinition<T | null> {
-  return { ...prop, type: `Nullable(${prop.type})` } as any;
+  return {
+    ...prop,
+    type: { type: MetaType.Nullable, inner: prop.type },
+  } as any;
 }
 
 export function undefinable<T>(
   prop: PropertyDefinition<T>
 ): PropertyDefinition<T | undefined> {
-  return { ...prop, type: `Undefinable(${prop.type})` } as any;
+  return {
+    ...prop,
+    type: { type: MetaType.Undefinable, inner: prop.type },
+  } as any;
 }
 
 export function undefinableOrNullable<T>(
   prop: PropertyDefinition<T>
 ): PropertyDefinition<T | null | undefined> {
-  return { ...prop, type: `Nullable(Undefinable(${prop.type}))` } as any;
+  return nullable(undefinable(prop));
 }
