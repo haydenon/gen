@@ -36,6 +36,11 @@ export type PropertyType =
   | Undefinable
   | ComplexType;
 
+export const isNullable = (type: PropertyType): type is Nullable =>
+  (type as any)?.type === MetaType.Nullable;
+export const isUndefinable = (type: PropertyType): type is Nullable =>
+  (type as any)?.type === MetaType.Nullable;
+
 export const Props: {
   Boolean: 'Boolean';
   Number: 'Number';
@@ -127,7 +132,6 @@ export function array<Prop extends PropertyType>(
   };
 }
 
-// Fields extends { [field: string]: PropertyType }
 type ComplexFields<T> = { [F in keyof T]: PropertyTypeForValue<T[F]> };
 
 export function complex<T>(fields: ComplexFields<T>): {
@@ -172,7 +176,7 @@ export function undefinable<Prop extends PropertyType>(
   return { type: MetaType.Undefinable, inner: prop };
 }
 
-export function undefinableOrNullable<Prop extends PropertyType>(
+export function nullOrUndefinable<Prop extends PropertyType>(
   prop: Prop
 ): {
   type: MetaType.Nullable;

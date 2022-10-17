@@ -9,6 +9,7 @@ import {
   PropertyTypeForValue,
 } from '../resources';
 import { createDesiredState, DesiredState } from '../resources/desired-state';
+import { getValue } from './property-generation';
 
 const DEFAULT_CREATE_TIMEOUT = 30 * 1000;
 
@@ -177,7 +178,7 @@ export class Generator {
         return values[key];
       }
 
-      return (values[key] = this.getValue(inputDef, inputProxy));
+      return (values[key] = getValue(inputDef, inputProxy));
     };
 
     const inputProxy: PropertyValues<PropertyMap> = {};
@@ -191,7 +192,7 @@ export class Generator {
       const value = values[inputKey];
       if (!(inputKey in values)) {
         currentInput = inputKey;
-        values[inputKey] = this.getValue(
+        values[inputKey] = getValue(
           state.resource.inputs[inputKey],
           inputProxy
         );
@@ -200,25 +201,6 @@ export class Generator {
       }
     }
     return values as PropertyValues<PropertyMap>;
-  }
-
-  private getValue(
-    input: PropertyDefinition<any>,
-    inputs: PropertyValues<PropertyMap>
-  ): any {
-    if (input.constraint) {
-      return input.constraint.generateConstrainedValue(inputs);
-    }
-
-    switch (input.type as PropertyType) {
-      // TODO: Nullable & undefinable handling
-      case 'String':
-        return `${faker.word.adjective()}  ${faker.word.noun()}`;
-      case 'Number':
-        return faker.datatype.number();
-      case 'Boolean':
-        return faker.datatype.boolean();
-    }
   }
 
   private getLinkValue(resourceLink: ResourceLink): any {
