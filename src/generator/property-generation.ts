@@ -41,7 +41,11 @@ function getValueForSimpleType(type: PropertyType): any {
   } else if (isNum(type)) {
     const min = type.constraint?.min;
     const max = type.constraint?.max;
-    return faker.datatype.number({ min, max });
+    const precision = type.constraint?.precision;
+    const options = { min, max, precision };
+    return type.constraint?.float
+      ? faker.datatype.float(options)
+      : faker.datatype.number(options);
   } else if (isBool(type)) {
     return faker.datatype.boolean();
   }

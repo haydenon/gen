@@ -18,6 +18,8 @@ interface BaseConstraint<T> {
 interface NumberConstraint extends BaseConstraint<number> {
   min?: number;
   max?: number;
+  float?: boolean;
+  precision?: number;
 }
 
 interface StringConstraint extends BaseConstraint<string> {
@@ -144,14 +146,8 @@ export type TypeForProperty<T> = T extends Nullable
   ? boolean
   : never;
 
-// export interface Constraint<T> {
-//   isValid?: (value: T) => boolean;
-//   generateConstrainedValue: (values: PropertyValues<PropertyMap>) => T;
-// }
-
 export interface PropertyDefinition<T> {
   type: PropertyTypeForValue<T>;
-  // constraint?: Constraint<T>;
 }
 
 export function def<T>(
@@ -235,7 +231,7 @@ export function complex<T>(fields: ComplexFields<T>): {
   };
 }
 
-export function constrained<Prop extends PropertyType>(
+export function constrain<Prop extends PropertyType>(
   property: Prop,
   constraint: Constraint<TypeForProperty<Prop>>
 ): Prop {
