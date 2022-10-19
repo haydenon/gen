@@ -15,12 +15,12 @@ interface BaseConstraint<T> {
   generateConstrainedValue?: (values: PropertyValues<PropertyMap>) => T;
 }
 
-interface NumberConstraint extends BaseConstraint<unknown> {
+interface NumberConstraint extends BaseConstraint<number> {
   min?: number;
   max?: number;
 }
 
-interface StringConstraint extends BaseConstraint<unknown> {
+interface StringConstraint extends BaseConstraint<string> {
   minLength?: number;
   maxLength?: number;
 }
@@ -40,7 +40,7 @@ export type Constraint<T> = T extends number
 
 interface PropertyTypeBase {
   type: Type;
-  constraint?: Constraint<unknown>;
+  constraint?: Constraint<any>;
 }
 
 interface BooleanType extends PropertyTypeBase {
