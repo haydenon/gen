@@ -8,8 +8,8 @@ import {
 import {
   Constraint,
   PropertyDefinition,
-  Props,
   def,
+  str,
 } from '../resources/properties';
 
 const EMAIL_REGEX =
@@ -23,7 +23,7 @@ export const EmailConstraint: Constraint<string> = {
   },
 };
 
-export const EmailProperty = def(Props.String, {
+export const EmailProperty: PropertyDefinition<string> = def(str(), {
   constraint: EmailConstraint,
 });
 

@@ -1,15 +1,17 @@
-import { faker } from '@faker-js/faker';
 import {
   ResourceInstance,
   PropertyMap,
   PropertyValues,
   PropertyType,
-  PropertyDefinition,
-  isLinkProperty,
   PropertyTypeForValue,
+  isNullable,
+  isUndefinable,
+  isArray,
+  isComplex,
+  isLinkType,
 } from '../resources';
-import { createDesiredState, DesiredState } from '../resources/desired-state';
-import { getValue } from './property-generation';
+import { DesiredState } from '../resources/desired-state';
+import { fillInDesiredStateTree } from './property-generation';
 
 const DEFAULT_CREATE_TIMEOUT = 30 * 1000;
 
@@ -25,37 +27,11 @@ interface StateNode {
 export class ResourceLink {
   constructor(
     public item: DesiredState,
-    public outputAccessor: (
-      output: PropertyValues<PropertyMap>
-    ) => PropertyTypeForValue<PropertyType>
+    public outputAccessor: (outputs: PropertyValues<PropertyMap>) => any
   ) {}
 }
-const isResourceLink = (value: any): value is ResourceLink =>
+export const isResourceLink = (value: any): value is ResourceLink =>
   value instanceof ResourceLink;
-
-function getStateWithDependentResources(state: DesiredState[]): DesiredState[] {
-  const newState = [...state];
-  for (const item of newState) {
-    for (const inputKey of Object.keys(item.resource.inputs)) {
-      const input = item.resource.inputs[inputKey];
-      // TODO: Support nullable inputs
-      if (
-        !(inputKey in item.inputs) &&
-        !input.constraint?.generateConstrainedValue &&
-        isLinkProperty(input)
-      ) {
-        const dependentState = createDesiredState(input.item, {});
-        item.inputs[inputKey] = new ResourceLink(
-          dependentState,
-          input.outputAccessor as (outputs: PropertyValues<PropertyMap>) => any
-        ) as any;
-        newState.push(dependentState);
-      }
-    }
-  }
-
-  return newState;
-}
 
 const CONCURRENT_CREATIONS = 10;
 
@@ -139,7 +115,7 @@ export class Generator {
         );
       }, timeout);
       const created = state.resource
-        .create(this.getInputs(state))
+        .create(this.fillInLinks(state.inputs, state.resource.inputs))
         .then((outputs) => {
           const instance: ResourceInstance<PropertyMap> = {
             desiredState: state,
@@ -156,51 +132,45 @@ export class Generator {
     });
   }
 
-  private getInputs(state: DesiredState): PropertyValues<PropertyMap> {
-    let currentInput: string | undefined;
-    const values = { ...state.inputs };
-    const getForKey = (key: string) => {
-      // TODO: Make sure error is reported correctly
-      if (currentInput === key) {
-        throw new Error(
-          `Circular property generation from property '${currentInput}' on resource '${state.resource.constructor.name}'`
-        );
+  private fillInLinks(
+    inputs: Partial<PropertyValues<PropertyMap>>,
+    definitions: PropertyMap
+  ): PropertyValues<PropertyMap> {
+    const fillInLinkForType = (type: PropertyType, value: any): any => {
+      if (isComplex(type)) {
+        const fields = type.fields;
+        return Object.keys(value).reduce((acc, key) => {
+          acc[key] = fillInLinkForType(fields[key], value[key]);
+          return acc;
+        }, {} as any);
+      }
+      if (isArray(type)) {
+        const arr = value as any[];
+        const innerType = type.inner;
+        return arr.map((item) => fillInLinkForType(innerType, item));
       }
 
-      const inputDef = state.resource.inputs[key];
-      if (!inputDef) {
-        throw new Error(
-          `Property '${currentInput}' does not exist on resource '${state.resource.constructor.name}'`
-        );
+      while (isNullable(type) || isUndefinable(type)) {
+        if (value === null) {
+          return null;
+        } else if (value === undefined) {
+          return undefined;
+        } else {
+          type = type.inner;
+        }
       }
 
-      if (key in values) {
-        return values[key];
+      if (isLinkType(type) && isResourceLink(value)) {
+        return this.getLinkValue(value);
       }
 
-      return (values[key] = getValue(inputDef, inputProxy));
+      return value;
     };
 
-    const inputProxy: PropertyValues<PropertyMap> = {};
-    for (const prop of Object.keys(state.resource.inputs)) {
-      Object.defineProperty(inputProxy, prop, {
-        get: () => getForKey(prop),
-      });
-    }
-
-    for (const inputKey of Object.keys(state.resource.inputs)) {
-      const value = values[inputKey];
-      if (!(inputKey in values)) {
-        currentInput = inputKey;
-        values[inputKey] = getValue(
-          state.resource.inputs[inputKey],
-          inputProxy
-        );
-      } else if (isResourceLink(value)) {
-        values[inputKey] = this.getLinkValue(value);
-      }
-    }
-    return values as PropertyValues<PropertyMap>;
+    return Object.keys(definitions).reduce((acc, key) => {
+      acc[key] = fillInLinkForType(definitions[key].type, inputs[key]);
+      return acc;
+    }, {} as PropertyValues<PropertyMap>);
   }
 
   private getLinkValue(resourceLink: ResourceLink): any {
@@ -317,7 +287,7 @@ export class Generator {
   }
 
   static create(state: DesiredState[], options?: GeneratorOptions): Generator {
-    state = getStateWithDependentResources(state);
+    state = fillInDesiredStateTree(state);
     return new Generator(Generator.getStructure(state), options);
   }
 

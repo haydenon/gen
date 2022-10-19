@@ -9,7 +9,9 @@ import {
   OutputValues,
   InputValues,
   def,
-  Props,
+  str,
+  bool,
+  num,
 } from '../resources';
 import {
   GenerationError,
@@ -19,14 +21,14 @@ import {
 } from './generator';
 
 class MockBase extends PropertiesBase {
-  text: PropertyDefinition<string> = def(Props.String);
-  number: PropertyDefinition<number> = def(Props.Number);
-  boolean: PropertyDefinition<boolean> = def(Props.Boolean);
+  text: PropertyDefinition<string> = def(str());
+  number: PropertyDefinition<number> = def(num());
+  boolean: PropertyDefinition<boolean> = def(bool());
 }
 
 let mockId = 1;
 class MockOutputs extends MockBase {
-  id: PropertyDefinition<number> = def(Props.Number);
+  id: PropertyDefinition<number> = def(num());
 }
 
 class MockDefinition extends Resource<MockBase, MockOutputs> {
@@ -83,10 +85,10 @@ const ErrorResource = new ErrorDefinition();
 
 let subId = 1;
 class SubBase extends PropertiesBase {
-  mockId: PropertyDefinition<number> = getLink(MockResource, (m) => m.id);
+  mockId: PropertyDefinition<number> = def(getLink(MockResource, (m) => m.id));
 }
 class SubOutputs extends SubBase {
-  id: PropertyDefinition<number> = def(Props.Number);
+  id: PropertyDefinition<number> = def(num());
 }
 class SubDefinition extends Resource<SubBase, SubOutputs> {
   constructor() {
@@ -104,10 +106,10 @@ const SubResource = new SubDefinition();
 
 let subSubId = 1;
 class SubSubBase extends PropertiesBase {
-  subId: PropertyDefinition<number> = getLink(SubResource, (s) => s.id);
+  subId: PropertyDefinition<number> = def(getLink(SubResource, (s) => s.id));
 }
 class SubSubOutputs extends SubSubBase {
-  id: PropertyDefinition<number> = def(Props.Number);
+  id: PropertyDefinition<number> = def(num());
 }
 class SubSubDefinition extends Resource<SubSubBase, SubSubOutputs> {
   constructor() {
