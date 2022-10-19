@@ -15,17 +15,12 @@ interface BaseConstraint<T> {
   generateConstrainedValue?: (values: PropertyValues<PropertyMap>) => T;
 }
 
-// interface LinkConstraint extends BaseConstraint<any> {
-//   resource: Resource<PropertyMap, PropertyMap>;
-//   outputAccessor: (outputs: PropertyValues<PropertyMap>) => T;
-// }
-
-interface NumberConstraint extends BaseConstraint<number> {
+interface NumberConstraint extends BaseConstraint<unknown> {
   min?: number;
   max?: number;
 }
 
-interface StringConstraint extends BaseConstraint<string> {
+interface StringConstraint extends BaseConstraint<unknown> {
   minLength?: number;
   maxLength?: number;
 }
@@ -54,12 +49,12 @@ interface BooleanType extends PropertyTypeBase {
 
 interface NumberType extends PropertyTypeBase {
   type: Type.Number;
-  contraint?: NumberConstraint;
+  constraint?: NumberConstraint;
 }
 
 interface StringType extends PropertyTypeBase {
   type: Type.String;
-  contraint?: StringConstraint;
+  constraint?: StringConstraint;
 }
 
 interface ArrayType extends PropertyTypeBase {

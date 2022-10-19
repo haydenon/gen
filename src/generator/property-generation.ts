@@ -18,7 +18,6 @@ import {
 import { ResourceLink } from './generator';
 
 function getValueForSimpleType(type: PropertyType): any {
-  console.log(type);
   if (isNullable(type)) {
     const random = Math.random();
     if (isUndefinable(type.inner)) {
@@ -37,73 +36,16 @@ function getValueForSimpleType(type: PropertyType): any {
     return random < 0.5 ? undefined : getValueForSimpleType(type.inner);
   }
 
-  console.log('Base type', type, isNum(type));
   if (isStr(type)) {
-    console.log('Str');
     return `${faker.word.adjective()}  ${faker.word.noun()}`;
   } else if (isNum(type)) {
-    console.log('Num');
-    return faker.datatype.number();
+    const min = type.constraint?.min;
+    const max = type.constraint?.max;
+    return faker.datatype.number({ min, max });
   } else if (isBool(type)) {
     return faker.datatype.boolean();
   }
 }
-
-// function getInputs(state: DesiredState): PropertyValues<PropertyMap> {
-//   let currentInput: string | undefined;
-//   const values = { ...state.inputs };
-//   const getForKey = (key: string) => {
-//     // TODO: Make sure error is reported correctly
-//     if (currentInput === key) {
-//       throw new Error(
-//         `Circular property generation from property '${currentInput}' on resource '${state.resource.constructor.name}'`
-//       );
-//     }
-
-//     const inputDef = state.resource.inputs[key];
-//     if (!inputDef) {
-//       throw new Error(
-//         `Property '${currentInput}' does not exist on resource '${state.resource.constructor.name}'`
-//       );
-//     }
-
-//     if (key in values) {
-//       return values[key];
-//     }
-
-//     return (values[key] = getValue(inputDef, inputProxy));
-//   };
-
-//   const inputProxy: PropertyValues<PropertyMap> = {};
-//   for (const prop of Object.keys(state.resource.inputs)) {
-//     Object.defineProperty(inputProxy, prop, {
-//       get: () => getForKey(prop),
-//     });
-//   }
-
-//   for (const inputKey of Object.keys(state.resource.inputs)) {
-//     const value = values[inputKey];
-//     if (!(inputKey in values)) {
-//       currentInput = inputKey;
-//       values[inputKey] = getValue(state.resource.inputs[inputKey], inputProxy);
-//     } else if (isResourceLink(value)) {
-//       values[inputKey] = getLinkValue(value);
-//     }
-//   }
-//   return values as PropertyValues<PropertyMap>;
-// }
-
-// function getValue(
-//   input: PropertyDefinition<any>,
-//   inputs: PropertyValues<PropertyMap>
-// ): any {
-//   // TODO: Fix generation
-//   // if (input.constraint) {
-//   //   return input.constraint.generateConstrainedValue(inputs);
-//   // }
-
-//   return getValueForSimpleType(input.type);
-// }
 
 function fillInType(
   type: PropertyType,
@@ -113,7 +55,6 @@ function fillInType(
     return Object.keys(type.fields).reduce(
       ([acc, states], field) => {
         const [value, newStates] = fillInType(type.fields[field], inputs);
-        console.log(field, type.fields[field], value, newStates);
         acc[field] = value;
         return [acc, [...states, ...newStates]];
       },
