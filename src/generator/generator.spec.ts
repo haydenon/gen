@@ -1,18 +1,19 @@
 import {
-  createDesiredState,
-  DesiredState,
   PropertyDefinition,
-  PropertyValues,
-  Resource,
-  PropertiesBase,
   getLink,
-  OutputValues,
-  InputValues,
   def,
   str,
   bool,
   num,
-} from '../resources';
+} from '../resources/properties';
+import {
+  PropertyValues,
+  Resource,
+  PropertiesBase,
+  OutputValues,
+  InputValues,
+} from '../resources/resource';
+import { createDesiredState, DesiredState } from '../resources/desired-state';
 import {
   GenerationError,
   GenerationResultError,

@@ -1,14 +1,13 @@
+import { PropertyMap, PropertyValues } from '../resources/resource';
 import {
-  ResourceInstance,
-  PropertyMap,
-  PropertyValues,
   PropertyTypeVisitor,
   ArrayType,
   ComplexType,
   Nullable,
   Undefinable,
   acceptPropertyType,
-} from '../resources';
+} from '../resources/properties';
+import { ResourceInstance } from '../resources/instance';
 import { DesiredState } from '../resources/desired-state';
 import { fillInDesiredStateTree } from './property-generation';
 

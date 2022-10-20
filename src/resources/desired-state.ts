@@ -1,4 +1,4 @@
-import { PropertyMap, Resource, PropertyValues, InputValues } from '.';
+import { PropertyMap, Resource, PropertyValues, InputValues } from './resource';
 
 export interface DesiredState {
   name: string;

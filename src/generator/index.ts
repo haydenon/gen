@@ -1,1 +1,1 @@
-export * from './generator';
+export { Generator, GenerationError, GenerationResultError } from './generator';

@@ -4,7 +4,7 @@ import {
   PropertiesBase,
   PropertyMap,
   Resource,
-} from '../resources';
+} from '../resources/resource';
 import {
   Constraint,
   PropertyDefinition,

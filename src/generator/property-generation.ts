@@ -1,20 +1,18 @@
 import { faker } from '@faker-js/faker';
 import {
   PropertyDefinition,
-  PropertyValues,
-  PropertyMap,
   PropertyType,
   isNullable,
   isUndefinable,
   isStr,
   isBool,
   isNum,
-  DesiredState,
   isLinkType,
   isComplex,
   isArray,
-  createDesiredState,
-} from '../resources';
+} from '../resources/properties';
+import { DesiredState, createDesiredState } from '../resources/desired-state';
+import { PropertyValues, PropertyMap } from '../resources/resource';
 import { ResourceLink } from './generator';
 
 function getValueForSimpleType(type: PropertyType): any {
@@ -37,7 +35,7 @@ function getValueForSimpleType(type: PropertyType): any {
   }
 
   if (isStr(type)) {
-    return `${faker.word.adjective()}  ${faker.word.noun()}`;
+    return `${faker.word.adjective()} ${faker.word.noun()}`;
   } else if (isNum(type)) {
     const min = type.constraint?.min;
     const max = type.constraint?.max;

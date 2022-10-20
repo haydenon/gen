@@ -1,4 +1,22 @@
-export * from './resource';
-export * from './instance';
-export * from './properties';
-export * from './desired-state';
+export {
+  Resource,
+  PropertiesBase,
+  PropertyValues,
+  OutputValues,
+  ResourceGroup,
+} from './resource';
+export {
+  PropertyDefinition,
+  createDepdendentConstraint,
+  getLink,
+  def,
+  constrain,
+  str,
+  num,
+  undefinable,
+  nullOrUndefinable,
+  nullable,
+  array,
+  complex,
+} from './properties';
+export { DesiredState, createDesiredState } from './desired-state';
