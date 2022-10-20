@@ -2,13 +2,12 @@ import {
   ResourceInstance,
   PropertyMap,
   PropertyValues,
-  PropertyType,
-  PropertyTypeForValue,
-  isNullable,
-  isUndefinable,
-  isArray,
-  isComplex,
-  isLinkType,
+  PropertyTypeVisitor,
+  ArrayType,
+  ComplexType,
+  Nullable,
+  Undefinable,
+  acceptPropertyType,
 } from '../resources';
 import { DesiredState } from '../resources/desired-state';
 import { fillInDesiredStateTree } from './property-generation';
@@ -49,6 +48,86 @@ const getNode =
     }
     return node;
   };
+
+class LinkFillVisitor implements PropertyTypeVisitor<any> {
+  constructor(
+    private value: any,
+    private getLinkValue: (resourceLink: ResourceLink) => any
+  ) {}
+
+  visitBool = () => this.value;
+  visitNum = () => this.value;
+  visitStr = () => this.value;
+  visitArray = (type: ArrayType) => {
+    const arr = this.value as any[];
+    const innerType = type.inner;
+    const result: any[] = arr.map((item) => {
+      this.value = item;
+      return acceptPropertyType(this, innerType);
+    });
+    this.value = arr;
+    return result;
+  };
+  visitNull = (type: Nullable): any =>
+    this.value === null ? null : acceptPropertyType(this, type.inner);
+  visitUndefined = (type: Undefinable): any =>
+    this.value === undefined ? undefined : acceptPropertyType(this, type.inner);
+  visitComplex = (type: ComplexType) => {
+    const fields = type.fields;
+    const originalValue = this.value;
+    const result = Object.keys(this.value).reduce((acc, key) => {
+      this.value = originalValue[key];
+      acc[key] = acceptPropertyType(this, fields[key]);
+      return acc;
+    }, {} as any);
+    this.value = originalValue;
+    return result;
+  };
+  visitLink = () => {
+    if (isResourceLink(this.value) && this.value) {
+      return this.getLinkValue(this.value);
+    }
+
+    return this.value;
+  };
+}
+
+class ResourceLinkVisitor implements PropertyTypeVisitor<ResourceLink[]> {
+  constructor(private value: any) {}
+
+  visitBool = () => [];
+  visitNum = () => [];
+  visitStr = () => [];
+  visitArray = (type: ArrayType) => {
+    const arr = this.value as any[];
+    const innerType = type.inner;
+    const result: ResourceLink[] = arr.reduce((acc, item) => {
+      this.value = item;
+      return [...acc, ...acceptPropertyType<ResourceLink[]>(this, innerType)];
+    }, [] as ResourceLink[]);
+    this.value = arr;
+    return result;
+  };
+  visitNull = (type: Nullable) =>
+    this.value === null
+      ? []
+      : acceptPropertyType<ResourceLink[]>(this, type.inner);
+  visitUndefined = (type: Undefinable) =>
+    this.value === undefined
+      ? []
+      : acceptPropertyType<ResourceLink[]>(this, type.inner);
+  visitComplex = (type: ComplexType) => {
+    const fields = type.fields;
+    const originalValue = this.value;
+    const result = Object.keys(this.value).reduce((acc, key) => {
+      this.value = originalValue[key];
+      return [...acc, ...acceptPropertyType<ResourceLink[]>(this, fields[key])];
+    }, [] as ResourceLink[]);
+    this.value = originalValue;
+    return result;
+  };
+  visitLink = () => (isResourceLink(this.value) ? [this.value] : []);
+}
 
 export class Generator {
   private inProgressCount = 0;
@@ -136,51 +215,24 @@ export class Generator {
     inputs: Partial<PropertyValues<PropertyMap>>,
     definitions: PropertyMap
   ): PropertyValues<PropertyMap> {
-    const fillInLinkForType = (type: PropertyType, value: any): any => {
-      if (isComplex(type)) {
-        const fields = type.fields;
-        return Object.keys(value).reduce((acc, key) => {
-          acc[key] = fillInLinkForType(fields[key], value[key]);
-          return acc;
-        }, {} as any);
-      }
-      if (isArray(type)) {
-        const arr = value as any[];
-        const innerType = type.inner;
-        return arr.map((item) => fillInLinkForType(innerType, item));
-      }
-
-      while (isNullable(type) || isUndefinable(type)) {
-        if (value === null) {
-          return null;
-        } else if (value === undefined) {
-          return undefined;
-        } else {
-          type = type.inner;
-        }
-      }
-
-      if (isLinkType(type) && isResourceLink(value)) {
-        return this.getLinkValue(value);
-      }
-
-      return value;
-    };
-
     return Object.keys(definitions).reduce((acc, key) => {
-      acc[key] = fillInLinkForType(definitions[key].type, inputs[key]);
+      const linkFillVisitor = new LinkFillVisitor(
+        inputs[key],
+        this.getLinkValue
+      );
+      acc[key] = acceptPropertyType(linkFillVisitor, definitions[key].type);
       return acc;
     }, {} as PropertyValues<PropertyMap>);
   }
 
-  private getLinkValue(resourceLink: ResourceLink): any {
+  private getLinkValue = (resourceLink: ResourceLink): any => {
     const linkedValue = this.getNodeForState(resourceLink.item);
     if (!linkedValue.output) {
       throw new Error('Dependent state should already be created');
     }
 
     return resourceLink.outputAccessor(linkedValue.output.outputs);
-  }
+  };
 
   private notifyItemSuccess(instance: ResourceInstance<PropertyMap>) {
     if (this.options?.onCreate) {
@@ -293,7 +345,6 @@ export class Generator {
 
   private getNodeForState = getNode(this.stateNodes);
 
-  // TODO: Proper tree construction
   private static getStructure(stateValues: DesiredState[]): StateNode[] {
     const nodes: StateNode[] = stateValues.map((state) => ({
       state,
@@ -304,13 +355,20 @@ export class Generator {
     }));
 
     for (const node of nodes) {
-      for (const linkProp of Object.values(node.state.inputs).filter((v) =>
-        isResourceLink(v)
-      )) {
-        const link = linkProp as any as ResourceLink;
-        const linkNode = getNode(nodes)(link.item);
-        node.dependencies.push(linkNode);
-        linkNode.depedendents.push(node);
+      for (const inputKey of Object.keys(node.state.resource.inputs)) {
+        const inputDef = node.state.resource.inputs[inputKey];
+        const resourceLinkVisitor = new ResourceLinkVisitor(
+          node.state.inputs[inputKey]
+        );
+        const links = acceptPropertyType<ResourceLink[]>(
+          resourceLinkVisitor,
+          inputDef.type
+        );
+        for (const link of links) {
+          const linkNode = getNode(nodes)(link.item);
+          node.dependencies.push(linkNode);
+          linkNode.depedendents.push(node);
+        }
       }
     }
 

@@ -83,7 +83,12 @@ function fillInType(
   if (type.constraint?.generateConstrainedValue) {
     return [type.constraint?.generateConstrainedValue(inputs), []];
   } else if (isLinkType(type)) {
-    const dependentState = createDesiredState(type.resource, {});
+    const resourceCount = type.resources.length;
+    const resourceIndex = Math.floor(Math.random() * resourceCount);
+    const dependentState = createDesiredState(
+      type.resources[resourceIndex],
+      {}
+    );
     const link = new ResourceLink(dependentState, type.outputAccessor);
     return [link, [dependentState]];
   }

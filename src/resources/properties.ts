@@ -45,37 +45,37 @@ interface PropertyTypeBase {
   constraint?: Constraint<any>;
 }
 
-interface BooleanType extends PropertyTypeBase {
+export interface BooleanType extends PropertyTypeBase {
   type: Type.Boolean;
 }
 
-interface NumberType extends PropertyTypeBase {
+export interface NumberType extends PropertyTypeBase {
   type: Type.Number;
   constraint?: NumberConstraint;
 }
 
-interface StringType extends PropertyTypeBase {
+export interface StringType extends PropertyTypeBase {
   type: Type.String;
   constraint?: StringConstraint;
 }
 
-interface ArrayType extends PropertyTypeBase {
+export interface ArrayType extends PropertyTypeBase {
   type: Type.Array;
   inner: PropertyType;
   constraint?: ArrayConstraint<unknown>;
 }
 
-interface Nullable extends PropertyTypeBase {
+export interface Nullable extends PropertyTypeBase {
   type: Type.Nullable;
   inner: PropertyType;
 }
 
-interface Undefinable extends PropertyTypeBase {
+export interface Undefinable extends PropertyTypeBase {
   type: Type.Undefinable;
   inner: PropertyType;
 }
 
-interface ComplexType extends PropertyTypeBase {
+export interface ComplexType extends PropertyTypeBase {
   type: Type.Complex;
   fields: { [name: string]: PropertyType };
 }
@@ -146,6 +146,40 @@ export type TypeForProperty<T> = T extends Nullable
   ? boolean
   : never;
 
+export function acceptPropertyType<T>(
+  visitor: PropertyTypeVisitor<T>,
+  type: PropertyType
+): T {
+  if (visitor.visitLink && isLinkType(type)) {
+    return visitor.visitLink(type);
+  } else if (isComplex(type)) {
+    return visitor.visitComplex(type);
+  } else if (isArray(type)) {
+    return visitor.visitArray(type);
+  } else if (isNullable(type)) {
+    return visitor.visitNull(type);
+  } else if (isUndefinable(type)) {
+    return visitor.visitUndefined(type);
+  } else if (isBool(type)) {
+    return visitor.visitBool(type);
+  } else if (isNum(type)) {
+    return visitor.visitNum(type);
+  } else {
+    return visitor.visitStr(type);
+  }
+}
+
+export interface PropertyTypeVisitor<T> {
+  visitBool: (type: BooleanType) => T;
+  visitNum: (type: NumberType) => T;
+  visitStr: (type: StringType) => T;
+  visitArray: (type: ArrayType) => T;
+  visitNull: (type: Nullable) => T;
+  visitUndefined: (type: Undefinable) => T;
+  visitComplex: (type: ComplexType) => T;
+  visitLink?: (type: LinkType<any>) => T;
+}
+
 export interface PropertyDefinition<T> {
   type: PropertyTypeForValue<T>;
 }
@@ -171,23 +205,34 @@ export function isLinkType(
   type: PropertyType
 ): type is PropertyType & LinkType<unknown> {
   const prop = type as any as LinkType<unknown>;
-  return !!prop.resource && !!prop.outputAccessor;
+  return !!prop.resources && !!prop.outputAccessor;
 }
 
-interface LinkType<T> {
-  resource: Resource<PropertyMap, PropertyMap>;
+export interface LinkType<T> {
+  resources: Resource<PropertyMap, PropertyMap>[];
   outputAccessor: (outputs: PropertyValues<PropertyMap>) => T;
 }
+
 export function getLink<T, Out extends PropertyMap>(
   resource: Resource<PropertyMap, Out>,
   propAccessor: (outputs: Out) => PropertyDefinition<T>
+): PropertyTypeForValue<T> & LinkType<any>;
+export function getLink<T, Out extends PropertyMap>(
+  resources: Resource<PropertyMap, Out>[],
+  propAccessor: (outputs: Out) => PropertyDefinition<T>
+): PropertyTypeForValue<T> & LinkType<any>;
+export function getLink<T, Out extends PropertyMap>(
+  resources: Resource<PropertyMap, Out> | Resource<PropertyMap, Out>[],
+  propAccessor: (outputs: Out) => PropertyDefinition<T>
 ): PropertyTypeForValue<T> & LinkType<any> {
-  const outputProperty = propAccessor(resource.outputs);
+  const outputProperty = propAccessor(
+    resources instanceof Array ? resources[0].outputs : resources.outputs
+  );
   const outputAccessor: (outputs: PropertyValues<PropertyMap>) => any =
     propAccessor as any;
   return {
     ...outputProperty.type,
-    resource,
+    resources: resources instanceof Array ? resources : [resources],
     outputAccessor,
   };
 }
