@@ -42,3 +42,8 @@ export abstract class Resource<
   ): Promise<OutputValues<Outputs>>;
   createTimeoutMillis?: number;
 }
+
+export type ResourceGroup<Out extends PropertyMap> = Resource<
+  PropertyMap,
+  Out
+>[];

@@ -108,21 +108,25 @@ class ResourceLinkVisitor implements PropertyTypeVisitor<ResourceLink[]> {
     this.value = arr;
     return result;
   };
-  visitNull = (type: Nullable) =>
-    this.value === null
-      ? []
-      : acceptPropertyType<ResourceLink[]>(this, type.inner);
-  visitUndefined = (type: Undefinable) =>
+  visitNull = (type: Nullable): ResourceLink[] =>
+    this.value === null ? [] : acceptPropertyType(this, type.inner);
+  visitUndefined = (type: Undefinable): ResourceLink[] =>
     this.value === undefined
       ? []
       : acceptPropertyType<ResourceLink[]>(this, type.inner);
   visitComplex = (type: ComplexType) => {
     const fields = type.fields;
     const originalValue = this.value;
-    const result = Object.keys(this.value).reduce((acc, key) => {
-      this.value = originalValue[key];
-      return [...acc, ...acceptPropertyType<ResourceLink[]>(this, fields[key])];
-    }, [] as ResourceLink[]);
+    const result: ResourceLink[] = Object.keys(this.value).reduce(
+      (acc, key) => {
+        this.value = originalValue[key];
+        return [
+          ...acc,
+          ...acceptPropertyType<ResourceLink[]>(this, fields[key]),
+        ];
+      },
+      [] as ResourceLink[]
+    );
     this.value = originalValue;
     return result;
   };
