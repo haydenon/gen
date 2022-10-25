@@ -2,8 +2,10 @@ import { Resource, PropertyValues, PropertyMap } from './resource';
 
 enum Type {
   Boolean = 'Boolean',
-  Number = 'Number',
+  Int = 'Int',
+  Float = 'Float',
   String = 'String',
+  Date = 'Date',
   Nullable = 'Nullable',
   Undefinable = 'Undefinable',
   Array = 'Array',
@@ -15,11 +17,22 @@ interface BaseConstraint<T> {
   generateConstrainedValue?: (values: PropertyValues<PropertyMap>) => T;
 }
 
-interface NumberConstraint extends BaseConstraint<number> {
+interface IntConstraint extends BaseConstraint<number> {
   min?: number;
   max?: number;
   float?: boolean;
   precision?: number;
+}
+
+interface FloatConstraint extends BaseConstraint<number> {
+  min?: number;
+  max?: number;
+  precision?: number;
+}
+
+interface DateConstraint extends BaseConstraint<Date> {
+  minDate?: Date;
+  maxDate?: Date;
 }
 
 interface StringConstraint extends BaseConstraint<string> {
@@ -33,11 +46,13 @@ interface ArrayConstraint<T> extends BaseConstraint<T> {
 }
 
 export type Constraint<T> = T extends number
-  ? NumberConstraint
+  ? IntConstraint | FloatConstraint
   : T extends string
   ? StringConstraint
   : T extends (infer Type)[]
   ? ArrayConstraint<Type>
+  : T extends Date
+  ? DateConstraint
   : BaseConstraint<T>;
 
 interface PropertyTypeBase {
@@ -49,14 +64,24 @@ export interface BooleanType extends PropertyTypeBase {
   type: Type.Boolean;
 }
 
-export interface NumberType extends PropertyTypeBase {
-  type: Type.Number;
-  constraint?: NumberConstraint;
+export interface IntType extends PropertyTypeBase {
+  type: Type.Int;
+  constraint?: IntConstraint;
+}
+
+export interface FloatType extends PropertyTypeBase {
+  type: Type.Float;
+  constraint?: FloatConstraint;
 }
 
 export interface StringType extends PropertyTypeBase {
   type: Type.String;
   constraint?: StringConstraint;
+}
+
+export interface DateType extends PropertyTypeBase {
+  type: Type.Date;
+  constraint?: DateConstraint;
 }
 
 export interface ArrayType extends PropertyTypeBase {
@@ -82,8 +107,10 @@ export interface ComplexType extends PropertyTypeBase {
 
 export type PropertyType =
   | BooleanType
-  | NumberType
+  | FloatType
+  | IntType
   | StringType
+  | DateType
   | ArrayType
   | Nullable
   | Undefinable
@@ -91,8 +118,12 @@ export type PropertyType =
 
 export const isBool = (type: PropertyType): type is BooleanType =>
   (type as any)?.type === Type.Boolean;
-export const isNum = (type: PropertyType): type is NumberType =>
-  (type as any)?.type === Type.Number;
+export const isFloat = (type: PropertyType): type is FloatType =>
+  (type as any)?.type === Type.Float;
+export const isInt = (type: PropertyType): type is IntType =>
+  (type as any)?.type === Type.Int;
+export const isDate = (type: PropertyType): type is DateType =>
+  (type as any)?.type === Type.Date;
 export const isStr = (type: PropertyType): type is StringType =>
   (type as any)?.type === Type.String;
 export const isNullable = (type: PropertyType): type is Nullable =>
@@ -115,6 +146,8 @@ export type PropertyTypeForValue<T> = null extends T
   ? { type: Type.Undefinable; inner: PropertyTypeForValue<NonUndefined<T>> }
   : T extends (infer Type)[]
   ? { type: Type.Array; inner: PropertyTypeForValue<Type> }
+  : T extends Date
+  ? DateType
   : T extends object
   ? {
       type: Type.Complex;
@@ -123,24 +156,29 @@ export type PropertyTypeForValue<T> = null extends T
   : T extends string
   ? StringType
   : T extends number
-  ? NumberType
+  ? IntType | FloatType
   : T extends boolean
   ? BooleanType
   : never;
 
+type NonNullTypeForProp<T> = T extends Nullable ? never : T;
+type NonUndefinedTypeForProp<T> = T extends Undefinable | Nullable ? never : T;
+
 export type TypeForProperty<T> = T extends Nullable
-  ? T | null
+  ? TypeForProperty<NonNullTypeForProp<T['inner']>> | null
   : T extends Undefinable
-  ? T | undefined
+  ? TypeForProperty<NonUndefinedTypeForProp<T['inner']>> | undefined
   : T extends ArrayType
   ? TypeForProperty<T['inner']>[]
+  : T extends DateType
+  ? Date
   : T extends ComplexType
   ? {
       [K in keyof T['fields']]: TypeForProperty<T['fields'][K]['type']>;
     }
   : T extends StringType
   ? string
-  : T extends NumberType
+  : T extends FloatType | IntType
   ? number
   : T extends BooleanType
   ? boolean
@@ -162,8 +200,12 @@ export function acceptPropertyType<T>(
     return visitor.visitUndefined(type);
   } else if (isBool(type)) {
     return visitor.visitBool(type);
-  } else if (isNum(type)) {
-    return visitor.visitNum(type);
+  } else if (isInt(type)) {
+    return visitor.visitInt(type);
+  } else if (isFloat(type)) {
+    return visitor.visitFloat(type);
+  } else if (isDate(type)) {
+    return visitor.visitDate(type);
   } else {
     return visitor.visitStr(type);
   }
@@ -171,8 +213,10 @@ export function acceptPropertyType<T>(
 
 export interface PropertyTypeVisitor<T> {
   visitBool: (type: BooleanType) => T;
-  visitNum: (type: NumberType) => T;
+  visitInt: (type: IntType) => T;
+  visitFloat: (type: FloatType) => T;
   visitStr: (type: StringType) => T;
+  visitDate: (type: DateType) => T;
   visitArray: (type: ArrayType) => T;
   visitNull: (type: Nullable) => T;
   visitUndefined: (type: Undefinable) => T;
@@ -243,15 +287,27 @@ export function bool(): BooleanType {
   };
 }
 
-export function num(): NumberType {
+export function int(): IntType {
   return {
-    type: Type.Number,
+    type: Type.Int,
+  };
+}
+
+export function float(): FloatType {
+  return {
+    type: Type.Float,
   };
 }
 
 export function str(): StringType {
   return {
     type: Type.String,
+  };
+}
+
+export function date(): DateType {
+  return {
+    type: Type.Date,
   };
 }
 

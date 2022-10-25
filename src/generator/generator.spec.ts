@@ -4,7 +4,7 @@ import {
   def,
   str,
   bool,
-  num,
+  int,
 } from '../resources/properties';
 import {
   PropertyValues,
@@ -23,13 +23,13 @@ import {
 
 class MockBase extends PropertiesBase {
   text: PropertyDefinition<string> = def(str());
-  number: PropertyDefinition<number> = def(num());
+  number: PropertyDefinition<number> = def(int());
   boolean: PropertyDefinition<boolean> = def(bool());
 }
 
 let mockId = 1;
 class MockOutputs extends MockBase {
-  id: PropertyDefinition<number> = def(num());
+  id: PropertyDefinition<number> = def(int());
 }
 
 class MockDefinition extends Resource<MockBase, MockOutputs> {
@@ -89,7 +89,7 @@ class SubBase extends PropertiesBase {
   mockId: PropertyDefinition<number> = def(getLink(MockResource, (m) => m.id));
 }
 class SubOutputs extends SubBase {
-  id: PropertyDefinition<number> = def(num());
+  id: PropertyDefinition<number> = def(int());
 }
 class SubDefinition extends Resource<SubBase, SubOutputs> {
   constructor() {
@@ -110,7 +110,7 @@ class SubSubBase extends PropertiesBase {
   subId: PropertyDefinition<number> = def(getLink(SubResource, (s) => s.id));
 }
 class SubSubOutputs extends SubSubBase {
-  id: PropertyDefinition<number> = def(num());
+  id: PropertyDefinition<number> = def(int());
 }
 class SubSubDefinition extends Resource<SubSubBase, SubSubOutputs> {
   constructor() {
