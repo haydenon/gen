@@ -15,6 +15,59 @@ import { DesiredState, createDesiredState } from '../resources/desired-state';
 import { PropertyValues, PropertyMap } from '../resources/resource';
 import { ResourceLink } from './generator';
 
+const getRandomNumber = (min: number, max: number): number => {
+  const difference = max - min;
+  return Math.floor(Math.random() * difference) + min;
+};
+
+function getStringOfLength(length: number): string {
+  if (length < 3) {
+    return faker.datatype.string(length);
+  }
+  if (length < 9) {
+    return faker.word.noun(length);
+  }
+
+  const minLength = 3;
+  const maxLength = 8;
+  if (length > maxLength * 4) {
+    // TODO: Better long text. This doesn't adhere to constraints yet
+    return faker.lorem.paragraphs(length / 50);
+  }
+  let count = 0;
+  let smallestWord = 0;
+  let desiredLength = 0;
+  for (desiredLength = maxLength; desiredLength >= minLength; desiredLength--) {
+    const numFit = (length + 1) / (desiredLength + 1);
+    if (numFit % 1 === 0) {
+      count = numFit;
+      smallestWord = desiredLength;
+      break;
+    }
+
+    const remainder = length - Math.floor(numFit) * (desiredLength + 1);
+    if (remainder >= minLength && remainder <= maxLength) {
+      count = numFit + 1;
+      smallestWord = remainder;
+      break;
+    }
+  }
+
+  let string = '';
+
+  for (let i = 0; i < count - 2; i++) {
+    string += `${faker.word.adjective(desiredLength)} `;
+  }
+
+  if (count > 1) {
+    string += `${faker.word.adjective(smallestWord)} `;
+  }
+
+  string += faker.word.noun(desiredLength);
+
+  return string;
+}
+
 function getValueForSimpleType(type: PropertyType): any {
   if (isNullable(type)) {
     const random = Math.random();
@@ -35,7 +88,10 @@ function getValueForSimpleType(type: PropertyType): any {
   }
 
   if (isStr(type)) {
-    return `${faker.word.adjective()} ${faker.word.noun()}`;
+    const min = type.constraint?.maxLength ?? 10;
+    const max = type.constraint?.minLength ?? 20;
+    const length = getRandomNumber(min, max);
+    return getStringOfLength(length);
   } else if (isNum(type)) {
     const min = type.constraint?.min;
     const max = type.constraint?.max;
@@ -67,8 +123,7 @@ function fillInType(
   if (isArray(type)) {
     const min = type.constraint?.minItems ?? 0;
     const max = type.constraint?.maxItems ?? 10;
-    const difference = max - min;
-    const count = Math.floor(Math.random() * difference) + min;
+    const count = getRandomNumber(min, max);
     const mapped = [...Array(count).keys()].map(() =>
       fillInType(type.inner, inputs)
     );
