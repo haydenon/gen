@@ -6,7 +6,9 @@ import {
   isUndefinable,
   isStr,
   isBool,
-  isNum,
+  isInt,
+  isFloat,
+  isDate,
   isLinkType,
   isComplex,
   isArray,
@@ -92,16 +94,23 @@ function getValueForSimpleType(type: PropertyType): any {
     const max = type.constraint?.minLength ?? 20;
     const length = getRandomNumber(min, max);
     return getStringOfLength(length);
-  } else if (isNum(type)) {
+  } else if (isInt(type) || isFloat(type)) {
     const min = type.constraint?.min;
     const max = type.constraint?.max;
     const precision = type.constraint?.precision;
     const options = { min, max, precision };
-    return type.constraint?.float
+    return isFloat(type)
       ? faker.datatype.float(options)
       : faker.datatype.number(options);
   } else if (isBool(type)) {
     return faker.datatype.boolean();
+  } else if (isDate(type)) {
+    const min = type.constraint?.minDate?.getTime();
+    const max = type.constraint?.maxDate?.getTime();
+    return faker.datatype.datetime({
+      min,
+      max,
+    });
   }
 }
 

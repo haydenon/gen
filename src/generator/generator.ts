@@ -55,7 +55,9 @@ class LinkFillVisitor implements PropertyTypeVisitor<any> {
   ) {}
 
   visitBool = () => this.value;
-  visitNum = () => this.value;
+  visitInt = () => this.value;
+  visitFloat = () => this.value;
+  visitDate = () => this.value;
   visitStr = () => this.value;
   visitArray = (type: ArrayType) => {
     const arr = this.value as any[];
@@ -95,7 +97,9 @@ class ResourceLinkVisitor implements PropertyTypeVisitor<ResourceLink[]> {
   constructor(private value: any) {}
 
   visitBool = () => [];
-  visitNum = () => [];
+  visitInt = () => [];
+  visitFloat = () => [];
+  visitDate = () => [];
   visitStr = () => [];
   visitArray = (type: ArrayType) => {
     const arr = this.value as any[];
