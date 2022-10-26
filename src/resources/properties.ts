@@ -1,3 +1,4 @@
+import { isOneOf, LookupValues, oneOf } from '../utilities';
 import { Resource, PropertyValues, PropertyMap } from './resource';
 
 enum Type {
@@ -45,7 +46,11 @@ interface ArrayConstraint<T> extends BaseConstraint<T> {
   maxItems?: number;
 }
 
-export type Constraint<T> = T extends number
+export type Constraint<T> = null extends T
+  ? BaseConstraint<T>
+  : undefined extends T
+  ? BaseConstraint<T>
+  : T extends number
   ? IntConstraint | FloatConstraint
   : T extends string
   ? StringConstraint
@@ -281,6 +286,19 @@ export function getLink<T, Out extends PropertyMap>(
   };
 }
 
+export function lookup<Prop extends PropertyType>(
+  property: Prop,
+  values: LookupValues<TypeForProperty<Prop>>
+): Prop {
+  return {
+    ...property,
+    constraint: {
+      isValid: (value: TypeForProperty<Prop>) => isOneOf(values, value),
+      generateConstrainedValue: () => oneOf(values),
+    },
+  };
+}
+
 export function bool(): BooleanType {
   return {
     type: Type.Boolean,
@@ -342,9 +360,17 @@ export function constrain<Prop extends PropertyType>(
   };
 }
 
-export function createDepdendentConstraint<Inputs extends PropertyMap, Prop>(
+export function dependentGenerator<Inputs extends PropertyMap, Prop>(
   func: (values: PropertyValues<Inputs>) => Prop
 ): BaseConstraint<Prop> {
+  return {
+    generateConstrainedValue: func as (
+      values: PropertyValues<PropertyMap>
+    ) => Prop,
+  };
+}
+
+export function generator<Prop>(func: () => Prop): BaseConstraint<Prop> {
   return {
     generateConstrainedValue: func as (
       values: PropertyValues<PropertyMap>

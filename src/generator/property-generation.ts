@@ -16,11 +16,12 @@ import {
 import { DesiredState, createDesiredState } from '../resources/desired-state';
 import { PropertyValues, PropertyMap } from '../resources/resource';
 import { ResourceLink } from './generator';
-
-const getRandomNumber = (min: number, max: number): number => {
-  const difference = max - min;
-  return Math.floor(Math.random() * difference) + min;
-};
+import {
+  getRandomInt,
+  maybeNull,
+  maybeNullOrUndefined,
+  maybeUndefined,
+} from '../utilities';
 
 function getStringOfLength(length: number): string {
   if (length < 3) {
@@ -72,27 +73,22 @@ function getStringOfLength(length: number): string {
 
 function getValueForSimpleType(type: PropertyType): any {
   if (isNullable(type)) {
-    const random = Math.random();
     if (isUndefinable(type.inner)) {
-      return random < 0.25
-        ? undefined
-        : random < 0.5
-        ? null
-        : getValueForSimpleType(type.inner.inner);
+      const innerType = type.inner.inner;
+      return maybeNullOrUndefined(() => getValueForSimpleType(innerType));
     }
 
-    return random < 0.5 ? null : getValueForSimpleType(type.inner);
+    return maybeNull(() => getValueForSimpleType(type.inner));
   }
 
   if (isUndefinable(type)) {
-    const random = Math.random();
-    return random < 0.5 ? undefined : getValueForSimpleType(type.inner);
+    return maybeUndefined(() => getValueForSimpleType(type.inner));
   }
 
   if (isStr(type)) {
     const min = type.constraint?.maxLength ?? 10;
     const max = type.constraint?.minLength ?? 20;
-    const length = getRandomNumber(min, max);
+    const length = getRandomInt(min, max);
     return getStringOfLength(length);
   } else if (isInt(type) || isFloat(type)) {
     const min = type.constraint?.min;
@@ -132,7 +128,7 @@ function fillInType(
   if (isArray(type)) {
     const min = type.constraint?.minItems ?? 0;
     const max = type.constraint?.maxItems ?? 10;
-    const count = getRandomNumber(min, max);
+    const count = getRandomInt(min, max);
     const mapped = [...Array(count).keys()].map(() =>
       fillInType(type.inner, inputs)
     );

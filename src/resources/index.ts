@@ -7,7 +7,8 @@ export {
 } from './resource';
 export {
   PropertyDefinition,
-  createDepdendentConstraint,
+  dependentGenerator,
+  generator,
   getLink,
   def,
   constrain,
@@ -20,5 +21,6 @@ export {
   nullable,
   array,
   complex,
+  lookup,
 } from './properties';
 export { DesiredState, createDesiredState } from './desired-state';
