@@ -12,6 +12,7 @@ import {
   isLinkType,
   isComplex,
   isArray,
+  GenerationResult,
 } from '../resources/properties';
 import { DesiredState, createDesiredState } from '../resources/desired-state';
 import { PropertyValues, PropertyMap } from '../resources/resource';
@@ -110,18 +111,30 @@ function getValueForSimpleType(type: PropertyType): any {
   }
 }
 
+interface DesiredWithChildren {
+  desired: DesiredState;
+  children: DesiredState[];
+}
+
 function fillInType(
+  current: DesiredState,
   type: PropertyType,
-  inputs: PropertyValues<PropertyMap>
-): [any, DesiredState[]] {
+  inputs: PropertyValues<PropertyMap>,
+  children: DesiredState[]
+): [any, DesiredWithChildren[]] {
   if (isComplex(type)) {
     return Object.keys(type.fields).reduce(
       ([acc, states], field) => {
-        const [value, newStates] = fillInType(type.fields[field], inputs);
+        const [value, newStates] = fillInType(
+          current,
+          type.fields[field],
+          inputs,
+          children
+        );
         acc[field] = value;
         return [acc, [...states, ...newStates]];
       },
-      [{}, []] as [any, DesiredState[]]
+      [{}, []] as [any, DesiredWithChildren[]]
     );
   }
 
@@ -130,7 +143,7 @@ function fillInType(
     const max = type.constraint?.maxItems ?? 10;
     const count = getRandomInt(min, max);
     const mapped = [...Array(count).keys()].map(() =>
-      fillInType(type.inner, inputs)
+      fillInType(current, type.inner, inputs, children)
     );
     return [
       mapped.flatMap(([value]) => value),
@@ -139,8 +152,15 @@ function fillInType(
   }
 
   if (type.constraint?.generateConstrainedValue) {
-    return [type.constraint?.generateConstrainedValue(inputs), []];
-  } else if (isLinkType(type)) {
+    const value = type.constraint?.generateConstrainedValue(inputs, {
+      children,
+    });
+    if (value !== GenerationResult.ValueNotGenerated) {
+      return [value, []];
+    }
+  }
+
+  if (isLinkType(type)) {
     const resourceCount = type.resources.length;
     const resourceIndex = Math.floor(Math.random() * resourceCount);
     const dependentState = createDesiredState(
@@ -148,7 +168,8 @@ function fillInType(
       {}
     );
     const link = new ResourceLink(dependentState, type.outputAccessor);
-    return [link, [dependentState]];
+    const newChildren = [current, ...children];
+    return [link, [{ desired: dependentState, children: newChildren }]];
   }
 
   return [getValueForSimpleType(type), []];
@@ -156,11 +177,12 @@ function fillInType(
 
 function fillInInput(
   state: DesiredState,
-  input: PropertyDefinition<any>
-): [any, DesiredState[]] {
+  input: PropertyDefinition<any>,
+  children: DesiredState[]
+): [any, DesiredWithChildren[]] {
   let currentInput: string | undefined;
   const values = state.inputs;
-  let newState: DesiredState[] = [];
+  let newState: DesiredWithChildren[] = [];
   const getForKey = (key: string) => {
     // TODO: Make sure error is reported correctly
     if (currentInput === key) {
@@ -180,7 +202,12 @@ function fillInInput(
       return values[key];
     }
 
-    const [value, dependentState] = fillInType(inputDef.type, inputProxy);
+    const [value, dependentState] = fillInType(
+      state,
+      inputDef.type,
+      inputProxy,
+      children
+    );
     newState = [...newState, ...dependentState];
     return (values[key] = value);
   };
@@ -192,19 +219,31 @@ function fillInInput(
     });
   }
 
-  const [value, dependentState] = fillInType(input.type, inputProxy);
+  const [value, dependentState] = fillInType(
+    state,
+    input.type,
+    inputProxy,
+    children
+  );
   newState = [...newState, ...dependentState];
   return [value, newState];
 }
 
 export function fillInDesiredStateTree(state: DesiredState[]): DesiredState[] {
-  const newState = [...state];
+  // TODO: Explicit link support
+  const newState: DesiredWithChildren[] = [
+    ...state.map((desired) => ({ desired, children: [] })),
+  ];
   for (const item of newState) {
-    for (const inputKey of Object.keys(item.resource.inputs)) {
-      const input = item.resource.inputs[inputKey];
-      if (!(inputKey in item.inputs)) {
-        const [value, dependentStates] = fillInInput(item, input);
-        item.inputs[inputKey] = value;
+    for (const inputKey of Object.keys(item.desired.resource.inputs)) {
+      const input = item.desired.resource.inputs[inputKey];
+      if (!(inputKey in item.desired.inputs)) {
+        const [value, dependentStates] = fillInInput(
+          item.desired,
+          input,
+          item.children
+        );
+        item.desired.inputs[inputKey] = value;
         for (const state of dependentStates) {
           newState.push(state);
         }
@@ -212,5 +251,5 @@ export function fillInDesiredStateTree(state: DesiredState[]): DesiredState[] {
     }
   }
 
-  return newState;
+  return newState.map((s) => s.desired);
 }

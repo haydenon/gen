@@ -1,4 +1,5 @@
 import { isOneOf, LookupValues, oneOf } from '../utilities';
+import { DesiredState } from './desired-state';
 import { Resource, PropertyValues, PropertyMap } from './resource';
 
 enum Type {
@@ -13,9 +14,17 @@ enum Type {
   Complex = 'Complex',
 }
 
+export class GenerationResult {
+  private constructor(public wasGenerated: boolean) {}
+  static ValueNotGenerated = new GenerationResult(true);
+}
+
 interface BaseConstraint<T> {
   isValid?: (value: T) => boolean;
-  generateConstrainedValue?: (values: PropertyValues<PropertyMap>) => T;
+  generateConstrainedValue?: (
+    values: PropertyValues<PropertyMap>,
+    related: RelatedResources
+  ) => T | GenerationResult;
 }
 
 interface IntConstraint extends BaseConstraint<number> {
@@ -360,17 +369,27 @@ export function constrain<Prop extends PropertyType>(
   };
 }
 
+interface RelatedResources {
+  children: DesiredState[];
+}
+
 export function dependentGenerator<Inputs extends PropertyMap, Prop>(
-  func: (values: PropertyValues<Inputs>) => Prop
+  func: (
+    values: PropertyValues<Inputs>,
+    related: RelatedResources
+  ) => Prop | GenerationResult
 ): BaseConstraint<Prop> {
   return {
     generateConstrainedValue: func as (
-      values: PropertyValues<PropertyMap>
+      values: PropertyValues<PropertyMap>,
+      related: RelatedResources
     ) => Prop,
   };
 }
 
-export function generator<Prop>(func: () => Prop): BaseConstraint<Prop> {
+export function generator<Prop>(
+  func: () => Prop | GenerationResult
+): BaseConstraint<Prop> {
   return {
     generateConstrainedValue: func as (
       values: PropertyValues<PropertyMap>

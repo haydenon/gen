@@ -6,6 +6,7 @@ export {
   ResourceGroup,
 } from './resource';
 export {
+  GenerationResult,
   PropertyDefinition,
   dependentGenerator,
   generator,
