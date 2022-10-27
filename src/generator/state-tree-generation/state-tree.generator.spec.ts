@@ -1,24 +1,22 @@
-import { createDesiredState, DesiredState } from '../resources';
-import { InputValues } from '../resources/resource';
-import { ResourceLink } from './generator';
+import { createDesiredState, DesiredState } from '../../resources';
+import { InputValues } from '../../resources/resource';
+import { ResourceLink } from '../generator';
 import {
   MockBase,
   MockResource,
   SubResource,
   SubSubResource,
-} from '../../test/resources';
-import { fillInDesiredStateTree } from './state-tree.creator';
+} from '../../../test/resources';
+import { fillInDesiredStateTree } from './state-tree.generator';
 
-const anyMockResource = {
-  id: expect.any(Number),
+const anyMockInputs = {
   text: expect.any(String),
   number: expect.any(Number),
   boolean: expect.any(Boolean),
 };
-const anyMockInputs = { boolean: true, text: 'hello', number: 3 };
 
 describe('State tree creation', () => {
-  test('generates resources with explicit inputs', async () => {
+  test('does not fill in resource inputs with explicit inputs', async () => {
     // Arrange
     const PropertyValues: InputValues<MockBase> = {
       text: 'Test',
@@ -35,7 +33,7 @@ describe('State tree creation', () => {
     expect(filledOutState).toEqual([state]);
   });
 
-  test('generates resources with no inputs', async () => {
+  test('fills in resource inputs with no values', async () => {
     // Arrange
     const state = createDesiredState(MockResource, {});
     const desiredState: DesiredState[] = [state];
@@ -44,12 +42,7 @@ describe('State tree creation', () => {
     const filledOutState = fillInDesiredStateTree(desiredState);
 
     // Assert
-    expect(filledOutState).toEqual([
-      {
-        desiredState: state,
-        outputs: anyMockResource,
-      },
-    ]);
+    expect(filledOutState).toEqual([state]);
   });
 
   test('can create anonymous depdendencies', async () => {
@@ -65,22 +58,17 @@ describe('State tree creation', () => {
       (i) => i.resource === MockResource
     );
     expect(mockResource).toEqual({
-      desiredState: {
-        name: expect.any(String),
-        resource: MockResource,
-        inputs: {},
-      },
-      outputs: anyMockResource,
+      name: expect.any(String),
+      resource: MockResource,
+      inputs: anyMockInputs,
     });
 
     const subResource = filledOutState.find((i) => i.resource === SubResource);
     expect(subResource).toEqual({
-      desiredState: {
-        name: expect.any(String),
-        resource: SubResource,
-        inputs: {
-          mockId: expect.any(ResourceLink),
-        },
+      name: expect.any(String),
+      resource: SubResource,
+      inputs: {
+        mockId: expect.any(ResourceLink),
       },
     });
 
@@ -88,12 +76,10 @@ describe('State tree creation', () => {
       (i) => i.resource === SubSubResource
     );
     expect(subSubResource).toEqual({
-      desiredState: {
-        name: expect.any(String),
-        resource: SubSubResource,
-        inputs: {
-          subId: expect.any(ResourceLink),
-        },
+      name: expect.any(String),
+      resource: SubSubResource,
+      inputs: {
+        subId: expect.any(ResourceLink),
       },
     });
   });

@@ -9,7 +9,7 @@ import {
 } from '../resources/properties';
 import { ResourceInstance } from '../resources/instance';
 import { DesiredState } from '../resources/desired-state';
-import { fillInDesiredStateTree } from './state-tree.creator';
+import { fillInDesiredStateTree } from './state-tree-generation/state-tree.generator';
 
 const DEFAULT_CREATE_TIMEOUT = 30 * 1000;
 

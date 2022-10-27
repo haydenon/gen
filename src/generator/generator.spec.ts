@@ -1,39 +1,17 @@
-import {
-  PropertyDefinition,
-  getLink,
-  def,
-  str,
-  bool,
-  int,
-} from '../resources/properties';
-import {
-  PropertyValues,
-  Resource,
-  PropertiesBase,
-  OutputValues,
-} from '../resources/resource';
 import { createDesiredState, DesiredState } from '../resources/desired-state';
 import { GenerationError, GenerationResultError, Generator } from './generator';
 import {
-  MockBase,
   MockResource,
   StallResource,
   DelayResource,
   ErrorResource,
   SubResource,
-  SubSubResource,
 } from '../../test/resources';
 
-const anyMockResource = {
-  id: expect.any(Number),
-  text: expect.any(String),
-  number: expect.any(Number),
-  boolean: expect.any(Boolean),
-};
 const anyMockInputs = { boolean: true, text: 'hello', number: 3 };
 
 let explicitReturnState: DesiredState[] | undefined;
-jest.mock('./state-tree.creator.ts', () => ({
+jest.mock('./state-tree-generation/state-tree.generator.ts', () => ({
   fillInDesiredStateTree: jest
     .fn()
     .mockImplementation((state) => explicitReturnState ?? state),
