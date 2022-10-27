@@ -9,7 +9,7 @@ import {
 } from '../resources/properties';
 import { ResourceInstance } from '../resources/instance';
 import { DesiredState } from '../resources/desired-state';
-import { fillInDesiredStateTree } from './property-generation';
+import { fillInDesiredStateTree } from './state-tree.creator';
 
 const DEFAULT_CREATE_TIMEOUT = 30 * 1000;
 
@@ -22,6 +22,7 @@ interface StateNode {
   error?: GenerationError;
 }
 
+// TODO: Move this out and make first class
 export class ResourceLink {
   constructor(
     public item: DesiredState,

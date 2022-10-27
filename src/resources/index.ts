@@ -13,6 +13,7 @@ export {
   getLink,
   def,
   constrain,
+  bool,
   str,
   int,
   float,
