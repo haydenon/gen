@@ -301,6 +301,7 @@ export class Generator {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private markCreating(_: DesiredState): void {
     this.inProgressCount++;
   }

@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { constrain, int, str } from '../../resources';
+import { constrain, str } from '../../resources';
 import { getValueForPrimativeType } from './primatives.generator';
 
 const runTimes = (times: number, action: () => void): void => {

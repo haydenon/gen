@@ -96,11 +96,6 @@ function fillInInput(
     }
 
     const inputDef = state.resource.inputs[key];
-    if (!inputDef) {
-      throw new Error(
-        `Property '${currentInput}' does not exist on resource '${state.resource.constructor.name}'`
-      );
-    }
 
     if (key in values) {
       return values[key];

@@ -77,6 +77,7 @@ export const ErrorResource = new ErrorDefinition();
 let subId = 1;
 class SubBase extends PropertiesBase {
   mockId: PropertyDefinition<number> = def(getLink(MockResource, (m) => m.id));
+  text: PropertyDefinition<string> = def(str());
 }
 class SubOutputs extends SubBase {
   id: PropertyDefinition<number> = def(int());
@@ -98,6 +99,7 @@ export const SubResource = new SubDefinition();
 let subSubId = 1;
 class SubSubBase extends PropertiesBase {
   subId: PropertyDefinition<number> = def(getLink(SubResource, (s) => s.id));
+  text: PropertyDefinition<string> = def(str());
 }
 class SubSubOutputs extends SubSubBase {
   id: PropertyDefinition<number> = def(int());

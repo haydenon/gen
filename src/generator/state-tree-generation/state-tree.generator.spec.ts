@@ -1,5 +1,22 @@
-import { createDesiredState, DesiredState } from '../../resources';
-import { InputValues } from '../../resources/resource';
+import {
+  array,
+  bool,
+  complex,
+  constrain,
+  createDesiredState,
+  def,
+  dependentGenerator,
+  DesiredState,
+  float,
+  int,
+  PropertyDefinition,
+  str,
+} from '../../resources';
+import {
+  InputValues,
+  PropertiesBase,
+  Resource,
+} from '../../resources/resource';
 import { ResourceLink } from '../generator';
 import {
   MockBase,
@@ -8,12 +25,88 @@ import {
   SubSubResource,
 } from '../../../test/resources';
 import { fillInDesiredStateTree } from './state-tree.generator';
+import { ComplexType, PropertyType } from '../../resources/properties';
 
 const anyMockInputs = {
   text: expect.any(String),
   number: expect.any(Number),
   boolean: expect.any(Boolean),
 };
+
+class AnyOutput extends PropertiesBase {}
+
+class ValidDependentInput extends PropertiesBase {
+  a: PropertyDefinition<string> = def(str());
+  b: PropertyDefinition<string> = def(
+    constrain(
+      str(),
+      dependentGenerator<ValidDependentInput, string>((values) => values.a)
+    )
+  );
+}
+class ValidResource extends Resource<ValidDependentInput, AnyOutput> {
+  constructor() {
+    super(new ValidDependentInput(), new AnyOutput());
+  }
+  create = () => Promise.resolve({});
+}
+const Valid = new ValidResource();
+
+class CircularDependentInput extends PropertiesBase {
+  a: PropertyDefinition<string> = def(
+    constrain(
+      str(),
+      dependentGenerator<ValidDependentInput, string>((values) => values.b)
+    )
+  );
+  b: PropertyDefinition<string> = def(
+    constrain(
+      str(),
+      dependentGenerator<ValidDependentInput, string>((values) => values.a)
+    )
+  );
+}
+class CircularResource extends Resource<CircularDependentInput, AnyOutput> {
+  constructor() {
+    super(new CircularDependentInput(), new AnyOutput());
+  }
+  create = () => Promise.resolve({});
+}
+const Circular = new CircularResource();
+
+interface ComplexValue {
+  name: string;
+  age: number;
+  living: boolean;
+  favouriteColours: string[];
+}
+
+const anyComplexValue = {
+  name: expect.any(String),
+  age: expect.any(Number),
+  living: expect.any(Boolean),
+  favouriteColours: expect.any(Array),
+};
+
+const complexType: ComplexType = complex<ComplexValue>({
+  name: str(),
+  age: int(),
+  living: bool(),
+  favouriteColours: array(str()),
+});
+
+class AdvancedInput extends PropertiesBase {
+  a: PropertyDefinition<ComplexValue> = def(complexType as any);
+  b: PropertyDefinition<number[]> = def(array(float()));
+  c: PropertyDefinition<ComplexValue[]> = def(array(complexType as any));
+}
+class AdvancedResource extends Resource<AdvancedInput, AnyOutput> {
+  constructor() {
+    super(new AdvancedInput(), new AnyOutput());
+  }
+  create = () => Promise.resolve({});
+}
+const Advanced = new AdvancedResource();
 
 describe('State tree creation', () => {
   test('does not fill in resource inputs with explicit inputs', async () => {
@@ -69,6 +162,7 @@ describe('State tree creation', () => {
       resource: SubResource,
       inputs: {
         mockId: expect.any(ResourceLink),
+        text: expect.any(String),
       },
     });
 
@@ -80,7 +174,44 @@ describe('State tree creation', () => {
       resource: SubSubResource,
       inputs: {
         subId: expect.any(ResourceLink),
+        text: expect.any(String),
       },
     });
+  });
+
+  [{}, { a: 'Test' }].forEach((values) =>
+    test('supports filling in values with dependent generator', () => {
+      // Arrange
+      const state = [createDesiredState(Valid, values)];
+
+      // Act
+      const filledInState = fillInDesiredStateTree(state);
+
+      // Assert
+      expect(filledInState).toHaveLength(1);
+      const filledIn = filledInState[0];
+      expect(filledIn.inputs.b).toBe(values.a ?? filledIn.inputs.a);
+    })
+  );
+
+  test('errors filling in values with circular reference in dependent generator', () => {
+    // Arrange
+    const state = [createDesiredState(Circular, {})];
+
+    // Act & Assert
+    expect(() => fillInDesiredStateTree(state)).toThrow();
+  });
+
+  test('fills in complex values', () => {
+    // Arrange
+    const state = [createDesiredState(Advanced, {})];
+
+    // Act
+    const filledInState = fillInDesiredStateTree(state);
+
+    // Assert
+    expect(filledInState).toHaveLength(1);
+    const filledIn = filledInState[0];
+    expect(filledIn.inputs.a).toEqual(anyComplexValue);
   });
 });
