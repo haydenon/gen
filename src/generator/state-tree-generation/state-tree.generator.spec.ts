@@ -8,6 +8,8 @@ import {
   dependentGenerator,
   DesiredState,
   float,
+  GenerationResult,
+  generator,
   int,
   PropertyDefinition,
   str,
@@ -23,14 +25,14 @@ import {
   MockResource,
   SubResource,
   SubSubResource,
-} from '../../../test/resources';
+  runTimes,
+} from '../../../test';
 import { fillInDesiredStateTree } from './state-tree.generator';
-import { ComplexType, PropertyType } from '../../resources/properties';
 
 const anyMockInputs = {
-  text: expect.any(String),
-  number: expect.any(Number),
-  boolean: expect.any(Boolean),
+  text: expect.anything(),
+  number: expect.anything(),
+  boolean: expect.anything(),
 };
 
 class AnyOutput extends PropertiesBase {}
@@ -82,24 +84,70 @@ interface ComplexValue {
 }
 
 const anyComplexValue = {
-  name: expect.any(String),
-  age: expect.any(Number),
-  living: expect.any(Boolean),
+  name: expect.anything(),
+  age: expect.anything(),
+  living: expect.anything(),
   favouriteColours: expect.any(Array),
 };
 
-const complexType: ComplexType = complex<ComplexValue>({
-  name: str(),
-  age: int(),
-  living: bool(),
-  favouriteColours: array(str()),
-});
+const anyGeneratedPrimative = 'primative_value';
+
+jest.mock('./primatives.generator.ts', () => ({
+  getValueForPrimativeType: jest
+    .fn()
+    .mockImplementation(() => anyGeneratedPrimative),
+}));
+
+const [minArrayCount, maxArrayCount] = [5, 50];
+
+let overriddenDependentOutput: number | GenerationResult | undefined;
+let overriddenStandardOutput: number | GenerationResult | undefined;
 
 class AdvancedInput extends PropertiesBase {
-  a: PropertyDefinition<ComplexValue> = def(complexType as any);
-  b: PropertyDefinition<number[]> = def(array(float()));
-  c: PropertyDefinition<ComplexValue[]> = def(array(complexType as any));
+  complex: PropertyDefinition<ComplexValue> = def(
+    complex<ComplexValue>({
+      name: str(),
+      age: int(),
+      living: bool(),
+      favouriteColours: array(str()),
+    })
+  );
+  array: PropertyDefinition<number[]> = def(
+    constrain(array(float()), {
+      minItems: minArrayCount,
+      maxItems: maxArrayCount,
+    })
+  );
+  arrayOfComplex: PropertyDefinition<ComplexValue[]> = def(
+    constrain(
+      array(
+        complex<ComplexValue>({
+          name: str(),
+          age: int(),
+          living: bool(),
+          favouriteColours: array(str()),
+        })
+      ),
+      { minItems: 1 }
+    )
+  );
+  generatedConstraint: PropertyDefinition<number> = def(
+    constrain(
+      int(),
+      generator(() => overriddenStandardOutput ?? 1)
+    )
+  );
+  dependentField: PropertyDefinition<number> = def(int());
+  depdendentGeneratedConstraint: PropertyDefinition<number> = def(
+    constrain(
+      int(),
+      dependentGenerator<AdvancedInput, number>(
+        (values) => overriddenDependentOutput ?? values.dependentField
+      )
+    )
+  );
 }
+
 class AdvancedResource extends Resource<AdvancedInput, AnyOutput> {
   constructor() {
     super(new AdvancedInput(), new AnyOutput());
@@ -109,6 +157,11 @@ class AdvancedResource extends Resource<AdvancedInput, AnyOutput> {
 const Advanced = new AdvancedResource();
 
 describe('State tree creation', () => {
+  beforeEach(() => {
+    overriddenDependentOutput = undefined;
+    overriddenStandardOutput = undefined;
+  });
+
   test('does not fill in resource inputs with explicit inputs', async () => {
     // Arrange
     const PropertyValues: InputValues<MockBase> = {
@@ -158,11 +211,11 @@ describe('State tree creation', () => {
 
     const subResource = filledOutState.find((i) => i.resource === SubResource);
     expect(subResource).toEqual({
-      name: expect.any(String),
+      name: expect.anything(),
       resource: SubResource,
       inputs: {
         mockId: expect.any(ResourceLink),
-        text: expect.any(String),
+        text: expect.anything(),
       },
     });
 
@@ -170,11 +223,11 @@ describe('State tree creation', () => {
       (i) => i.resource === SubSubResource
     );
     expect(subSubResource).toEqual({
-      name: expect.any(String),
+      name: expect.anything(),
       resource: SubSubResource,
       inputs: {
         subId: expect.any(ResourceLink),
-        text: expect.any(String),
+        text: expect.anything(),
       },
     });
   });
@@ -212,6 +265,107 @@ describe('State tree creation', () => {
     // Assert
     expect(filledInState).toHaveLength(1);
     const filledIn = filledInState[0];
-    expect(filledIn.inputs.a).toEqual(anyComplexValue);
+    expect(filledIn.inputs.complex).toEqual(anyComplexValue);
+  });
+
+  test('fills in array values', () => {
+    // Arrange
+    const state = [createDesiredState(Advanced, {})];
+
+    // Act
+    const filledInState = fillInDesiredStateTree(state);
+
+    // Assert
+    expect(filledInState).toHaveLength(1);
+    const filledIn = filledInState[0];
+    expect(filledIn.inputs.array).toBeInstanceOf(Array);
+  });
+
+  test('fills in array of complex values', () => {
+    // Arrange
+    const state = [createDesiredState(Advanced, {})];
+
+    // Act
+    const filledInState = fillInDesiredStateTree(state);
+
+    // Assert
+    expect(filledInState).toHaveLength(1);
+    const filledIn = filledInState[0];
+    expect(filledIn.inputs.arrayOfComplex).toBeInstanceOf(Array);
+  });
+
+  test('fills in array fields on complex values', () => {
+    // Arrange
+    const state = [createDesiredState(Advanced, {})];
+
+    // Act
+    const filledInState = fillInDesiredStateTree(state);
+
+    // Assert
+    expect(filledInState).toHaveLength(1);
+    const filledIn = filledInState[0];
+    const complex: ComplexValue = filledIn.inputs.complex as any;
+    expect(complex.favouriteColours).toBeInstanceOf(Array);
+  });
+
+  test('adheres to min and max array counts', () => {
+    runTimes(50, () => {
+      // Arrange
+      const state = [createDesiredState(Advanced, {})];
+
+      // Act
+      const filledInState = fillInDesiredStateTree(state);
+
+      // Assert
+      expect(filledInState).toHaveLength(1);
+      const filledIn = filledInState[0];
+      const array: number[] = filledIn.inputs.array as any;
+      expect(array.length).toBeGreaterThanOrEqual(minArrayCount);
+      expect(array.length).toBeLessThanOrEqual(maxArrayCount);
+    });
+  });
+
+  const generatorCases: [
+    (values: InputValues<AdvancedInput>) => number,
+    (values: InputValues<AdvancedInput>) => number,
+    string
+  ][] = [
+    [
+      (values) => values.depdendentGeneratedConstraint,
+      (values) => values.dependentField,
+      'depdendent generators',
+    ],
+    [(values) => values.generatedConstraint, () => 1, 'generators'],
+  ];
+  generatorCases.forEach(([accessor, expected, name]) => {
+    test(`${name} constraint values are used instead of normal generation`, () => {
+      // Arrange
+      const state = [createDesiredState(Advanced, {})];
+
+      // Act
+      const filledInState = fillInDesiredStateTree(state);
+
+      // Assert
+      expect(filledInState).toHaveLength(1);
+      const filledIn = filledInState[0];
+      const inputs: InputValues<AdvancedInput> = filledIn.inputs as any;
+      expect(accessor(inputs)).toBe(expected(inputs));
+    });
+
+    test(`normal generation is used when ${name} constraint returns a no value generated result`, () => {
+      // Arrange
+      overriddenDependentOutput = GenerationResult.ValueNotGenerated;
+      overriddenStandardOutput = GenerationResult.ValueNotGenerated;
+      const state = [createDesiredState(Advanced, {})];
+
+      // Act
+      const filledInState = fillInDesiredStateTree(state);
+
+      // Assert
+      expect(filledInState).toHaveLength(1);
+      const filledIn = filledInState[0];
+      const inputs: InputValues<AdvancedInput> = filledIn.inputs as any;
+      expect(accessor(inputs)).toBe(anyGeneratedPrimative);
+    });
   });
 });

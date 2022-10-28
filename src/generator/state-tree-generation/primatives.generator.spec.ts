@@ -1,12 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { constrain, str } from '../../resources';
 import { getValueForPrimativeType } from './primatives.generator';
-
-const runTimes = (times: number, action: () => void): void => {
-  for (let i = 0; i < times; i++) {
-    action();
-  }
-};
+import { runTimes } from '../../../test';
 
 describe('Getting values for primative types', () => {
   describe('Strings', () => {

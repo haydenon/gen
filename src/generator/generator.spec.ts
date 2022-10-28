@@ -1,5 +1,10 @@
 import { createDesiredState, DesiredState } from '../resources/desired-state';
-import { GenerationError, GenerationResultError, Generator } from './generator';
+import {
+  GenerationError,
+  GenerationResultError,
+  Generator,
+  ResourceLink,
+} from './generator';
 import {
   MockResource,
   StallResource,
@@ -137,6 +142,23 @@ describe('Generator', () => {
     expect(onError).toHaveBeenCalledWith(
       new GenerationError(new Error('Failed to create'), errorState)
     );
+  });
+
+  test('does not create valid child resources if parent resource fails to be created', async () => {
+    // Arrange
+    const errorState = createDesiredState(ErrorResource, {});
+    const successState = createDesiredState(SubResource, {
+      mockId: new ResourceLink(errorState, (e) => e.id),
+    });
+    const desiredState: DesiredState[] = [errorState, successState];
+    const onCreate = jest.fn();
+    const generator = Generator.create(desiredState, { onCreate });
+
+    // Act
+    await generator.generateState().catch(() => undefined);
+
+    // Assert
+    expect(onCreate).not.toHaveBeenCalled();
   });
 
   test('can handle creating many resources at once', async () => {
