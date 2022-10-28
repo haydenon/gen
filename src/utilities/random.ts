@@ -1,7 +1,7 @@
 export const getRandomBool = (): boolean => Math.random() < 0.5;
 
 export const getRandomInt = (min: number, max: number): number =>
-  Math.floor(getRandomFloat(min, max));
+  Math.floor(getRandomFloat(min, max + 1)); // Need +1 to be inclusive of max
 
 export const getRandomFloat = (min: number, max: number): number => {
   const difference = max - min;

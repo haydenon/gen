@@ -16,8 +16,12 @@ describe('Random utilities', () => {
     const randomBooleanValues = range(50).map(getRandomBool);
 
     // Assert
-    expect(validValues.every((value) => randomBooleanValues.includes(value)));
-    expect(randomBooleanValues.every((value) => validValues.includes(value)));
+    expect(
+      validValues.every((value) => randomBooleanValues.includes(value))
+    ).toBe(true);
+    expect(
+      randomBooleanValues.every((value) => validValues.includes(value))
+    ).toBe(true);
   });
 
   test('getRandomInt returns a random int', () => {
@@ -28,8 +32,12 @@ describe('Random utilities', () => {
     const randomIntValues = range(500).map(() => getRandomInt(2, 7));
 
     // Assert
-    expect(validValues.every((value) => randomIntValues.includes(value)));
-    expect(randomIntValues.every((value) => validValues.includes(value)));
+    expect(validValues.every((value) => randomIntValues.includes(value))).toBe(
+      true
+    );
+    expect(randomIntValues.every((value) => validValues.includes(value))).toBe(
+      true
+    );
   });
 
   test('getRandomFloat returns a random float', () => {
@@ -58,8 +66,12 @@ describe('Random utilities', () => {
     );
 
     // Assert
-    expect(validValues.every((value) => randomValues.includes(value)));
-    expect(randomValues.every((value) => validValues.includes(value)));
+    expect(validValues.every((value) => randomValues.includes(value))).toBe(
+      true
+    );
+    expect(randomValues.every((value) => validValues.includes(value))).toBe(
+      true
+    );
   });
 
   test('maybeNull sometimes returns null', () => {
@@ -73,8 +85,12 @@ describe('Random utilities', () => {
     );
 
     // Assert
-    expect(validValues.every((value) => randomValues.includes(value)));
-    expect(randomValues.every((value) => validValues.includes(value)));
+    expect(validValues.every((value) => randomValues.includes(value))).toBe(
+      true
+    );
+    expect(randomValues.every((value) => validValues.includes(value))).toBe(
+      true
+    );
   });
 
   test('maybeNullOrUndefined sometimes returns null and undefined', () => {
@@ -88,7 +104,11 @@ describe('Random utilities', () => {
     );
 
     // Assert
-    expect(validValues.every((value) => randomValues.includes(value)));
-    expect(randomValues.every((value) => validValues.includes(value)));
+    expect(validValues.every((value) => randomValues.includes(value))).toBe(
+      true
+    );
+    expect(randomValues.every((value) => validValues.includes(value))).toBe(
+      true
+    );
   });
 });
