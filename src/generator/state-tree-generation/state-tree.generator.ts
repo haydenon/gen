@@ -66,7 +66,7 @@ function fillInType(
 
   if (isLinkType(type)) {
     const resourceCount = type.resources.length;
-    const resourceIndex = Math.floor(Math.random() * resourceCount);
+    const resourceIndex = getRandomInt(0, resourceCount - 1);
     const dependentState = createDesiredState(
       type.resources[resourceIndex],
       {}
