@@ -1,10 +1,5 @@
 import { createDesiredState, DesiredState } from '../resources/desired-state';
-import {
-  GenerationError,
-  GenerationResultError,
-  Generator,
-  ResourceLink,
-} from './generator';
+import { GenerationError, GenerationResultError, Generator } from './generator';
 import {
   MockResource,
   StallResource,
@@ -12,6 +7,7 @@ import {
   ErrorResource,
   SubResource,
 } from '../../test/resources';
+import { getRuntimeResourceValue } from '../resources/properties';
 
 const anyMockInputs = { boolean: true, text: 'hello', number: 3 };
 
@@ -148,7 +144,7 @@ describe('Generator', () => {
     // Arrange
     const errorState = createDesiredState(ErrorResource, {});
     const successState = createDesiredState(SubResource, {
-      mockId: new ResourceLink(errorState, (e) => e.id),
+      mockId: getRuntimeResourceValue(errorState, (e) => e.id),
     });
     const desiredState: DesiredState[] = [errorState, successState];
     const onCreate = jest.fn();

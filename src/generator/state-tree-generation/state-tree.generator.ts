@@ -5,13 +5,14 @@ import {
   isComplex,
   isArray,
   GenerationResult,
+  RuntimeValue,
+  getRuntimeResourceValue,
 } from '../../resources/properties';
 import {
   DesiredState,
   createDesiredState,
 } from '../../resources/desired-state';
 import { PropertyValues, PropertyMap } from '../../resources/resource';
-import { ResourceLink } from '../generator';
 import { getRandomInt } from '../../utilities';
 import { getValueForPrimativeType } from './primatives.generator';
 
@@ -71,7 +72,7 @@ function fillInType(
       type.resources[resourceIndex],
       {}
     );
-    const link = new ResourceLink(dependentState, type.outputAccessor);
+    const link = getRuntimeResourceValue(dependentState, type.outputAccessor);
     const newChildren = [current, ...children];
     return [link, [{ desired: dependentState, children: newChildren }]];
   }

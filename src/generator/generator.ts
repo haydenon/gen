@@ -6,6 +6,9 @@ import {
   Nullable,
   Undefinable,
   acceptPropertyType,
+  RuntimeValue,
+  isRuntimeValue,
+  CreatedState,
 } from '../resources/properties';
 import { ResourceInstance } from '../resources/instance';
 import { DesiredState } from '../resources/desired-state';
@@ -21,16 +24,6 @@ interface StateNode {
   output?: ResourceInstance<PropertyMap>;
   error?: GenerationError;
 }
-
-// TODO: Move this out and make first class
-export class ResourceLink {
-  constructor(
-    public item: DesiredState,
-    public outputAccessor: (outputs: PropertyValues<PropertyMap>) => any
-  ) {}
-}
-export const isResourceLink = (value: any): value is ResourceLink =>
-  value instanceof ResourceLink;
 
 const CONCURRENT_CREATIONS = 10;
 
@@ -49,10 +42,10 @@ const getNode =
     return node;
   };
 
-class LinkFillVisitor implements PropertyTypeVisitor<any> {
+class RuntimeValueFillVisitor implements PropertyTypeVisitor<any> {
   constructor(
     private value: any,
-    private getLinkValue: (resourceLink: ResourceLink) => any
+    private getRuntimeValue: (resourceLink: RuntimeValue<any>) => any
   ) {}
 
   visitBool = () => this.value;
@@ -86,15 +79,15 @@ class LinkFillVisitor implements PropertyTypeVisitor<any> {
     return result;
   };
   visitLink = () => {
-    if (isResourceLink(this.value) && this.value) {
-      return this.getLinkValue(this.value);
+    if (isRuntimeValue(this.value) && this.value) {
+      return this.getRuntimeValue(this.value);
     }
 
     return this.value;
   };
 }
 
-class ResourceLinkVisitor implements PropertyTypeVisitor<ResourceLink[]> {
+class RuntimeValueVisitor implements PropertyTypeVisitor<RuntimeValue<any>[]> {
   constructor(private value: any) {}
 
   visitBool = () => [];
@@ -105,36 +98,39 @@ class ResourceLinkVisitor implements PropertyTypeVisitor<ResourceLink[]> {
   visitArray = (type: ArrayType) => {
     const arr = this.value as any[];
     const innerType = type.inner;
-    const result: ResourceLink[] = arr.reduce((acc, item) => {
+    const result: RuntimeValue<any>[] = arr.reduce((acc, item) => {
       this.value = item;
-      return [...acc, ...acceptPropertyType<ResourceLink[]>(this, innerType)];
-    }, [] as ResourceLink[]);
+      return [
+        ...acc,
+        ...acceptPropertyType<RuntimeValue<any>[]>(this, innerType),
+      ];
+    }, [] as RuntimeValue<any>[]);
     this.value = arr;
     return result;
   };
-  visitNull = (type: Nullable): ResourceLink[] =>
+  visitNull = (type: Nullable): RuntimeValue<any>[] =>
     this.value === null ? [] : acceptPropertyType(this, type.inner);
-  visitUndefined = (type: Undefinable): ResourceLink[] =>
+  visitUndefined = (type: Undefinable): RuntimeValue<any>[] =>
     this.value === undefined
       ? []
-      : acceptPropertyType<ResourceLink[]>(this, type.inner);
+      : acceptPropertyType<RuntimeValue<any>[]>(this, type.inner);
   visitComplex = (type: ComplexType) => {
     const fields = type.fields;
     const originalValue = this.value;
-    const result: ResourceLink[] = Object.keys(this.value).reduce(
+    const result: RuntimeValue<any>[] = Object.keys(this.value).reduce(
       (acc, key) => {
         this.value = originalValue[key];
         return [
           ...acc,
-          ...acceptPropertyType<ResourceLink[]>(this, fields[key]),
+          ...acceptPropertyType<RuntimeValue<any>[]>(this, fields[key]),
         ];
       },
-      [] as ResourceLink[]
+      [] as RuntimeValue<any>[]
     );
     this.value = originalValue;
     return result;
   };
-  visitLink = () => (isResourceLink(this.value) ? [this.value] : []);
+  visitLink = () => (isRuntimeValue(this.value) ? [this.value] : []);
 }
 
 export class Generator {
@@ -202,7 +198,7 @@ export class Generator {
         );
       }, timeout);
       const created = state.resource
-        .create(this.fillInLinks(state.inputs, state.resource.inputs))
+        .create(this.fillInRuntimeValues(state.inputs, state.resource.inputs))
         .then((outputs) => {
           const instance: ResourceInstance<PropertyMap> = {
             desiredState: state,
@@ -219,27 +215,37 @@ export class Generator {
     });
   }
 
-  private fillInLinks(
+  private fillInRuntimeValues(
     inputs: Partial<PropertyValues<PropertyMap>>,
     definitions: PropertyMap
   ): PropertyValues<PropertyMap> {
     return Object.keys(definitions).reduce((acc, key) => {
-      const linkFillVisitor = new LinkFillVisitor(
+      const runtimeFillVisitor = new RuntimeValueFillVisitor(
         inputs[key],
-        this.getLinkValue
+        this.getRuntimeValue
       );
-      acc[key] = acceptPropertyType(linkFillVisitor, definitions[key].type);
+      acc[key] = acceptPropertyType(runtimeFillVisitor, definitions[key].type);
       return acc;
     }, {} as PropertyValues<PropertyMap>);
   }
 
-  private getLinkValue = (resourceLink: ResourceLink): any => {
-    const linkedValue = this.getNodeForState(resourceLink.item);
-    if (!linkedValue.output) {
-      throw new Error('Dependent state should already be created');
-    }
+  private getRuntimeValue = (runtimeValue: RuntimeValue<any>): any => {
+    const dependentItems = runtimeValue.resourceOutputValues.map(
+      (outputValues) => this.getNodeForState(outputValues.item)
+    );
 
-    return resourceLink.outputAccessor(linkedValue.output.outputs);
+    const createdState = dependentItems.reduce((acc, item) => {
+      if (!item.output) {
+        throw new Error('Dependent state should already be created');
+      }
+      acc[item.state.name] = {
+        desiredState: item.state,
+        createdState: item.output,
+      };
+      return acc;
+    }, {} as CreatedState);
+
+    return runtimeValue.valueAccessor(createdState);
   };
 
   private notifyItemSuccess(instance: ResourceInstance<PropertyMap>) {
@@ -348,6 +354,7 @@ export class Generator {
   }
 
   static create(state: DesiredState[], options?: GeneratorOptions): Generator {
+    // TODO: Verify unique state names
     state = fillInDesiredStateTree(state);
     return new Generator(Generator.getStructure(state), options);
   }
@@ -366,17 +373,19 @@ export class Generator {
     for (const node of nodes) {
       for (const inputKey of Object.keys(node.state.resource.inputs)) {
         const inputDef = node.state.resource.inputs[inputKey];
-        const resourceLinkVisitor = new ResourceLinkVisitor(
+        const resourceLinkVisitor = new RuntimeValueVisitor(
           node.state.inputs[inputKey]
         );
-        const links = acceptPropertyType<ResourceLink[]>(
+        const runtimeValues = acceptPropertyType<RuntimeValue<any>[]>(
           resourceLinkVisitor,
           inputDef.type
         );
-        for (const link of links) {
-          const linkNode = getNode(nodes)(link.item);
-          node.dependencies.push(linkNode);
-          linkNode.depedendents.push(node);
+        for (const item of runtimeValues.flatMap((l) =>
+          l.resourceOutputValues.map((out) => out.item)
+        )) {
+          const runtimeValueNode = getNode(nodes)(item);
+          node.dependencies.push(runtimeValueNode);
+          runtimeValueNode.depedendents.push(node);
         }
       }
     }

@@ -1,6 +1,11 @@
 import { isOneOf, LookupValues, oneOf } from '../utilities';
 import { DesiredState } from './desired-state';
-import { Resource, PropertyValues, PropertyMap } from './resource';
+import {
+  Resource,
+  PropertyValues,
+  PropertyMap,
+  OutputValues,
+} from './resource';
 
 enum Type {
   Boolean = 'Boolean',
@@ -24,7 +29,7 @@ interface BaseConstraint<T> {
   generateConstrainedValue?: (
     values: PropertyValues<PropertyMap>,
     related: RelatedResources
-  ) => T | GenerationResult;
+  ) => T | RuntimeValue<T> | GenerationResult;
 }
 
 interface IntConstraint extends BaseConstraint<number> {
@@ -238,6 +243,47 @@ export interface PropertyTypeVisitor<T> {
   visitLink?: (type: LinkType<any>) => T;
 }
 
+export class ResourceOutputValue<T> {
+  constructor(
+    public item: DesiredState,
+    public valueAccessor: (outputs: PropertyValues<PropertyMap>) => T
+  ) {}
+}
+
+interface CreatedStateForDesired {
+  desiredState: DesiredState;
+  createdState: OutputValues<PropertyMap>;
+}
+
+export interface CreatedState {
+  [desiredStateName: string]: CreatedStateForDesired;
+}
+
+export class RuntimeValue<T> {
+  constructor(
+    public resourceOutputValues: ResourceOutputValue<T>[],
+    public valueAccessor: (createdState: CreatedState) => T
+  ) {}
+}
+
+export function isRuntimeValue<T>(
+  value: T | RuntimeValue<T>
+): value is RuntimeValue<T> {
+  return value instanceof RuntimeValue;
+}
+
+export type Value<T> = T | RuntimeValue<T>;
+
+export function getRuntimeResourceValue<T>(
+  item: DesiredState,
+  valueAccessor: (outputs: PropertyValues<PropertyMap>) => T
+): RuntimeValue<T> {
+  return new RuntimeValue(
+    [new ResourceOutputValue(item, valueAccessor)],
+    (state) => valueAccessor(state[item.name].createdState)
+  );
+}
+
 export interface PropertyDefinition<T> {
   type: PropertyTypeForValue<T>;
 }
@@ -377,7 +423,7 @@ export function dependentGenerator<Inputs extends PropertyMap, Prop>(
   func: (
     values: PropertyValues<Inputs>,
     related: RelatedResources
-  ) => Prop | GenerationResult
+  ) => Value<Prop> | GenerationResult
 ): BaseConstraint<Prop> {
   return {
     generateConstrainedValue: func as (
@@ -388,7 +434,7 @@ export function dependentGenerator<Inputs extends PropertyMap, Prop>(
 }
 
 export function generator<Prop>(
-  func: () => Prop | GenerationResult
+  func: () => Value<Prop> | GenerationResult
 ): BaseConstraint<Prop> {
   return {
     generateConstrainedValue: func as (

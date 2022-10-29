@@ -1,4 +1,4 @@
-import { PropertyDefinition } from './properties';
+import { PropertyDefinition, RuntimeValue } from './properties';
 
 export interface PropertyMap {
   [name: string]: PropertyDefinition<unknown>;
@@ -9,7 +9,9 @@ type PropertyValueType<Prop> = Prop extends PropertyDefinition<infer Type>
   : never;
 
 export type PropertyValues<Props extends PropertyMap> = {
-  [P in keyof Props]: PropertyValueType<Props[P]>;
+  [P in keyof Props]:
+    | PropertyValueType<Props[P]>
+    | RuntimeValue<PropertyValueType<Props[P]>>;
 };
 
 type RemoveIndex<T> = {

@@ -19,7 +19,6 @@ import {
   PropertiesBase,
   Resource,
 } from '../../resources/resource';
-import { ResourceLink } from '../generator';
 import {
   MockBase,
   MockResource,
@@ -28,6 +27,7 @@ import {
   runTimes,
 } from '../../../test';
 import { fillInDesiredStateTree } from './state-tree.generator';
+import { RuntimeValue, Value } from '../../resources/properties';
 
 const anyMockInputs = {
   text: expect.anything(),
@@ -214,7 +214,7 @@ describe('State tree creation', () => {
       name: expect.anything(),
       resource: SubResource,
       inputs: {
-        mockId: expect.any(ResourceLink),
+        mockId: expect.any(RuntimeValue),
         text: expect.anything(),
       },
     });
@@ -226,7 +226,7 @@ describe('State tree creation', () => {
       name: expect.anything(),
       resource: SubSubResource,
       inputs: {
-        subId: expect.any(ResourceLink),
+        subId: expect.any(RuntimeValue),
         text: expect.anything(),
       },
     });
@@ -326,8 +326,8 @@ describe('State tree creation', () => {
   });
 
   const generatorCases: [
-    (values: InputValues<AdvancedInput>) => number,
-    (values: InputValues<AdvancedInput>) => number,
+    (values: InputValues<AdvancedInput>) => Value<number>,
+    (values: InputValues<AdvancedInput>) => Value<number>,
     string
   ][] = [
     [
