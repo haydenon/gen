@@ -5,7 +5,6 @@ import {
   isComplex,
   isArray,
   GenerationResult,
-  RuntimeValue,
   getRuntimeResourceValue,
 } from '../../resources/properties';
 import {
@@ -57,7 +56,7 @@ function fillInType(
   }
 
   if (type.constraint?.generateConstrainedValue) {
-    const value = type.constraint?.generateConstrainedValue(inputs, {
+    const value = type.constraint.generateConstrainedValue(inputs, {
       children,
     });
     if (value !== GenerationResult.ValueNotGenerated) {

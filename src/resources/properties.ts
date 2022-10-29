@@ -243,10 +243,10 @@ export interface PropertyTypeVisitor<T> {
   visitLink?: (type: LinkType<any>) => T;
 }
 
-export class ResourceOutputValue<T> {
+export class ResourceOutputValue {
   constructor(
     public item: DesiredState,
-    public valueAccessor: (outputs: PropertyValues<PropertyMap>) => T
+    public valueAccessor: (outputs: PropertyValues<PropertyMap>) => any
   ) {}
 }
 
@@ -261,7 +261,7 @@ export interface CreatedState {
 
 export class RuntimeValue<T> {
   constructor(
-    public resourceOutputValues: ResourceOutputValue<T>[],
+    public resourceOutputValues: ResourceOutputValue[],
     public valueAccessor: (createdState: CreatedState) => T
   ) {}
 }
@@ -273,6 +273,52 @@ export function isRuntimeValue<T>(
 }
 
 export type Value<T> = T | RuntimeValue<T>;
+
+export function mapValue<T, R>(
+  value: Value<T>,
+  mapper: (value: T) => R
+): Value<R> {
+  if (value instanceof RuntimeValue) {
+    return new RuntimeValue<R>(value.resourceOutputValues, (state) =>
+      mapper(value.valueAccessor(state))
+    );
+  }
+
+  return mapper(value);
+}
+
+export function mapValues<T extends any[], R>(
+  values: { [I in keyof T]: Value<T[I]> },
+  mapper: (...values: { [I in keyof T]: T[I] }) => R
+): Value<R> {
+  if (values.some((v) => v instanceof RuntimeValue)) {
+    const resourceOutputValues = Array.from(
+      new Set(
+        values.flatMap((v) =>
+          v instanceof RuntimeValue ? v.resourceOutputValues : []
+        )
+      )
+    );
+    return new RuntimeValue<R>(resourceOutputValues, (state) => {
+      const inputValues = values.map((val) => {
+        if (!(val instanceof RuntimeValue)) {
+          return val;
+        }
+
+        const subState = val.resourceOutputValues.reduce((acc, outputValue) => {
+          acc[outputValue.item.name] = state[outputValue.item.name];
+          return acc;
+        }, {} as CreatedState);
+
+        return val.valueAccessor(subState);
+      }) as { [I in keyof T]: T[I] };
+      return mapper(...inputValues);
+    });
+  }
+
+  const staticValues = values as { [I in keyof T]: T[I] };
+  return mapper(...staticValues);
+}
 
 export function getRuntimeResourceValue<T>(
   item: DesiredState,
@@ -429,17 +475,17 @@ export function dependentGenerator<Inputs extends PropertyMap, Prop>(
     generateConstrainedValue: func as (
       values: PropertyValues<PropertyMap>,
       related: RelatedResources
-    ) => Prop,
+    ) => Value<Prop> | GenerationResult,
   };
 }
 
 export function generator<Prop>(
-  func: () => Value<Prop> | GenerationResult
+  func: () => Prop | GenerationResult
 ): BaseConstraint<Prop> {
   return {
     generateConstrainedValue: func as (
       values: PropertyValues<PropertyMap>
-    ) => Prop,
+    ) => Value<Prop> | GenerationResult,
   };
 }
 

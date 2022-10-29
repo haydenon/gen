@@ -27,7 +27,13 @@ import {
   runTimes,
 } from '../../../test';
 import { fillInDesiredStateTree } from './state-tree.generator';
-import { RuntimeValue, Value } from '../../resources/properties';
+import {
+  getRuntimeResourceValue,
+  mapValue,
+  mapValues,
+  RuntimeValue,
+  Value,
+} from '../../resources/properties';
 
 const anyMockInputs = {
   text: expect.anything(),
@@ -42,7 +48,17 @@ class ValidDependentInput extends PropertiesBase {
   b: PropertyDefinition<string> = def(
     constrain(
       str(),
-      dependentGenerator<ValidDependentInput, string>((values) => values.a)
+      dependentGenerator<ValidDependentInput, string>((values) =>
+        mapValue(values.a, (a) => a.toUpperCase())
+      )
+    )
+  );
+  c: PropertyDefinition<string> = def(
+    constrain(
+      str(),
+      dependentGenerator<ValidDependentInput, string>((values) =>
+        mapValues([values.a, values.b], (a, b) => a.split(' ')[0] + b.length)
+      )
     )
   );
 }
@@ -243,9 +259,75 @@ describe('State tree creation', () => {
       // Assert
       expect(filledInState).toHaveLength(1);
       const filledIn = filledInState[0];
-      expect(filledIn.inputs.b).toBe(values.a ?? filledIn.inputs.a);
+      expect(filledIn.inputs.b).toBe(
+        (values.a ?? (filledIn.inputs.a as string)).toUpperCase()
+      );
     })
   );
+
+  test('dependent generators work when dependent value is a runtime value', () => {
+    // Arrange
+    const text = 'some lowercase text';
+    const dependentState = createDesiredState(MockResource, { text });
+    const state = [
+      dependentState,
+      createDesiredState(Valid, {
+        a: getRuntimeResourceValue(dependentState, (m) => m.text),
+      }),
+    ];
+
+    // Act
+    const filledInState = fillInDesiredStateTree(state);
+
+    // Assert
+    expect(filledInState).toHaveLength(2);
+    const filledIn = filledInState.find(
+      (s) => s.resource === Valid
+    ) as DesiredState;
+    expect(filledIn).not.toBeUndefined();
+    expect(filledIn.inputs.b).toBeInstanceOf(RuntimeValue);
+    const runtimeValue = filledIn.inputs.b as RuntimeValue<string>;
+    expect(
+      runtimeValue.valueAccessor({
+        [dependentState.name]: {
+          desiredState: dependentState,
+          createdState: { text },
+        },
+      })
+    ).toBe(text.toUpperCase());
+  });
+
+  test('dependent generators work when there are multiple layers of runtime values', () => {
+    // Arrange
+    const text = 'some lowercase text';
+    const dependentState = createDesiredState(MockResource, { text });
+    const state = [
+      dependentState,
+      createDesiredState(Valid, {
+        a: getRuntimeResourceValue(dependentState, (m) => m.text),
+      }),
+    ];
+
+    // Act
+    const filledInState = fillInDesiredStateTree(state);
+
+    // Assert
+    expect(filledInState).toHaveLength(2);
+    const filledIn = filledInState.find(
+      (s) => s.resource === Valid
+    ) as DesiredState;
+    expect(filledIn).not.toBeUndefined();
+    expect(filledIn.inputs.c).toBeInstanceOf(RuntimeValue);
+    const runtimeValue = filledIn.inputs.c as RuntimeValue<string>;
+    expect(
+      runtimeValue.valueAccessor({
+        [dependentState.name]: {
+          desiredState: dependentState,
+          createdState: { text },
+        },
+      })
+    ).toBe(`${text.split(' ')[0]}${text.length}`);
+  });
 
   test('errors filling in values with circular reference in dependent generator', () => {
     // Arrange
