@@ -207,9 +207,7 @@ export function acceptPropertyType<T>(
   visitor: PropertyTypeVisitor<T>,
   type: PropertyType
 ): T {
-  if (visitor.visitLink && isLinkType(type)) {
-    return visitor.visitLink(type);
-  } else if (isComplex(type)) {
+  if (isComplex(type)) {
     return visitor.visitComplex(type);
   } else if (isArray(type)) {
     return visitor.visitArray(type);
@@ -240,7 +238,6 @@ export interface PropertyTypeVisitor<T> {
   visitNull: (type: Nullable) => T;
   visitUndefined: (type: Undefinable) => T;
   visitComplex: (type: ComplexType) => T;
-  visitLink?: (type: LinkType<any>) => T;
 }
 
 export class ResourceOutputValue {

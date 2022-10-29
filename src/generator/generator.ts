@@ -48,12 +48,24 @@ class RuntimeValueFillVisitor implements PropertyTypeVisitor<any> {
     private getRuntimeValue: (resourceLink: RuntimeValue<any>) => any
   ) {}
 
-  visitBool = () => this.value;
-  visitInt = () => this.value;
-  visitFloat = () => this.value;
-  visitDate = () => this.value;
-  visitStr = () => this.value;
+  private fillIfRuntime = () => {
+    if (isRuntimeValue(this.value) && this.value) {
+      return this.getRuntimeValue(this.value);
+    }
+
+    return this.value;
+  };
+
+  visitBool = this.fillIfRuntime;
+  visitInt = this.fillIfRuntime;
+  visitFloat = this.fillIfRuntime;
+  visitDate = this.fillIfRuntime;
+  visitStr = this.fillIfRuntime;
   visitArray = (type: ArrayType) => {
+    if (isRuntimeValue(this.value)) {
+      return this.getRuntimeValue(this.value);
+    }
+
     const arr = this.value as any[];
     const innerType = type.inner;
     const result: any[] = arr.map((item) => {
@@ -68,6 +80,10 @@ class RuntimeValueFillVisitor implements PropertyTypeVisitor<any> {
   visitUndefined = (type: Undefinable): any =>
     this.value === undefined ? undefined : acceptPropertyType(this, type.inner);
   visitComplex = (type: ComplexType) => {
+    if (isRuntimeValue(this.value)) {
+      return this.getRuntimeValue(this.value);
+    }
+
     const fields = type.fields;
     const originalValue = this.value;
     const result = Object.keys(this.value).reduce((acc, key) => {
@@ -78,24 +94,24 @@ class RuntimeValueFillVisitor implements PropertyTypeVisitor<any> {
     this.value = originalValue;
     return result;
   };
-  visitLink = () => {
-    if (isRuntimeValue(this.value) && this.value) {
-      return this.getRuntimeValue(this.value);
-    }
-
-    return this.value;
-  };
 }
 
 class RuntimeValueVisitor implements PropertyTypeVisitor<RuntimeValue<any>[]> {
   constructor(private value: any) {}
 
-  visitBool = () => [];
-  visitInt = () => [];
-  visitFloat = () => [];
-  visitDate = () => [];
-  visitStr = () => [];
+  private returnIfRuntimeValue = () =>
+    isRuntimeValue(this.value) ? [this.value] : [];
+
+  visitBool = this.returnIfRuntimeValue;
+  visitInt = this.returnIfRuntimeValue;
+  visitFloat = this.returnIfRuntimeValue;
+  visitDate = this.returnIfRuntimeValue;
+  visitStr = this.returnIfRuntimeValue;
   visitArray = (type: ArrayType) => {
+    if (isRuntimeValue(this.value)) {
+      return [this.value];
+    }
+
     const arr = this.value as any[];
     const innerType = type.inner;
     const result: RuntimeValue<any>[] = arr.reduce((acc, item) => {
@@ -115,6 +131,10 @@ class RuntimeValueVisitor implements PropertyTypeVisitor<RuntimeValue<any>[]> {
       ? []
       : acceptPropertyType<RuntimeValue<any>[]>(this, type.inner);
   visitComplex = (type: ComplexType) => {
+    if (isRuntimeValue(this.value)) {
+      return [this.value];
+    }
+
     const fields = type.fields;
     const originalValue = this.value;
     const result: RuntimeValue<any>[] = Object.keys(this.value).reduce(
@@ -130,7 +150,6 @@ class RuntimeValueVisitor implements PropertyTypeVisitor<RuntimeValue<any>[]> {
     this.value = originalValue;
     return result;
   };
-  visitLink = () => (isRuntimeValue(this.value) ? [this.value] : []);
 }
 
 export class Generator {
