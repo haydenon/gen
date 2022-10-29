@@ -240,7 +240,7 @@ export class Generator {
       }
       acc[item.state.name] = {
         desiredState: item.state,
-        createdState: item.output,
+        createdState: item.output.outputs,
       };
       return acc;
     }, {} as CreatedState);
