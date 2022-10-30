@@ -81,6 +81,8 @@ class SubBase extends PropertiesBase {
 }
 class SubOutputs extends SubBase {
   id: PropertyDefinition<number> = def(int());
+  mockId: PropertyDefinition<number> = def(getLink(MockResource, (m) => m.id));
+  text: PropertyDefinition<string> = def(str());
 }
 class SubDefinition extends Resource<SubBase, SubOutputs> {
   constructor() {
@@ -103,6 +105,7 @@ class SubSubBase extends PropertiesBase {
 }
 class SubSubOutputs extends SubSubBase {
   id: PropertyDefinition<number> = def(int());
+  text: PropertyDefinition<string> = def(str());
 }
 class SubSubDefinition extends Resource<SubSubBase, SubSubOutputs> {
   constructor() {

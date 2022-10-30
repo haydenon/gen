@@ -2,6 +2,7 @@ export {
   Resource,
   PropertiesBase,
   PropertyValues,
+  ResolvedInputs,
   OutputValues,
   ResourceGroup,
 } from './resource';

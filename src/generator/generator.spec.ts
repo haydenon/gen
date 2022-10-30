@@ -208,4 +208,30 @@ describe('Generator', () => {
       },
     });
   });
+
+  test('correctly fills out runtime values', async () => {
+    // Arrange
+    const text = 'this is the mock value';
+    const successState = createDesiredState(MockResource, { text });
+    const subState = createDesiredState(SubResource, {
+      text: getRuntimeResourceValue(successState, (m) => m.text),
+    });
+    const desiredState: DesiredState[] = [successState, subState];
+    const generator = Generator.create(desiredState);
+
+    // Act
+    const result = await generator.generateState();
+
+    // Assert
+    expect(result).toHaveLength(2);
+    const subResource = result.find(
+      (c) => c.desiredState.resource === SubResource
+    );
+    expect(subResource).toMatchObject({
+      desiredState: subState,
+      outputs: {
+        text,
+      },
+    });
+  });
 });
