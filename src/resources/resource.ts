@@ -14,7 +14,7 @@ export type PropertyValues<Props extends PropertyMap> = {
     | RuntimeValue<PropertyValueType<Props[P]>>;
 };
 
-export type ResolvedInputs<Props extends PropertyMap> = {
+export type ResolvedPropertyValues<Props extends PropertyMap> = {
   [P in keyof Props]:
     | PropertyValueType<Props[P]>
 }; 
@@ -45,7 +45,7 @@ export abstract class Resource<
 > {
   constructor(public inputs: Inputs, public outputs: Outputs) {}
   abstract create(
-    inputs: ResolvedInputs<Inputs>
+    inputs: ResolvedPropertyValues<Inputs>
   ): Promise<OutputValues<Outputs>>;
   createTimeoutMillis?: number;
 }

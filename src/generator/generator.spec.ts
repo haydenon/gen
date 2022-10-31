@@ -1,4 +1,4 @@
-import { createDesiredState, DesiredState } from '../resources/desired-state';
+import { createDesiredState, DesiredState, ErasedDesiredState } from '../resources/desired-state';
 import { GenerationError, GenerationResultError, Generator } from './generator';
 import {
   MockResource,
@@ -11,7 +11,7 @@ import { getRuntimeResourceValue } from '../resources/properties';
 
 const anyMockInputs = { boolean: true, text: 'hello', number: 3 };
 
-let explicitReturnState: DesiredState[] | undefined;
+let explicitReturnState: ErasedDesiredState[] | undefined;
 jest.mock('./state-tree-generation/state-tree.generator.ts', () => ({
   fillInDesiredStateTree: jest
     .fn()
@@ -26,7 +26,7 @@ describe('Generator', () => {
   test('returns resolved promise when succeeding', async () => {
     // Arrange
     const successState = createDesiredState(MockResource, anyMockInputs);
-    const desiredState: DesiredState[] = [successState];
+    const desiredState: ErasedDesiredState[] = [successState];
     const generator = Generator.create(desiredState);
 
     // Act
@@ -52,7 +52,7 @@ describe('Generator', () => {
   ].forEach((errorState) =>
     test('returns rejected promise when failing', async () => {
       // Arrange
-      const desiredState: DesiredState[] = [errorState];
+      const desiredState: ErasedDesiredState[] = [errorState];
       const generator = Generator.create(desiredState);
 
       // Act
@@ -68,7 +68,7 @@ describe('Generator', () => {
   test('still returns rejected promise when some resources are created and others error', async () => {
     // Arrange
     const errorState = createDesiredState(ErrorResource, {});
-    const desiredState: DesiredState[] = [
+    const desiredState: ErasedDesiredState[] = [
       errorState,
       createDesiredState(MockResource, {}),
     ];
@@ -86,7 +86,7 @@ describe('Generator', () => {
   test('notifies successes when resources succeed', async () => {
     // Arrange
     const successState = createDesiredState(MockResource, anyMockInputs);
-    const desiredState: DesiredState[] = [
+    const desiredState: ErasedDesiredState[] = [
       successState,
       createDesiredState(ErrorResource, {}),
       createDesiredState(StallResource, {}),
@@ -114,7 +114,7 @@ describe('Generator', () => {
     // Arrange
     const stalledState = createDesiredState(StallResource, {});
     const errorState = createDesiredState(ErrorResource, {});
-    const desiredState: DesiredState[] = [
+    const desiredState: ErasedDesiredState[] = [
       stalledState,
       errorState,
       createDesiredState(MockResource, {}),
@@ -146,7 +146,7 @@ describe('Generator', () => {
     const successState = createDesiredState(SubResource, {
       mockId: getRuntimeResourceValue(errorState, (e) => e.id),
     });
-    const desiredState: DesiredState[] = [errorState, successState];
+    const desiredState: ErasedDesiredState[] = [errorState, successState];
     const onCreate = jest.fn();
     const generator = Generator.create(desiredState, { onCreate });
 
@@ -177,7 +177,7 @@ describe('Generator', () => {
     const successState = createDesiredState(MockResource, anyMockInputs);
     const subState = createDesiredState(SubResource, { mockId: 1 });
     explicitReturnState = [successState, subState];
-    const desiredState: DesiredState[] = [successState];
+    const desiredState: ErasedDesiredState[] = [successState];
     const generator = Generator.create(desiredState);
 
     // Act
@@ -216,7 +216,7 @@ describe('Generator', () => {
     const subState = createDesiredState(SubResource, {
       text: getRuntimeResourceValue(successState, (m) => m.text),
     });
-    const desiredState: DesiredState[] = [successState, subState];
+    const desiredState: ErasedDesiredState[] = [successState, subState];
     const generator = Generator.create(desiredState);
 
     // Act

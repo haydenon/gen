@@ -10,31 +10,34 @@ import {
   isRuntimeValue,
   CreatedState,
 } from '../resources/properties';
-import { ResourceInstance } from '../resources/instance';
-import { DesiredState } from '../resources/desired-state';
+import {
+  ErasedResourceInstance,
+  ResourceInstance,
+} from '../resources/instance';
+import { ErasedDesiredState } from '../resources/desired-state';
 import { fillInDesiredStateTree } from './state-tree-generation/state-tree.generator';
 
 const DEFAULT_CREATE_TIMEOUT = 30 * 1000;
 
 interface StateNode {
-  state: DesiredState;
+  state: ErasedDesiredState;
   depth: number;
   dependencies: StateNode[];
   depedendents: StateNode[];
-  output?: ResourceInstance<PropertyMap>;
+  output?: ErasedResourceInstance;
   error?: GenerationError;
 }
 
 const CONCURRENT_CREATIONS = 10;
 
 interface GeneratorOptions {
-  onCreate?: (resource: ResourceInstance<PropertyMap>) => void;
+  onCreate?: (resource: ErasedResourceInstance) => void;
   onError?: (error: GenerationError) => void;
 }
 
 const getNode =
   (stateNodes: StateNode[]) =>
-  (state: DesiredState): StateNode => {
+  (state: ErasedDesiredState): StateNode => {
     const node = stateNodes.find((n) => n.state === state);
     if (!node) {
       throw new Error('No node for state');
@@ -155,9 +158,9 @@ class RuntimeValueVisitor implements PropertyTypeVisitor<RuntimeValue<any>[]> {
 export class Generator {
   private inProgressCount = 0;
   private queued: StateNode[] = [];
-  private resolve: (results: ResourceInstance<PropertyMap>[]) => void;
+  private resolve: (results: ErasedResourceInstance[]) => void;
   private reject: (error: Error) => void;
-  private promise: Promise<ResourceInstance<PropertyMap>[]>;
+  private promise: Promise<ErasedResourceInstance[]>;
 
   private constructor(
     private stateNodes: StateNode[],
@@ -172,7 +175,7 @@ export class Generator {
     });
   }
 
-  async generateState(): Promise<ResourceInstance<PropertyMap>[]> {
+  async generateState(): Promise<ErasedResourceInstance[]> {
     this.runRound();
     return this.promise;
   }
@@ -204,8 +207,8 @@ export class Generator {
   }
 
   private async createDesiredState(
-    state: DesiredState
-  ): Promise<ResourceInstance<PropertyMap>> {
+    state: ErasedDesiredState
+  ): Promise<ErasedResourceInstance> {
     return new Promise((res, rej) => {
       const timeout =
         state.resource.createTimeoutMillis ?? DEFAULT_CREATE_TIMEOUT;
@@ -219,7 +222,7 @@ export class Generator {
       const created = state.resource
         .create(this.fillInRuntimeValues(state.inputs, state.resource.inputs))
         .then((outputs) => {
-          const instance: ResourceInstance<PropertyMap> = {
+          const instance: ErasedResourceInstance = {
             desiredState: state,
             outputs,
           };
@@ -267,7 +270,7 @@ export class Generator {
     return runtimeValue.valueAccessor(createdState);
   };
 
-  private notifyItemSuccess(instance: ResourceInstance<PropertyMap>) {
+  private notifyItemSuccess(instance: ErasedResourceInstance) {
     if (this.options?.onCreate) {
       try {
         this.options.onCreate(instance);
@@ -277,7 +280,7 @@ export class Generator {
     }
   }
 
-  private notifyItemError(error: Error, desired: DesiredState) {
+  private notifyItemError(error: Error, desired: ErasedDesiredState) {
     if (this.options?.onError) {
       try {
         this.options.onError(new GenerationError(error, desired));
@@ -291,7 +294,7 @@ export class Generator {
     return this.inProgressCount > 0;
   }
 
-  private getNextForCreation(count: number): DesiredState[] {
+  private getNextForCreation(count: number): ErasedDesiredState[] {
     const toFetch = count - this.inProgressCount;
     if (toFetch <= 0) {
       return [];
@@ -321,19 +324,19 @@ export class Generator {
       this.reject(new GenerationResultError('Generation stalled'));
     } else {
       this.resolve(
-        this.stateNodes.map((n) => n.output as ResourceInstance<PropertyMap>)
+        this.stateNodes.map((n) => n.output as ErasedResourceInstance)
       );
     }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private markCreating(_: DesiredState): void {
+  private markCreating(_: ErasedDesiredState): void {
     this.inProgressCount++;
   }
 
   private markCreated(
-    state: DesiredState,
-    output: ResourceInstance<PropertyMap>
+    state: ErasedDesiredState,
+    output: ErasedResourceInstance
   ): void {
     const node = this.stateNodes.find((n) => n.state === state);
     if (!node) {
@@ -345,7 +348,7 @@ export class Generator {
     this.appendReadyNodesToQueue(node.depedendents);
   }
 
-  private markFailed(state: DesiredState, error: Error): void {
+  private markFailed(state: ErasedDesiredState, error: Error): void {
     const node = this.stateNodes.find((n) => n.state === state);
     if (!node) {
       throw new Error('Node does not exist');
@@ -372,7 +375,10 @@ export class Generator {
       .sort((n1, n2) => n1.depth - n2.depth);
   }
 
-  static create(state: DesiredState[], options?: GeneratorOptions): Generator {
+  static create(
+    state: ErasedDesiredState[],
+    options?: GeneratorOptions
+  ): Generator {
     // TODO: Verify unique state names
     state = fillInDesiredStateTree(state);
     return new Generator(Generator.getStructure(state), options);
@@ -380,7 +386,7 @@ export class Generator {
 
   private getNodeForState = getNode(this.stateNodes);
 
-  private static getStructure(stateValues: DesiredState[]): StateNode[] {
+  private static getStructure(stateValues: ErasedDesiredState[]): StateNode[] {
     const nodes: StateNode[] = stateValues.map((state) => ({
       state,
       depth: 0,
@@ -414,7 +420,7 @@ export class Generator {
 }
 
 export class GenerationError extends Error {
-  constructor(public inner: Error, public desired: DesiredState) {
+  constructor(public inner: Error, public desired: ErasedDesiredState) {
     super();
     this.message = `Failed to create state: ${inner.message}`;
   }

@@ -8,7 +8,7 @@ import {
   getRuntimeResourceValue,
 } from '../../resources/properties';
 import {
-  DesiredState,
+  ErasedDesiredState,
   createDesiredState,
 } from '../../resources/desired-state';
 import { PropertyValues, PropertyMap } from '../../resources/resource';
@@ -16,15 +16,15 @@ import { getRandomInt } from '../../utilities';
 import { getValueForPrimativeType } from './primatives.generator';
 
 interface DesiredWithChildren {
-  desired: DesiredState;
-  children: DesiredState[];
+  desired: ErasedDesiredState;
+  children: ErasedDesiredState[];
 }
 
 function fillInType(
-  current: DesiredState,
+  current: ErasedDesiredState,
   type: PropertyType,
   inputs: PropertyValues<PropertyMap>,
-  children: DesiredState[]
+  children: ErasedDesiredState[]
 ): [any, DesiredWithChildren[]] {
   if (isComplex(type)) {
     return Object.keys(type.fields).reduce(
@@ -80,9 +80,9 @@ function fillInType(
 }
 
 function fillInInput(
-  state: DesiredState,
+  state: ErasedDesiredState,
   input: PropertyDefinition<any>,
-  children: DesiredState[]
+  children: ErasedDesiredState[]
 ): [any, DesiredWithChildren[]] {
   let currentInput: string | undefined;
   const values = state.inputs;
@@ -128,7 +128,9 @@ function fillInInput(
   return [value, newState];
 }
 
-export function fillInDesiredStateTree(state: DesiredState[]): DesiredState[] {
+export function fillInDesiredStateTree(
+  state: ErasedDesiredState[]
+): ErasedDesiredState[] {
   // TODO: Explicit link support
   const newState: DesiredWithChildren[] = [
     ...state.map((desired) => ({ desired, children: [] })),

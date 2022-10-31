@@ -6,7 +6,6 @@ import {
   createDesiredState,
   def,
   dependentGenerator,
-  DesiredState,
   float,
   GenerationResult,
   generator,
@@ -34,6 +33,7 @@ import {
   RuntimeValue,
   Value,
 } from '../../resources/properties';
+import { ErasedDesiredState } from '../../resources/desired-state';
 
 const anyMockInputs = {
   text: expect.anything(),
@@ -186,7 +186,7 @@ describe('State tree creation', () => {
       number: 2,
     };
     const state = createDesiredState(MockResource, PropertyValues);
-    const desiredState: DesiredState[] = [state];
+    const desiredState: ErasedDesiredState[] = [state];
 
     // Act
     const filledOutState = fillInDesiredStateTree(desiredState);
@@ -198,7 +198,7 @@ describe('State tree creation', () => {
   test('fills in resource inputs with no values', async () => {
     // Arrange
     const state = createDesiredState(MockResource, {});
-    const desiredState: DesiredState[] = [state];
+    const desiredState: ErasedDesiredState[] = [state];
 
     // Act
     const filledOutState = fillInDesiredStateTree(desiredState);
@@ -283,7 +283,7 @@ describe('State tree creation', () => {
     expect(filledInState).toHaveLength(2);
     const filledIn = filledInState.find(
       (s) => s.resource === Valid
-    ) as DesiredState;
+    ) as ErasedDesiredState;
     expect(filledIn).not.toBeUndefined();
     expect(filledIn.inputs.b).toBeInstanceOf(RuntimeValue);
     const runtimeValue = filledIn.inputs.b as RuntimeValue<string>;
@@ -315,7 +315,7 @@ describe('State tree creation', () => {
     expect(filledInState).toHaveLength(2);
     const filledIn = filledInState.find(
       (s) => s.resource === Valid
-    ) as DesiredState;
+    ) as ErasedDesiredState;
     expect(filledIn).not.toBeUndefined();
     expect(filledIn.inputs.c).toBeInstanceOf(RuntimeValue);
     const runtimeValue = filledIn.inputs.c as RuntimeValue<string>;

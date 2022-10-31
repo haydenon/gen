@@ -1,10 +1,11 @@
 import { isOneOf, LookupValues, oneOf } from '../utilities';
-import { DesiredState } from './desired-state';
+import { DesiredState, ErasedDesiredState } from './desired-state';
 import {
   Resource,
   PropertyValues,
   PropertyMap,
   OutputValues,
+  ResolvedPropertyValues,
 } from './resource';
 
 enum Type {
@@ -242,13 +243,13 @@ export interface PropertyTypeVisitor<T> {
 
 export class ResourceOutputValue {
   constructor(
-    public item: DesiredState,
+    public item: ErasedDesiredState,
     public valueAccessor: (outputs: PropertyValues<PropertyMap>) => any
   ) {}
 }
 
 interface CreatedStateForDesired {
-  desiredState: DesiredState;
+  desiredState: ErasedDesiredState;
   createdState: OutputValues<PropertyMap>;
 }
 
@@ -317,13 +318,24 @@ export function mapValues<T extends any[], R>(
   return mapper(...staticValues);
 }
 
-export function getRuntimeResourceValue<T>(
-  item: DesiredState,
-  valueAccessor: (outputs: PropertyValues<PropertyMap>) => T
-): RuntimeValue<T> {
+export function getRuntimeResourceValue<
+  Res extends Resource<PropertyMap, PropertyMap>,
+  Prop
+>(
+  item: DesiredState<Res>,
+  valueAccessor: (outputs: ResolvedPropertyValues<Res['outputs']>) => Prop
+): RuntimeValue<Prop> {
   return new RuntimeValue(
-    [new ResourceOutputValue(item, valueAccessor)],
-    (state) => valueAccessor(state[item.name].createdState)
+    [
+      new ResourceOutputValue(
+        item,
+        valueAccessor as (outputs: PropertyValues<any>) => Prop
+      ),
+    ],
+    (state) =>
+      valueAccessor(
+        state[item.name].createdState as ResolvedPropertyValues<Res['outputs']>
+      )
   );
 }
 
@@ -459,7 +471,7 @@ export function constrain<Prop extends PropertyType>(
 }
 
 interface RelatedResources {
-  children: DesiredState[];
+  children: ErasedDesiredState[];
 }
 
 export function dependentGenerator<Inputs extends PropertyMap, Prop>(
