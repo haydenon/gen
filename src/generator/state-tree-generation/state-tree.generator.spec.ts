@@ -48,7 +48,7 @@ class ValidDependentInput extends PropertiesBase {
   b: PropertyDefinition<string> = def(
     constrain(
       str(),
-      dependentGenerator<ValidDependentInput, string>((values) =>
+      dependentGenerator(this, (values) =>
         mapValue(values.a, (a) => a.toUpperCase())
       )
     )
@@ -56,7 +56,7 @@ class ValidDependentInput extends PropertiesBase {
   c: PropertyDefinition<string> = def(
     constrain(
       str(),
-      dependentGenerator<ValidDependentInput, string>((values) =>
+      dependentGenerator(this, (values) =>
         mapValues([values.a, values.b], (a, b) => a.split(' ')[0] + b.length)
       )
     )
@@ -74,13 +74,19 @@ class CircularDependentInput extends PropertiesBase {
   a: PropertyDefinition<string> = def(
     constrain(
       str(),
-      dependentGenerator<ValidDependentInput, string>((values) => values.b)
+      dependentGenerator<CircularDependentInput, string>(
+        this,
+        (values) => values.b
+      )
     )
   );
   b: PropertyDefinition<string> = def(
     constrain(
       str(),
-      dependentGenerator<ValidDependentInput, string>((values) => values.a)
+      dependentGenerator<CircularDependentInput, string>(
+        this,
+        (values) => values.a
+      )
     )
   );
 }
@@ -157,7 +163,8 @@ class AdvancedInput extends PropertiesBase {
   depdendentGeneratedConstraint: PropertyDefinition<number> = def(
     constrain(
       int(),
-      dependentGenerator<AdvancedInput, number>(
+      dependentGenerator(
+        this,
         (values) => overriddenDependentOutput ?? values.dependentField
       )
     )

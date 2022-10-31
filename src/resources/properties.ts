@@ -475,6 +475,7 @@ interface RelatedResources {
 }
 
 export function dependentGenerator<Inputs extends PropertyMap, Prop>(
+  inputs: Inputs,
   func: (
     values: PropertyValues<Inputs>,
     related: RelatedResources
