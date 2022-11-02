@@ -6,7 +6,7 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "prepare": "npm run build",
-    "build": "tsc",
+    "build": "tsc -p ./src/core",
     "test": "jest"
   },
   "keywords": [],
