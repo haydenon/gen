@@ -1,1 +1,1 @@
-export * from './server';
+export { GenServer } from './gen-server';

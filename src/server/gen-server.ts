@@ -1,7 +1,8 @@
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
+import * as ws from 'ws';
 
-import { Resource, PropertiesBase, def } from '@haydenon/gen';
+import { Resource, PropertiesBase } from '../resources';
 
 interface ServerOptions {
   port?: number;
@@ -42,9 +43,24 @@ export class GenServer {
     app.use(bodyParser.json());
 
     const port = this.options.port;
-    app.listen(port, () => {
+    const server = app.listen(port, () => {
       console.log('Running on port ' + port);
     });
+
+    const wsServer = new ws.Server({ noServer: true });
+    wsServer.on('connection', (socket) => {
+      socket.on('message', (message) => console.log(message));
+    });
+
+    server.on('upgrade', (request, socket, head) => {
+      console.log(request.url);
+      if (request.url === '/v1') {
+        wsServer.handleUpgrade(request, socket, head, (socket) => {
+          wsServer.emit('connection', socket, request);
+        });
+      }
+    });
+
     app.post('/v1/state', async (req, res) => {
       const body = req.body;
       if (!isValidBody(body)) {
