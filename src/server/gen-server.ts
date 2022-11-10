@@ -3,6 +3,8 @@ import * as bodyParser from 'body-parser';
 import * as ws from 'ws';
 
 import { Resource, PropertiesBase } from '../resources';
+import { isStateRequest } from './models/state-models';
+import { DesiredStateMapper, getMapper } from './mapping/desired-state-mapper';
 
 interface ServerOptions {
   port?: number;
@@ -12,30 +14,16 @@ const defaultOptions: Required<ServerOptions> = {
   port: 8000,
 };
 
-interface StateItem {
-  _type: string;
-}
-
-interface StateRequest {
-  state: StateItem[];
-}
-
-const isValidItem = (item: any): item is StateItem =>
-  typeof item === 'object' && typeof item._type === 'string';
-
-const isValidBody = (body: any): body is StateRequest =>
-  typeof body === 'object' &&
-  body.state instanceof Array &&
-  body.state.every(isValidItem);
-
 export class GenServer {
   private options: Required<ServerOptions>;
+  private mapper: DesiredStateMapper;
 
   constructor(
-    private resources: Resource<PropertiesBase, PropertiesBase>[],
+    resources: Resource<PropertiesBase, PropertiesBase>[],
     serverOptions?: ServerOptions
   ) {
     this.options = { ...defaultOptions, ...(serverOptions || {}) };
+    this.mapper = getMapper(resources);
   }
 
   run() {
@@ -63,22 +51,28 @@ export class GenServer {
 
     app.post('/v1/state', async (req, res) => {
       const body = req.body;
-      if (!isValidBody(body)) {
+      if (!isStateRequest(body)) {
         res.status(400);
         res.send({
-          message: 'Invalid state body.',
+          errors: [{ message: 'Invalid state body.' }],
         });
         return;
       }
 
-      const types = body.state.map((s) => s._type);
+      const mappedState = body.state.map(this.mapper);
+      const errors = mappedState.filter((s) => s instanceof Error) as Error[];
+      if (errors.length > 0) {
+        res.status(400);
+        res.send({
+          errors: errors.map((e) => ({
+            message: e.message,
+          })),
+        });
+        return;
+      }
+
       res.send({
-        validResources: types.filter((t) =>
-          this.resources.some((r) => r.constructor.name === t)
-        ),
-        invalidResources: types.filter((t) =>
-          this.resources.every((r) => r.constructor.name !== t)
-        ),
+        state: mappedState,
       });
     });
   }

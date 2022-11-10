@@ -15,9 +15,8 @@ export type PropertyValues<Props extends PropertyMap> = {
 };
 
 export type ResolvedPropertyValues<Props extends PropertyMap> = {
-  [P in keyof Props]:
-    | PropertyValueType<Props[P]>
-}; 
+  [P in keyof Props]: PropertyValueType<Props[P]>;
+};
 
 type RemoveIndex<T> = {
   [K in keyof T as string extends K
