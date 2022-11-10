@@ -152,17 +152,25 @@ class RuntimeValueVisitor implements PropertyTypeVisitor<RuntimeValue<any>[]> {
   };
 }
 
+interface GeneratedStateResponse {
+  desiredState: ErasedDesiredState[];
+  createdState: ErasedResourceInstance[];
+}
+
 export class Generator {
   private inProgressCount = 0;
   private queued: StateNode[] = [];
-  private resolve: (results: ErasedResourceInstance[]) => void;
+  private resolve: (results: GeneratedStateResponse) => void;
   private reject: (error: Error) => void;
-  private promise: Promise<ErasedResourceInstance[]>;
+  private promise: Promise<GeneratedStateResponse>;
+
+  private desiredState: ErasedDesiredState[];
 
   private constructor(
     private stateNodes: StateNode[],
     private options?: GeneratorOptions
   ) {
+    this.desiredState = stateNodes.map((n) => n.state);
     this.appendReadyNodesToQueue(stateNodes);
     this.resolve = () => {};
     this.reject = () => {};
@@ -172,7 +180,7 @@ export class Generator {
     });
   }
 
-  async generateState(): Promise<ErasedResourceInstance[]> {
+  async generateState(): Promise<GeneratedStateResponse> {
     this.runRound();
     return this.promise;
   }
@@ -320,9 +328,12 @@ export class Generator {
     } else if (numCompleted < total) {
       this.reject(new GenerationResultError('Generation stalled'));
     } else {
-      this.resolve(
-        this.stateNodes.map((n) => n.output as ErasedResourceInstance)
-      );
+      this.resolve({
+        desiredState: this.desiredState,
+        createdState: this.stateNodes.map(
+          (n) => n.output as ErasedResourceInstance
+        ),
+      });
     }
   }
 

@@ -262,6 +262,13 @@ export class RuntimeValue<T> {
     public resourceOutputValues: ResourceOutputValue[],
     public valueAccessor: (createdState: CreatedState) => T
   ) {}
+
+  // TODO: Better serialisation
+  public toJSON = (): string => {
+    return `<RuntimeValue(${this.resourceOutputValues
+      .map((r) => `['${r.item.name}', ${r.valueAccessor.toString()}]`)
+      .join(',')})>`;
+  };
 }
 
 export function isRuntimeValue<T>(

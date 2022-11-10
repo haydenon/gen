@@ -31,7 +31,7 @@ export type InputValues<Props extends PropertyMap> = RemoveIndex<
 >;
 
 export type OutputValues<Props extends PropertyMap> = RemoveIndex<
-  PropertyValues<Props>
+  ResolvedPropertyValues<Props>
 >;
 
 export abstract class PropertiesBase implements PropertyMap {

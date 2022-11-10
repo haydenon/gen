@@ -4,7 +4,7 @@ import {
   ErasedDesiredState,
 } from '../../resources/desired-state';
 import { PropertyMap } from '../../resources/resource';
-import { StateItem } from '../models/state-models';
+import { StateItem } from '../models/state-requests';
 
 export type DesiredStateMapper = (
   item: StateItem

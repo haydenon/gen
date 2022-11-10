@@ -3,8 +3,14 @@ import * as bodyParser from 'body-parser';
 import * as ws from 'ws';
 
 import { Resource, PropertiesBase } from '../resources';
-import { isStateRequest } from './models/state-models';
+import { isStateRequest } from './models/state-requests';
 import { DesiredStateMapper, getMapper } from './mapping/desired-state-mapper';
+import { GenerationResultError, Generator } from '../generator';
+import { ErasedDesiredState } from '../resources/desired-state';
+import {
+  mapDesiredStateToResponse,
+  mapResourceInstanceToResponse,
+} from './models/state-responses';
 
 interface ServerOptions {
   port?: number;
@@ -71,9 +77,26 @@ export class GenServer {
         return;
       }
 
-      res.send({
-        state: mappedState,
-      });
+      const desired = mappedState as ErasedDesiredState[];
+
+      const generator = Generator.create(desired);
+      try {
+        const { createdState, desiredState } = await generator.generateState();
+        res.send({
+          createdState: createdState.map(mapResourceInstanceToResponse),
+          desiredState: desiredState.map(mapDesiredStateToResponse),
+        });
+      } catch (err) {
+        const error = err as GenerationResultError;
+        res.status(400);
+        res.send({
+          errors: [
+            error.errors?.map((e) => ({
+              messages: e.message,
+            })) ?? { message: error.message },
+          ],
+        });
+      }
     });
   }
 }
