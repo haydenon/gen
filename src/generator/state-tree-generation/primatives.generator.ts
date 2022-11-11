@@ -8,7 +8,7 @@ import {
   isFloat,
   isBool,
   isDate,
-} from '../../resources/properties';
+} from '../../resources/properties/properties';
 import {
   maybeNullOrUndefined,
   maybeNull,

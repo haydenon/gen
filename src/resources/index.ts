@@ -27,5 +27,5 @@ export {
   lookup,
   mapValue,
   mapValues,
-} from './properties';
+} from './properties/properties';
 export { DesiredState, createDesiredState } from './desired-state';

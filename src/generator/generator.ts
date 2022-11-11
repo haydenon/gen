@@ -9,7 +9,7 @@ import {
   RuntimeValue,
   isRuntimeValue,
   CreatedState,
-} from '../resources/properties';
+} from '../resources/properties/properties';
 import { ErasedResourceInstance } from '../resources/instance';
 import { ErasedDesiredState } from '../resources/desired-state';
 import { fillInDesiredStateTree } from './state-tree-generation/state-tree.generator';

@@ -1,4 +1,4 @@
-import { PropertyDefinition, RuntimeValue } from './properties';
+import { PropertyDefinition, RuntimeValue } from './properties/properties';
 
 export interface PropertyMap {
   [name: string]: PropertyDefinition<unknown>;

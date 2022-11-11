@@ -6,7 +6,7 @@ import {
   isArray,
   GenerationResult,
   getRuntimeResourceValue,
-} from '../../resources/properties';
+} from '../../resources/properties/properties';
 import {
   ErasedDesiredState,
   createDesiredState,

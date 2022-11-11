@@ -66,11 +66,11 @@ export class GenServer {
       }
 
       const mappedState = body.state.map(this.mapper);
-      const errors = mappedState.filter((s) => s instanceof Error) as Error[];
+      const errors = mappedState.filter((s) => s instanceof Array) as Error[][];
       if (errors.length > 0) {
         res.status(400);
         res.send({
-          errors: errors.map((e) => ({
+          errors: errors.flat().map((e) => ({
             message: e.message,
           })),
         });
