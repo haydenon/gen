@@ -9,6 +9,7 @@ import {
   PropertyValues,
   OutputValues,
   getLink,
+  ResolvedInputs,
 } from '../src/resources';
 
 export class MockBase extends PropertiesBase {
@@ -27,7 +28,7 @@ class MockDefinition extends Resource<MockBase, MockOutputs> {
     super(new MockBase(), new MockOutputs());
   }
 
-  create(inputs: PropertyValues<MockBase>): Promise<OutputValues<MockOutputs>> {
+  create(inputs: ResolvedInputs<MockBase>): Promise<OutputValues<MockOutputs>> {
     const instance = {
       id: mockId++,
       text: inputs.text,
@@ -89,7 +90,7 @@ class SubDefinition extends Resource<SubBase, SubOutputs> {
     super(new SubBase(), new SubOutputs());
   }
 
-  create(inputs: PropertyValues<SubBase>): Promise<OutputValues<SubOutputs>> {
+  create(inputs: ResolvedInputs<SubBase>): Promise<OutputValues<SubOutputs>> {
     return Promise.resolve({
       ...inputs,
       id: subId++,
@@ -113,7 +114,7 @@ class SubSubDefinition extends Resource<SubSubBase, SubSubOutputs> {
   }
 
   create(
-    inputs: PropertyValues<SubSubBase>
+    inputs: ResolvedInputs<SubSubBase>
   ): Promise<OutputValues<SubSubOutputs>> {
     return Promise.resolve({
       ...inputs,

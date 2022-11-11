@@ -1,4 +1,7 @@
-import { createDesiredState, DesiredState, ErasedDesiredState } from '../resources/desired-state';
+import {
+  createDesiredState,
+  ErasedDesiredState,
+} from '../resources/desired-state';
 import { GenerationError, GenerationResultError, Generator } from './generator';
 import {
   MockResource,
@@ -33,17 +36,20 @@ describe('Generator', () => {
     const result = await generator.generateState();
 
     // Assert
-    expect(result).toStrictEqual([
-      {
-        desiredState: successState,
-        outputs: {
-          id: expect.any(Number),
-          text: expect.any(String),
-          number: expect.any(Number),
-          boolean: expect.any(Boolean),
+    expect(result).toStrictEqual({
+      desiredState,
+      createdState: [
+        {
+          desiredState: successState,
+          outputs: {
+            id: expect.any(Number),
+            text: expect.any(String),
+            number: expect.any(Number),
+            boolean: expect.any(Boolean),
+          },
         },
-      },
-    ]);
+      ],
+    });
   });
 
   [
@@ -169,7 +175,7 @@ describe('Generator', () => {
     const result = await generator.generateState();
 
     // Assert
-    expect(result).toHaveLength(count);
+    expect(result.createdState).toHaveLength(count);
   });
 
   test('creates the filled out state tree', async () => {
@@ -184,11 +190,11 @@ describe('Generator', () => {
     const result = await generator.generateState();
 
     // Assert
-    expect(result).toHaveLength(2);
-    const mockResource = result.find(
+    expect(result.createdState).toHaveLength(2);
+    const mockResource = result.createdState.find(
       (c) => c.desiredState.resource === MockResource
     );
-    const subResource = result.find(
+    const subResource = result.createdState.find(
       (c) => c.desiredState.resource === SubResource
     );
     expect(mockResource).toEqual({
@@ -223,8 +229,8 @@ describe('Generator', () => {
     const result = await generator.generateState();
 
     // Assert
-    expect(result).toHaveLength(2);
-    const subResource = result.find(
+    expect(result.createdState).toHaveLength(2);
+    const subResource = result.createdState.find(
       (c) => c.desiredState.resource === SubResource
     );
     expect(subResource).toMatchObject({

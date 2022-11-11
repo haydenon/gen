@@ -16,6 +16,9 @@ import {
   ValueAndPropertyVisitor,
 } from './properties';
 
+export const getBaseError = (name: string, input: string) =>
+  `Input value '${input}' for '${name}'`;
+
 export function validateInputValues(
   name: string,
   properties: PropertyMap,
@@ -53,7 +56,7 @@ export function validateInputValues(
 }
 
 class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
-  private baseError = `Input value '${this.input}' for '${this.name}'`;
+  private baseError = getBaseError(this.name, this.input);
 
   constructor(value: any, private name: string, private input: string) {
     super(value);
@@ -146,7 +149,7 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
     return this.checkValue(type, value, 'boolean');
   };
   visitIntValue = (type: IntType, value: any) => {
-    if (Math.abs(value) % 1 !== 0) {
+    if (typeof value === 'number' && Math.abs(value) % 1 !== 0) {
       throw new Error(`${this.baseError} is not an integer`);
     }
     return this.checkValue(type, value, 'number', (num) => num);
