@@ -24,9 +24,6 @@ const removeSpecialFields = (
 
     if (propertiesForRuntimeReplacement) {
       const runtimeOutputVisitor = new RuntimeOutputVisitor(value[key]);
-      if (key === 'orderItems') {
-        console.log(value[key], propertiesForRuntimeReplacement[key].type);
-      }
       acc[key] = acceptPropertyType(
         runtimeOutputVisitor,
         propertiesForRuntimeReplacement[key].type
