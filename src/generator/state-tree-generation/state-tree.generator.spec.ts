@@ -30,10 +30,10 @@ import {
   getRuntimeResourceValue,
   mapValue,
   mapValues,
-  RuntimeValue,
   Value,
 } from '../../resources/properties';
 import { ErasedDesiredState } from '../../resources/desired-state';
+import { RuntimeValue } from '../../resources/runtime-values';
 
 const anyMockInputs = {
   text: expect.anything(),
@@ -279,7 +279,7 @@ describe('State tree creation', () => {
     const state = [
       dependentState,
       createDesiredState(Valid, {
-        a: getRuntimeResourceValue(dependentState, (m) => m.text),
+        a: getRuntimeResourceValue(dependentState, 'text'),
       }),
     ];
 
@@ -295,7 +295,7 @@ describe('State tree creation', () => {
     expect(filledIn.inputs.b).toBeInstanceOf(RuntimeValue);
     const runtimeValue = filledIn.inputs.b as RuntimeValue<string>;
     expect(
-      runtimeValue.valueAccessor({
+      runtimeValue.evaluate({
         [dependentState.name]: {
           desiredState: dependentState,
           createdState: { text },
@@ -311,7 +311,7 @@ describe('State tree creation', () => {
     const state = [
       dependentState,
       createDesiredState(Valid, {
-        a: getRuntimeResourceValue(dependentState, (m) => m.text),
+        a: getRuntimeResourceValue(dependentState, 'text'),
       }),
     ];
 
@@ -327,7 +327,7 @@ describe('State tree creation', () => {
     expect(filledIn.inputs.c).toBeInstanceOf(RuntimeValue);
     const runtimeValue = filledIn.inputs.c as RuntimeValue<string>;
     expect(
-      runtimeValue.valueAccessor({
+      runtimeValue.evaluate({
         [dependentState.name]: {
           desiredState: dependentState,
           createdState: { text },

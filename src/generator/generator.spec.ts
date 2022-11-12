@@ -150,7 +150,7 @@ describe('Generator', () => {
     // Arrange
     const errorState = createDesiredState(ErrorResource, {});
     const successState = createDesiredState(SubResource, {
-      mockId: getRuntimeResourceValue(errorState, (e) => e.id),
+      mockId: getRuntimeResourceValue(errorState, 'id'),
     });
     const desiredState: ErasedDesiredState[] = [errorState, successState];
     const onCreate = jest.fn();
@@ -220,7 +220,7 @@ describe('Generator', () => {
     const text = 'this is the mock value';
     const successState = createDesiredState(MockResource, { text });
     const subState = createDesiredState(SubResource, {
-      text: getRuntimeResourceValue(successState, (m) => m.text),
+      text: getRuntimeResourceValue(successState, 'text'),
     });
     const desiredState: ErasedDesiredState[] = [successState, subState];
     const generator = Generator.create(desiredState);

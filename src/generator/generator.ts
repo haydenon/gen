@@ -2,16 +2,17 @@ import { PropertyMap, PropertyValues } from '../resources/resource';
 import {
   ArrayType,
   ComplexType,
-  acceptPropertyType,
-  RuntimeValue,
-  isRuntimeValue,
   CreatedState,
-  ValueAndPropertyVisitor,
   PropertyType,
 } from '../resources/properties/properties';
 import { ErasedResourceInstance } from '../resources/instance';
 import { ErasedDesiredState } from '../resources/desired-state';
 import { fillInDesiredStateTree } from './state-tree-generation/state-tree.generator';
+import {
+  ValueAndPropertyVisitor,
+  acceptPropertyType,
+} from '../resources/properties/property-visitor';
+import { isRuntimeValue, RuntimeValue } from '../resources/runtime-values';
 
 const DEFAULT_CREATE_TIMEOUT = 30 * 1000;
 
@@ -218,7 +219,7 @@ export class Generator {
 
   private getRuntimeValue = (runtimeValue: RuntimeValue<any>): any => {
     const dependentItems = runtimeValue.resourceOutputValues.map(
-      (outputValues) => this.getNodeForState(outputValues.item)
+      (outputValues) => this.getNodeForState(outputValues)
     );
 
     const createdState = dependentItems.reduce((acc, item) => {
@@ -232,7 +233,7 @@ export class Generator {
       return acc;
     }, {} as CreatedState);
 
-    return runtimeValue.valueAccessor(createdState);
+    return runtimeValue.evaluate(createdState);
   };
 
   private notifyItemSuccess(instance: ErasedResourceInstance) {
@@ -373,8 +374,8 @@ export class Generator {
           resourceLinkVisitor,
           inputDef.type
         );
-        for (const item of runtimeValues.flatMap((l) =>
-          l.resourceOutputValues.map((out) => out.item)
+        for (const item of runtimeValues.flatMap(
+          (l) => l.resourceOutputValues
         )) {
           const runtimeValueNode = getNode(nodes)(item);
           node.dependencies.push(runtimeValueNode);

@@ -20,7 +20,6 @@ export {
   mapValue,
   mapValues,
   getRuntimeResourceValue,
-  RuntimeValue,
   Value,
 } from './properties';
 export { validateInputValue, validateInputValues } from './validation';

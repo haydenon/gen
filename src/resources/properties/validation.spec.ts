@@ -1,5 +1,7 @@
 import { MockBase } from '../../../test';
 import { InputValues } from '../resource';
+import { RuntimeValue } from '../runtime-values';
+import { Literal } from '../runtime-values/ast/expressions';
 import {
   array,
   bool,
@@ -11,7 +13,6 @@ import {
   int,
   nullable,
   PropertyType,
-  RuntimeValue,
   str,
   undefinable,
 } from './properties';
@@ -640,7 +641,7 @@ describe('validateInputValue', () => {
         nullable(str()),
         undefinable(str()),
       ];
-      const runtimeValue = new RuntimeValue([], () => {});
+      const runtimeValue = new RuntimeValue([], new Literal(1));
 
       for (const type of cases) {
         // Act
@@ -658,7 +659,7 @@ describe('validateInputValue', () => {
 
     test('returns runtime values in arrays', () => {
       // Arrange
-      const runtimeValue = new RuntimeValue([], () => {});
+      const runtimeValue = new RuntimeValue([], new Literal(1));
 
       // Act
       const result = validateInputValue(
@@ -674,7 +675,7 @@ describe('validateInputValue', () => {
 
     test('returns runtime values in complex objects', () => {
       // Arrange
-      const runtimeValue = new RuntimeValue([], () => {});
+      const runtimeValue = new RuntimeValue([], new Literal(1));
 
       // Act
       const result = validateInputValue(

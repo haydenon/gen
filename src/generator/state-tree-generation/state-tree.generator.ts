@@ -71,7 +71,10 @@ function fillInType(
       type.resources[resourceIndex],
       {}
     );
-    const link = getRuntimeResourceValue(dependentState, type.outputAccessor);
+    const link = (getRuntimeResourceValue as any)(
+      dependentState,
+      type.outputKey
+    );
     const newChildren = [current, ...children];
     return [link, [{ desired: dependentState, children: newChildren }]];
   }

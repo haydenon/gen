@@ -6,7 +6,6 @@ import {
   bool,
   str,
   Resource,
-  PropertyValues,
   OutputValues,
   getLink,
   ResolvedInputs,
@@ -77,12 +76,12 @@ export const ErrorResource = new ErrorDefinition();
 
 let subId = 1;
 class SubBase extends PropertiesBase {
-  mockId: PropertyDefinition<number> = def(getLink(MockResource, (m) => m.id));
+  mockId: PropertyDefinition<number> = def(getLink(MockResource, 'id'));
   text: PropertyDefinition<string> = def(str());
 }
 class SubOutputs extends SubBase {
   id: PropertyDefinition<number> = def(int());
-  mockId: PropertyDefinition<number> = def(getLink(MockResource, (m) => m.id));
+  mockId: PropertyDefinition<number> = def(getLink(MockResource, 'id'));
   text: PropertyDefinition<string> = def(str());
 }
 class SubDefinition extends Resource<SubBase, SubOutputs> {
@@ -101,7 +100,7 @@ export const SubResource = new SubDefinition();
 
 let subSubId = 1;
 class SubSubBase extends PropertiesBase {
-  subId: PropertyDefinition<number> = def(getLink(SubResource, (s) => s.id));
+  subId: PropertyDefinition<number> = def(getLink(SubResource, 'id'));
   text: PropertyDefinition<string> = def(str());
 }
 class SubSubOutputs extends SubSubBase {

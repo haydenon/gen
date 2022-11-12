@@ -1,10 +1,13 @@
-import { PropertyDefinition, RuntimeValue } from './properties/properties';
+import { PropertyDefinition } from './properties/properties';
+import { RuntimeValue } from './runtime-values';
 
 export interface PropertyMap {
   [name: string]: PropertyDefinition<unknown>;
 }
 
-type PropertyValueType<Prop> = Prop extends PropertyDefinition<infer Type>
+export type PropertyValueType<Prop> = Prop extends PropertyDefinition<
+  infer Type
+>
   ? Type
   : never;
 
@@ -18,7 +21,7 @@ export type ResolvedPropertyValues<Props extends PropertyMap> = {
   [P in keyof Props]: PropertyValueType<Props[P]>;
 };
 
-type RemoveIndex<T> = {
+export type RemoveIndex<T> = {
   [K in keyof T as string extends K
     ? never
     : number extends K

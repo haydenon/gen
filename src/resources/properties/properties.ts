@@ -6,7 +6,20 @@ import {
   PropertyMap,
   OutputValues,
   ResolvedPropertyValues,
+  PropertyValueType,
+  RemoveIndex,
 } from '../resource';
+import { RuntimeValue } from '../runtime-values';
+import {
+  AnonymousFunction,
+  Call,
+  Expr,
+  GetProp,
+  Variable,
+} from '../runtime-values/ast/expressions';
+import { identifier } from '../runtime-values/ast/tokens/token';
+import { evaluate } from '../runtime-values/evaluator/evaluator';
+import { getValueExpr } from '../runtime-values/value-mapper';
 
 export enum Type {
   Boolean = 'Boolean',
@@ -204,124 +217,6 @@ export type TypeForProperty<T> = T extends Nullable
   ? boolean
   : never;
 
-export function acceptPropertyType<T>(
-  visitor: PropertyTypeVisitor<T>,
-  type: PropertyType
-): T {
-  if (isComplex(type)) {
-    return visitor.visitComplex(type);
-  } else if (isArray(type)) {
-    return visitor.visitArray(type);
-  } else if (isNullable(type)) {
-    return visitor.visitNull(type);
-  } else if (isUndefinable(type)) {
-    return visitor.visitUndefined(type);
-  } else if (isBool(type)) {
-    return visitor.visitBool(type);
-  } else if (isInt(type)) {
-    return visitor.visitInt(type);
-  } else if (isFloat(type)) {
-    return visitor.visitFloat(type);
-  } else if (isDate(type)) {
-    return visitor.visitDate(type);
-  } else {
-    return visitor.visitStr(type);
-  }
-}
-
-export interface PropertyTypeVisitor<T> {
-  visitBool: (type: BooleanType) => T;
-  visitInt: (type: IntType) => T;
-  visitFloat: (type: FloatType) => T;
-  visitStr: (type: StringType) => T;
-  visitDate: (type: DateType) => T;
-  visitArray: (type: ArrayType) => T;
-  visitNull: (type: Nullable) => T;
-  visitUndefined: (type: Undefinable) => T;
-  visitComplex: (type: ComplexType) => T;
-}
-
-export abstract class ValueAndPropertyVisitor<T>
-  implements PropertyTypeVisitor<T>
-{
-  constructor(private value: any) {}
-
-  visitBool = (type: BooleanType) => this.visitBoolValue(type, this.value);
-  visitInt = (type: IntType) => this.visitIntValue(type, this.value);
-  visitFloat = (type: FloatType) => this.visitFloatValue(type, this.value);
-  visitStr = (type: StringType) => this.visitStrValue(type, this.value);
-  visitDate = (type: DateType) => this.visitDateValue(type, this.value);
-  visitArray = (type: ArrayType) => {
-    if (this.checkArrayValue) {
-      const [processed, value] = this.checkArrayValue(type, this.value);
-      if (processed) {
-        return value;
-      }
-    }
-    const arr = this.value as any[];
-    const innerType = type.inner;
-    const result: any[] = arr.map((item) => {
-      this.value = item;
-      return acceptPropertyType(this, innerType);
-    });
-    this.value = arr;
-    return this.mapArrayValue(type, result);
-  };
-  visitNull = (type: Nullable): T =>
-    this.value === null
-      ? this.mapNullValue(type)
-      : acceptPropertyType<T>(this, type.inner);
-  visitUndefined = (type: Undefinable): T =>
-    this.value === undefined
-      ? this.mapUndefinedValue(type)
-      : acceptPropertyType<T>(this, type.inner);
-  visitComplex = (type: ComplexType): T => {
-    if (this.checkComplexValue) {
-      const [processed, value] = this.checkComplexValue(type, this.value);
-      if (processed) {
-        return value;
-      }
-    }
-    const fields = type.fields;
-    const originalValue = this.value;
-    const result = Object.keys(type.fields).reduce((acc, key) => {
-      this.value = originalValue ? originalValue[key] : undefined;
-      acc[key] = acceptPropertyType<T>(this, fields[key]);
-      return acc;
-    }, {} as { [key: string]: T });
-    this.value = originalValue;
-    return this.mapComplexValue(type, result);
-  };
-
-  protected abstract visitBoolValue: (type: BooleanType, value: any) => T;
-  protected abstract visitIntValue: (type: IntType, value: any) => T;
-  protected abstract visitFloatValue: (type: FloatType, value: any) => T;
-  protected abstract visitStrValue: (type: StringType, value: any) => T;
-  protected abstract visitDateValue: (type: DateType, value: any) => T;
-  protected abstract mapNullValue: (type: Nullable) => T;
-  protected abstract mapUndefinedValue: (type: Undefinable) => T;
-  protected abstract checkArrayValue?: (
-    type: ArrayType,
-    value: any
-  ) => [true, T] | [false];
-  protected abstract mapArrayValue: (type: ArrayType, value: T[]) => T;
-  protected abstract checkComplexValue?: (
-    type: ComplexType,
-    value: any
-  ) => [true, T] | [false];
-  protected abstract mapComplexValue: (
-    type: ComplexType,
-    value: { [key: string]: T }
-  ) => T;
-}
-
-export class ResourceOutputValue {
-  constructor(
-    public item: ErasedDesiredState,
-    public valueAccessor: (outputs: PropertyValues<PropertyMap>) => any
-  ) {}
-}
-
 interface CreatedStateForDesired {
   desiredState: ErasedDesiredState;
   createdState: OutputValues<PropertyMap>;
@@ -331,26 +226,6 @@ export interface CreatedState {
   [desiredStateName: string]: CreatedStateForDesired;
 }
 
-export class RuntimeValue<T> {
-  constructor(
-    public resourceOutputValues: ResourceOutputValue[],
-    public valueAccessor: (createdState: CreatedState) => T
-  ) {}
-
-  // TODO: Better serialisation
-  public toJSON = (): string => {
-    return `<RuntimeValue(${this.resourceOutputValues
-      .map((r) => `['${r.item.name}', ${r.valueAccessor.toString()}]`)
-      .join(',')})>`;
-  };
-}
-
-export function isRuntimeValue<T>(
-  value: T | RuntimeValue<T>
-): value is RuntimeValue<T> {
-  return value instanceof RuntimeValue;
-}
-
 export type Value<T> = T | RuntimeValue<T>;
 
 export function mapValue<T, R>(
@@ -358,12 +233,13 @@ export function mapValue<T, R>(
   mapper: (value: T) => R
 ): Value<R> {
   if (value instanceof RuntimeValue) {
-    return new RuntimeValue<R>(value.resourceOutputValues, (state) =>
-      mapper(value.valueAccessor(state))
+    return new RuntimeValue<R>(
+      value.resourceOutputValues,
+      new Call(new AnonymousFunction(mapper), [value.expression])
     );
   }
 
-  return mapper(value);
+  return mapper(evaluate(getValueExpr(value), {}));
 }
 
 export function mapValues<T extends any[], R>(
@@ -378,45 +254,35 @@ export function mapValues<T extends any[], R>(
         )
       )
     );
-    return new RuntimeValue<R>(resourceOutputValues, (state) => {
-      const inputValues = values.map((val) => {
-        if (!(val instanceof RuntimeValue)) {
-          return val;
-        }
+    const inputValues: Expr[] = values.map((val) => {
+      if (!(val instanceof RuntimeValue)) {
+        return getValueExpr(val);
+      }
 
-        const subState = val.resourceOutputValues.reduce((acc, outputValue) => {
-          acc[outputValue.item.name] = state[outputValue.item.name];
-          return acc;
-        }, {} as CreatedState);
-
-        return val.valueAccessor(subState);
-      }) as { [I in keyof T]: T[I] };
-      return mapper(...inputValues);
-    });
+      return val.expression;
+    }) as { [I in keyof T]: T[I] };
+    return new RuntimeValue<R>(
+      resourceOutputValues,
+      new Call(new AnonymousFunction(mapper), inputValues)
+    );
   }
 
-  const staticValues = values as { [I in keyof T]: T[I] };
-  return mapper(...staticValues);
+  const staticValues = values.map(getValueExpr);
+  return mapper(
+    ...(staticValues.map((v) => evaluate(v, {})) as { [I in keyof T]: T[I] })
+  );
 }
 
 export function getRuntimeResourceValue<
   Res extends Resource<PropertyMap, PropertyMap>,
-  Prop
+  Key extends keyof OutputValues<Res['outputs']> & keyof Res['outputs']
 >(
   item: DesiredState<Res>,
-  valueAccessor: (outputs: ResolvedPropertyValues<Res['outputs']>) => Prop
-): RuntimeValue<Prop> {
+  key: Key
+): RuntimeValue<PropertyValueType<Res['outputs'][Key]>> {
   return new RuntimeValue(
-    [
-      new ResourceOutputValue(
-        item,
-        valueAccessor as (outputs: PropertyValues<any>) => Prop
-      ),
-    ],
-    (state) =>
-      valueAccessor(
-        state[item.name].createdState as ResolvedPropertyValues<Res['outputs']>
-      )
+    [item],
+    new GetProp(new Variable(identifier(item.name)), identifier(key.toString()))
   );
 }
 
@@ -443,37 +309,48 @@ export interface LinkProperty<T> extends PropertyDefinition<T> {
 
 export function isLinkType(
   type: PropertyType
-): type is PropertyType & LinkType<unknown> {
-  const prop = type as any as LinkType<unknown>;
-  return !!prop.resources && !!prop.outputAccessor;
+): type is PropertyType & LinkType {
+  const prop = type as any as LinkType;
+  return !!prop.resources && !!prop.outputKey;
 }
 
-export interface LinkType<T> {
+export interface LinkType {
   resources: Resource<PropertyMap, PropertyMap>[];
-  outputAccessor: (outputs: PropertyValues<PropertyMap>) => T;
+  outputKey: string;
 }
 
-export function getLink<T, Out extends PropertyMap>(
+export function getLink<
+  T extends TypeForProperty<Out[Key]>,
+  Out extends PropertyMap,
+  Key extends keyof Out
+>(
   resource: Resource<PropertyMap, Out>,
-  propAccessor: (outputs: Out) => PropertyDefinition<T>
-): PropertyTypeForValue<T> & LinkType<any>;
-export function getLink<T, Out extends PropertyMap>(
+  propKey: Key
+): PropertyTypeForValue<T> & LinkType;
+export function getLink<
+  T extends TypeForProperty<Out[Key]>,
+  Out extends PropertyMap,
+  Key extends keyof Out
+>(
   resources: Resource<PropertyMap, Out>[],
-  propAccessor: (outputs: Out) => PropertyDefinition<T>
-): PropertyTypeForValue<T> & LinkType<any>;
-export function getLink<T, Out extends PropertyMap>(
+  propKey: Key
+): PropertyTypeForValue<T> & LinkType;
+export function getLink<
+  T extends TypeForProperty<Out[Key]>,
+  Out extends PropertyMap,
+  Key extends keyof Out
+>(
   resources: Resource<PropertyMap, Out> | Resource<PropertyMap, Out>[],
-  propAccessor: (outputs: Out) => PropertyDefinition<T>
-): PropertyTypeForValue<T> & LinkType<any> {
-  const outputProperty = propAccessor(
+  propKey: Key
+): PropertyTypeForValue<T> & LinkType {
+  const outputProperty = (
     resources instanceof Array ? resources[0].outputs : resources.outputs
-  );
-  const outputAccessor: (outputs: PropertyValues<PropertyMap>) => any =
-    propAccessor as any;
+  )[propKey];
+  const linkType: PropertyTypeForValue<T> = outputProperty.type as any;
   return {
-    ...outputProperty.type,
+    ...linkType,
     resources: resources instanceof Array ? resources : [resources],
-    outputAccessor,
+    outputKey: propKey.toString(),
   };
 }
 

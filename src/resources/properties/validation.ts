@@ -1,6 +1,6 @@
 import { InputValues, PropertyMap, PropertyValues } from '../resource';
+import { RuntimeValue } from '../runtime-values';
 import {
-  acceptPropertyType,
   ArrayType,
   BaseConstraint,
   BooleanType,
@@ -11,11 +11,13 @@ import {
   IntType,
   PropertyDefinition,
   PropertyType,
-  RuntimeValue,
   StringType,
   Type,
-  ValueAndPropertyVisitor,
 } from './properties';
+import {
+  ValueAndPropertyVisitor,
+  acceptPropertyType,
+} from './property-visitor';
 
 export const getBaseError = (name: string, input: string) =>
   `Input value '${input}' for '${name}'`;
