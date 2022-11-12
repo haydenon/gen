@@ -29,8 +29,8 @@ class EvalutorVisitor implements Visitor<any> {
     }, {} as { [key: string]: any });
   }
 
-  visitCallExpr(expr: Call) {
-    expr.callee.accept(this)(...expr.args.map((a) => a.accept(this)));
+  visitCallExpr(expr: Call): any {
+    return expr.callee.accept(this)(...expr.args.map((a) => a.accept(this)));
   }
 
   visitVariableExpr(expr: Variable): any {
