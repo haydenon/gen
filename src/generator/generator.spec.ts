@@ -10,7 +10,7 @@ import {
   ErrorResource,
   SubResource,
 } from '../../test/resources';
-import { getRuntimeResourceValue } from '../resources/properties';
+import { getRuntimeResourceValue } from '../resources/runtime-values';
 
 const anyMockInputs = { boolean: true, text: 'hello', number: 3 };
 

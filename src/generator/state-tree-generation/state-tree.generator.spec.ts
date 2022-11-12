@@ -26,14 +26,14 @@ import {
   runTimes,
 } from '../../../test';
 import { fillInDesiredStateTree } from './state-tree.generator';
+import { Value } from '../../resources/properties';
+import { ErasedDesiredState } from '../../resources/desired-state';
 import {
   getRuntimeResourceValue,
   mapValue,
   mapValues,
-  Value,
-} from '../../resources/properties';
-import { ErasedDesiredState } from '../../resources/desired-state';
-import { RuntimeValue } from '../../resources/runtime-values';
+  RuntimeValue,
+} from '../../resources/runtime-values';
 
 const anyMockInputs = {
   text: expect.anything(),

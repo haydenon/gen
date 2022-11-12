@@ -5,7 +5,6 @@ import {
   isComplex,
   isArray,
   GenerationResult,
-  getRuntimeResourceValue,
 } from '../../resources/properties/properties';
 import {
   ErasedDesiredState,
@@ -14,6 +13,7 @@ import {
 import { PropertyValues, PropertyMap } from '../../resources/resource';
 import { getRandomInt } from '../../utilities';
 import { getValueForPrimativeType } from './primatives.generator';
+import { getRuntimeResourceValue } from '../../resources/runtime-values';
 
 interface DesiredWithChildren {
   desired: ErasedDesiredState;

@@ -1,1 +1,7 @@
-export { RuntimeValue, isRuntimeValue } from './runtime-values';
+export {
+  RuntimeValue,
+  isRuntimeValue,
+  mapValue,
+  mapValues,
+  getRuntimeResourceValue,
+} from './runtime-values';

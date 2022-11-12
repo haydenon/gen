@@ -17,9 +17,6 @@ export {
   array,
   complex,
   lookup,
-  mapValue,
-  mapValues,
-  getRuntimeResourceValue,
   Value,
 } from './properties';
 export { validateInputValue, validateInputValues } from './validation';

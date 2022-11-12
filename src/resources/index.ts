@@ -25,7 +25,6 @@ export {
   array,
   complex,
   lookup,
-  mapValue,
-  mapValues,
 } from './properties/properties';
 export { DesiredState, createDesiredState } from './desired-state';
+export { mapValue, mapValues } from './runtime-values/runtime-values';

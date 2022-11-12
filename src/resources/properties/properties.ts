@@ -1,25 +1,12 @@
 import { isOneOf, LookupValues, oneOf } from '../../utilities';
-import { DesiredState, ErasedDesiredState } from '../desired-state';
+import { ErasedDesiredState } from '../desired-state';
 import {
   Resource,
   PropertyValues,
   PropertyMap,
   OutputValues,
-  ResolvedPropertyValues,
-  PropertyValueType,
-  RemoveIndex,
 } from '../resource';
 import { RuntimeValue } from '../runtime-values';
-import {
-  AnonymousFunction,
-  Call,
-  Expr,
-  GetProp,
-  Variable,
-} from '../runtime-values/ast/expressions';
-import { identifier } from '../runtime-values/ast/tokens/token';
-import { evaluate } from '../runtime-values/evaluator/evaluator';
-import { getValueExpr } from '../runtime-values/value-mapper';
 
 export enum Type {
   Boolean = 'Boolean',
@@ -227,64 +214,6 @@ export interface CreatedState {
 }
 
 export type Value<T> = T | RuntimeValue<T>;
-
-export function mapValue<T, R>(
-  value: Value<T>,
-  mapper: (value: T) => R
-): Value<R> {
-  if (value instanceof RuntimeValue) {
-    return new RuntimeValue<R>(
-      value.resourceOutputValues,
-      new Call(new AnonymousFunction(mapper), [value.expression])
-    );
-  }
-
-  return mapper(evaluate(getValueExpr(value), {}));
-}
-
-export function mapValues<T extends any[], R>(
-  values: { [I in keyof T]: Value<T[I]> },
-  mapper: (...values: { [I in keyof T]: T[I] }) => R
-): Value<R> {
-  if (values.some((v) => v instanceof RuntimeValue)) {
-    const resourceOutputValues = Array.from(
-      new Set(
-        values.flatMap((v) =>
-          v instanceof RuntimeValue ? v.resourceOutputValues : []
-        )
-      )
-    );
-    const inputValues: Expr[] = values.map((val) => {
-      if (!(val instanceof RuntimeValue)) {
-        return getValueExpr(val);
-      }
-
-      return val.expression;
-    }) as { [I in keyof T]: T[I] };
-    return new RuntimeValue<R>(
-      resourceOutputValues,
-      new Call(new AnonymousFunction(mapper), inputValues)
-    );
-  }
-
-  const staticValues = values.map(getValueExpr);
-  return mapper(
-    ...(staticValues.map((v) => evaluate(v, {})) as { [I in keyof T]: T[I] })
-  );
-}
-
-export function getRuntimeResourceValue<
-  Res extends Resource<PropertyMap, PropertyMap>,
-  Key extends keyof OutputValues<Res['outputs']> & keyof Res['outputs']
->(
-  item: DesiredState<Res>,
-  key: Key
-): RuntimeValue<PropertyValueType<Res['outputs'][Key]>> {
-  return new RuntimeValue(
-    [item],
-    new GetProp(new Variable(identifier(item.name)), identifier(key.toString()))
-  );
-}
 
 export interface PropertyDefinition<T> {
   type: PropertyTypeForValue<T>;
