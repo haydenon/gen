@@ -1,14 +1,13 @@
 import { PropertyMap, PropertyValues } from '../resources/resource';
 import {
-  PropertyTypeVisitor,
   ArrayType,
   ComplexType,
-  Nullable,
-  Undefinable,
   acceptPropertyType,
   RuntimeValue,
   isRuntimeValue,
   CreatedState,
+  ValueAndPropertyVisitor,
+  PropertyType,
 } from '../resources/properties/properties';
 import { ErasedResourceInstance } from '../resources/instance';
 import { ErasedDesiredState } from '../resources/desired-state';
@@ -42,114 +41,75 @@ const getNode =
     return node;
   };
 
-class RuntimeValueFillVisitor implements PropertyTypeVisitor<any> {
+class RuntimeValueFillVisitor extends ValueAndPropertyVisitor<any> {
   constructor(
-    private value: any,
+    value: any,
     private getRuntimeValue: (resourceLink: RuntimeValue<any>) => any
-  ) {}
+  ) {
+    super(value);
+  }
 
-  private fillIfRuntime = () => {
-    if (isRuntimeValue(this.value) && this.value) {
-      return this.getRuntimeValue(this.value);
+  private fillIfRuntime = (type: PropertyType, value: any) => {
+    if (isRuntimeValue(value) && value) {
+      return this.getRuntimeValue(value);
     }
 
-    return this.value;
+    return value;
   };
 
-  visitBool = this.fillIfRuntime;
-  visitInt = this.fillIfRuntime;
-  visitFloat = this.fillIfRuntime;
-  visitDate = this.fillIfRuntime;
-  visitStr = this.fillIfRuntime;
-  visitArray = (type: ArrayType) => {
-    if (isRuntimeValue(this.value)) {
-      return this.getRuntimeValue(this.value);
-    }
+  visitBoolValue = this.fillIfRuntime;
+  visitIntValue = this.fillIfRuntime;
+  visitFloatValue = this.fillIfRuntime;
+  visitDateValue = this.fillIfRuntime;
+  visitStrValue = this.fillIfRuntime;
 
-    const arr = this.value as any[];
-    const innerType = type.inner;
-    const result: any[] = arr.map((item) => {
-      this.value = item;
-      return acceptPropertyType(this, innerType);
-    });
-    this.value = arr;
-    return result;
-  };
-  visitNull = (type: Nullable): any =>
-    this.value === null ? null : acceptPropertyType(this, type.inner);
-  visitUndefined = (type: Undefinable): any =>
-    this.value === undefined ? undefined : acceptPropertyType(this, type.inner);
-  visitComplex = (type: ComplexType) => {
-    if (isRuntimeValue(this.value)) {
-      return this.getRuntimeValue(this.value);
-    }
+  checkArrayValue = (type: ArrayType, value: any): [true, any] | [false] =>
+    isRuntimeValue(value) ? [true, this.getRuntimeValue(value)] : [false];
+  mapArrayValue = (type: ArrayType, values: any[]): any => values;
 
-    const fields = type.fields;
-    const originalValue = this.value;
-    const result = Object.keys(this.value).reduce((acc, key) => {
-      this.value = originalValue[key];
-      acc[key] = acceptPropertyType(this, fields[key]);
-      return acc;
-    }, {} as any);
-    this.value = originalValue;
-    return result;
-  };
+  mapNullValue = (): any => null;
+  mapUndefinedValue = (): any => undefined;
+
+  checkComplexValue = (type: ComplexType, value: any): [true, any] | [false] =>
+    isRuntimeValue(value) ? [true, this.getRuntimeValue(value)] : [false];
+  mapComplexValue = (type: ComplexType, value: { [props: string]: any }) =>
+    value;
 }
 
-class RuntimeValueVisitor implements PropertyTypeVisitor<RuntimeValue<any>[]> {
-  constructor(private value: any) {}
+class RuntimeValueVisitor extends ValueAndPropertyVisitor<RuntimeValue<any>[]> {
+  constructor(value: any) {
+    super(value);
+  }
 
-  private returnIfRuntimeValue = () =>
-    isRuntimeValue(this.value) ? [this.value] : [];
+  private returnIfRuntimeValue = (_: PropertyType, value: any) =>
+    isRuntimeValue(value) ? [value] : [];
 
-  visitBool = this.returnIfRuntimeValue;
-  visitInt = this.returnIfRuntimeValue;
-  visitFloat = this.returnIfRuntimeValue;
-  visitDate = this.returnIfRuntimeValue;
-  visitStr = this.returnIfRuntimeValue;
-  visitArray = (type: ArrayType) => {
-    if (isRuntimeValue(this.value)) {
-      return [this.value];
-    }
+  visitBoolValue = this.returnIfRuntimeValue;
+  visitIntValue = this.returnIfRuntimeValue;
+  visitFloatValue = this.returnIfRuntimeValue;
+  visitDateValue = this.returnIfRuntimeValue;
+  visitStrValue = this.returnIfRuntimeValue;
 
-    const arr = this.value as any[];
-    const innerType = type.inner;
-    const result: RuntimeValue<any>[] = arr.reduce((acc, item) => {
-      this.value = item;
-      return [
-        ...acc,
-        ...acceptPropertyType<RuntimeValue<any>[]>(this, innerType),
-      ];
-    }, [] as RuntimeValue<any>[]);
-    this.value = arr;
-    return result;
-  };
-  visitNull = (type: Nullable): RuntimeValue<any>[] =>
-    this.value === null ? [] : acceptPropertyType(this, type.inner);
-  visitUndefined = (type: Undefinable): RuntimeValue<any>[] =>
-    this.value === undefined
-      ? []
-      : acceptPropertyType<RuntimeValue<any>[]>(this, type.inner);
-  visitComplex = (type: ComplexType) => {
-    if (isRuntimeValue(this.value)) {
-      return [this.value];
-    }
+  checkArrayValue = (
+    type: ArrayType,
+    value: any
+  ): [true, RuntimeValue<any>[]] | [false] =>
+    isRuntimeValue(value) ? [true, [value]] : [false];
+  mapArrayValue = (type: ArrayType, value: RuntimeValue<any>[][]) =>
+    value.flat();
 
-    const fields = type.fields;
-    const originalValue = this.value;
-    const result: RuntimeValue<any>[] = Object.keys(this.value).reduce(
-      (acc, key) => {
-        this.value = originalValue[key];
-        return [
-          ...acc,
-          ...acceptPropertyType<RuntimeValue<any>[]>(this, fields[key]),
-        ];
-      },
-      [] as RuntimeValue<any>[]
-    );
-    this.value = originalValue;
-    return result;
-  };
+  mapNullValue = (): RuntimeValue<any>[] => [];
+  mapUndefinedValue = (): RuntimeValue<any>[] => [];
+
+  checkComplexValue = (
+    type: ComplexType,
+    value: any
+  ): [true, RuntimeValue<any>[]] | [false] =>
+    isRuntimeValue(value) ? [true, [value]] : [false];
+  mapComplexValue = (
+    type: ComplexType,
+    value: { [prop: string]: RuntimeValue<any>[] }
+  ) => Object.values(value).flat();
 }
 
 interface GeneratedStateResponse {
