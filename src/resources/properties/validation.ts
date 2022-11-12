@@ -11,6 +11,7 @@ import {
   IntType,
   PropertyDefinition,
   PropertyType,
+  RuntimeValue,
   StringType,
   Type,
   ValueAndPropertyVisitor,
@@ -69,7 +70,9 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
     valueType: string | Function,
     length?: (value: any) => number
   ): any {
-    // TODO: Runtime values
+    if (value instanceof RuntimeValue) {
+      return value;
+    }
 
     const isValidType =
       typeof valueType === 'string'
@@ -87,7 +90,9 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
       return value;
     }
     if (unknownConstraint.isValid && !unknownConstraint.isValid(value)) {
-      throw new Error(`${this.baseError} is  '${typeString}'`);
+      throw new Error(
+        `${this.baseError} does not pass custom validation rules`
+      );
     }
 
     let min: number | undefined = undefined;
@@ -164,7 +169,11 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
     return this.checkValue(type, value, Date, (date) => date.getTime());
   };
 
-  checkArrayValue = (type: ArrayType, value: any): [false] => {
+  checkArrayValue = (type: ArrayType, value: any): [true, any] | [false] => {
+    if (value instanceof RuntimeValue) {
+      return [true, value];
+    }
+
     this.checkValue(type, value, Array, (arr) => arr.length);
     return [false];
   };
@@ -173,7 +182,8 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
   mapNullValue = () => null;
   mapUndefinedValue = () => undefined;
 
-  checkComplexValue = (): [false] => [false];
+  checkComplexValue = (_: ComplexType, value: any): [true, any] | [false] =>
+    value instanceof RuntimeValue ? [true, value] : [false];
   mapComplexValue = (_: ComplexType, value: { [key: string]: any }) => value;
 }
 

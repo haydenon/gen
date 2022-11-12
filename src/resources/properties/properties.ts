@@ -284,8 +284,8 @@ export abstract class ValueAndPropertyVisitor<T>
     }
     const fields = type.fields;
     const originalValue = this.value;
-    const result = Object.keys(this.value).reduce((acc, key) => {
-      this.value = originalValue[key];
+    const result = Object.keys(type.fields).reduce((acc, key) => {
+      this.value = originalValue ? originalValue[key] : undefined;
       acc[key] = acceptPropertyType<T>(this, fields[key]);
       return acc;
     }, {} as { [key: string]: T });
