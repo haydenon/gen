@@ -2,7 +2,6 @@ import { ErasedDesiredState } from '../desired-state';
 import { CreatedState } from '../properties/properties';
 import { Expr } from './ast/expressions';
 import { evaluate } from './evaluator/evaluator';
-import { outputRuntimeValue } from './outputer/outputer';
 
 export class RuntimeValue<T> {
   constructor(
@@ -13,11 +12,6 @@ export class RuntimeValue<T> {
   evaluate(createdState: CreatedState): T {
     return evaluate(this.expression, createdState);
   }
-
-  // TODO: Better serialisation
-  public toJSON = (): string => {
-    return outputRuntimeValue(this);
-  };
 }
 
 export function isRuntimeValue<T>(
