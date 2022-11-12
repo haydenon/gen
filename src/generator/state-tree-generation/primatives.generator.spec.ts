@@ -5,7 +5,7 @@ import {
   float,
   int,
   nullable,
-  str,
+  string,
   undefinable,
 } from '../../resources';
 import { getValueForPrimativeType } from './primatives.generator';
@@ -20,7 +20,7 @@ describe('Getting values for primative types', () => {
         const minLength = faker.datatype.number({ min: 1, max: 200 });
 
         // Act
-        const value = getValueForPrimativeType(str({ minLength }));
+        const value = getValueForPrimativeType(string({ minLength }));
 
         // Assert
         expect(typeof value).toBe('string');

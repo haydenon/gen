@@ -274,7 +274,7 @@ export function float(constraint?: FloatConstraint): FloatType {
   };
 }
 
-export function str(constraint?: Constraint<string>): StringType {
+export function string(constraint?: Constraint<string>): StringType {
   return {
     type: Type.String,
     constraint,

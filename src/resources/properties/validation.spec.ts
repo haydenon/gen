@@ -12,7 +12,7 @@ import {
   int,
   nullable,
   PropertyType,
-  str,
+  string,
   undefinable,
 } from './properties';
 import {
@@ -98,7 +98,7 @@ describe('validateInputValue', () => {
     const cases: [any, PropertyType][] = [
       [true, bool()],
       [new Date(), date()],
-      ['hello', str()],
+      ['hello', string()],
       [8, int()],
       [5.2, float()],
       [5, nullable(int())],
@@ -106,7 +106,7 @@ describe('validateInputValue', () => {
       [5, undefinable(int())],
       [undefined, undefinable(int())],
       [[1], array(int())],
-      [{ text: 'value' }, complex<{ text: string }>({ text: str() })],
+      [{ text: 'value' }, complex<{ text: string }>({ text: string() })],
     ];
 
     for (const [validValue, type] of cases) {
@@ -289,7 +289,7 @@ describe('validateInputValue', () => {
         const result = validateInputValue(
           name,
           input,
-          def<string>(str()),
+          def<string>(string()),
           invalidValue
         );
 
@@ -316,13 +316,13 @@ describe('validateInputValue', () => {
         ],
       ];
 
-      for (const [string, options, err] of cases) {
+      for (const [str, options, err] of cases) {
         // Act
         const result = validateInputValue(
           name,
           input,
-          def<string>(str(options)),
-          string
+          def<string>(string(options)),
+          str
         );
 
         // Assert
@@ -337,7 +337,7 @@ describe('validateInputValue', () => {
       const result = validateInputValue(
         name,
         input,
-        def<string>(str({ minLength: 5, maxLength: 5 })),
+        def<string>(string({ minLength: 5, maxLength: 5 })),
         'hello'
       );
 
@@ -519,7 +519,7 @@ describe('validateInputValue', () => {
         const result = validateInputValue(
           name,
           input,
-          def<string | null>(nullable(str())),
+          def<string | null>(nullable(string())),
           invalidValue
         );
 
@@ -541,7 +541,7 @@ describe('validateInputValue', () => {
         const result = validateInputValue(
           name,
           input,
-          def<string | undefined>(undefinable(str())),
+          def<string | undefined>(undefinable(string())),
           invalidValue
         );
 
@@ -563,7 +563,7 @@ describe('validateInputValue', () => {
         const result = validateInputValue(
           name,
           input,
-          def<{ text: string }>(complex<{ text: string }>({ text: str() })),
+          def<{ text: string }>(complex<{ text: string }>({ text: string() })),
           invalidValue
         );
 
@@ -579,7 +579,7 @@ describe('validateInputValue', () => {
       const result = validateInputValue(
         name,
         input,
-        def<{ text: string }>(complex<{ text: string }>({ text: str() })),
+        def<{ text: string }>(complex<{ text: string }>({ text: string() })),
         { text: 8 }
       );
 
@@ -596,7 +596,9 @@ describe('validateInputValue', () => {
       const result = validateInputValue(
         name,
         input,
-        def<string>(str({ isValid: (value) => value === 'OnlyThisIsValid' })),
+        def<string>(
+          string({ isValid: (value) => value === 'OnlyThisIsValid' })
+        ),
         'NotValidValue'
       );
 
@@ -613,7 +615,9 @@ describe('validateInputValue', () => {
       const result = validateInputValue(
         name,
         input,
-        def<string>(str({ isValid: (value) => value === 'OnlyThisIsValid' })),
+        def<string>(
+          string({ isValid: (value) => value === 'OnlyThisIsValid' })
+        ),
         'OnlyThisIsValid'
       );
 
@@ -629,12 +633,12 @@ describe('validateInputValue', () => {
         bool(),
         int(),
         float(),
-        str(),
+        string(),
         date(),
         array(int()),
-        complex<{ text: string }>({ text: str() }),
-        nullable(str()),
-        undefinable(str()),
+        complex<{ text: string }>({ text: string() }),
+        nullable(string()),
+        undefinable(string()),
       ];
       const runtimeValue = new RuntimeValue([], new Literal(1));
 
@@ -676,7 +680,7 @@ describe('validateInputValue', () => {
       const result = validateInputValue(
         name,
         input,
-        def<{ text: string }>(complex<{ text: string }>({ text: str() })),
+        def<{ text: string }>(complex<{ text: string }>({ text: string() })),
         { text: runtimeValue }
       );
 

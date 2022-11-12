@@ -10,7 +10,7 @@ import {
   generator,
   int,
   PropertyDefinition,
-  str,
+  string,
 } from '../../resources';
 import {
   InputValues,
@@ -43,16 +43,16 @@ const anyMockInputs = {
 class AnyOutput extends PropertiesBase {}
 
 class ValidDependentInput extends PropertiesBase {
-  a: PropertyDefinition<string> = def(str());
+  a: PropertyDefinition<string> = def(string());
   b: PropertyDefinition<string> = def(
-    str(
+    string(
       dependentGenerator(this, (values) =>
         mapValue(values.a, (a) => a.toUpperCase())
       )
     )
   );
   c: PropertyDefinition<string> = def(
-    str(
+    string(
       dependentGenerator(this, (values) =>
         mapValues([values.a, values.b], (a, b) => a.split(' ')[0] + b.length)
       )
@@ -69,7 +69,7 @@ const Valid = new ValidResource();
 
 class CircularDependentInput extends PropertiesBase {
   a: PropertyDefinition<string> = def(
-    str(
+    string(
       dependentGenerator<CircularDependentInput, string>(
         this,
         (values) => values.b
@@ -77,7 +77,7 @@ class CircularDependentInput extends PropertiesBase {
     )
   );
   b: PropertyDefinition<string> = def(
-    str(
+    string(
       dependentGenerator<CircularDependentInput, string>(
         this,
         (values) => values.a
@@ -123,10 +123,10 @@ let overriddenStandardOutput: number | GenerationResult | undefined;
 class AdvancedInput extends PropertiesBase {
   complex: PropertyDefinition<ComplexValue> = def(
     complex<ComplexValue>({
-      name: str(),
+      name: string(),
       age: int(),
       living: bool(),
-      favouriteColours: array(str()),
+      favouriteColours: array(string()),
     })
   );
   array: PropertyDefinition<number[]> = def(
@@ -138,10 +138,10 @@ class AdvancedInput extends PropertiesBase {
   arrayOfComplex: PropertyDefinition<ComplexValue[]> = def(
     array(
       complex<ComplexValue>({
-        name: str(),
+        name: string(),
         age: int(),
         living: bool(),
-        favouriteColours: array(str()),
+        favouriteColours: array(string()),
       }),
       { minItems: 1 }
     )

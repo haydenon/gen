@@ -3,7 +3,7 @@ export {
   getLink,
   def,
   bool,
-  str,
+  string as str,
   int,
   float,
   date,

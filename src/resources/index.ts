@@ -11,7 +11,7 @@ export {
   getLink,
   def,
   bool,
-  str,
+  string,
   int,
   float,
   date,
