@@ -4,7 +4,6 @@ import {
   isLinkType,
   isComplex,
   isArray,
-  GenerationResult,
 } from '../../resources/properties/properties';
 import {
   ErasedDesiredState,
@@ -14,6 +13,7 @@ import { PropertyValues, PropertyMap } from '../../resources/resource';
 import { getRandomInt } from '../../utilities';
 import { getValueForPrimativeType } from './primatives.generator';
 import { getRuntimeResourceValue } from '../../resources/runtime-values';
+import { GenerationResult } from '../../resources/properties';
 
 interface DesiredWithChildren {
   desired: ErasedDesiredState;

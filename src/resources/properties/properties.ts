@@ -7,6 +7,14 @@ import {
   OutputValues,
 } from '../resource';
 import { RuntimeValue } from '../runtime-values';
+import {
+  ArrayConstraint,
+  Constraint,
+  DateConstraint,
+  FloatConstraint,
+  IntConstraint,
+  StringConstraint,
+} from './constraints';
 
 export enum Type {
   Boolean = 'Boolean',
@@ -19,61 +27,6 @@ export enum Type {
   Array = 'Array',
   Complex = 'Complex',
 }
-
-export class GenerationResult {
-  private constructor(public wasGenerated: boolean) {}
-  static ValueNotGenerated = new GenerationResult(true);
-}
-
-export interface BaseConstraint<T> {
-  isValid?: (value: T) => boolean;
-  generateConstrainedValue?: (
-    values: PropertyValues<PropertyMap>,
-    related: RelatedResources
-  ) => T | RuntimeValue<T> | GenerationResult;
-}
-
-interface IntConstraint extends BaseConstraint<number> {
-  min?: number;
-  max?: number;
-  float?: boolean;
-  precision?: number;
-}
-
-interface FloatConstraint extends BaseConstraint<number> {
-  min?: number;
-  max?: number;
-  precision?: number;
-}
-
-interface DateConstraint extends BaseConstraint<Date> {
-  minDate?: Date;
-  maxDate?: Date;
-}
-
-interface StringConstraint extends BaseConstraint<string> {
-  minLength?: number;
-  maxLength?: number;
-}
-
-interface ArrayConstraint<T> extends BaseConstraint<T> {
-  minItems?: number;
-  maxItems?: number;
-}
-
-export type Constraint<T> = null extends T
-  ? BaseConstraint<T>
-  : undefined extends T
-  ? BaseConstraint<T>
-  : T extends number
-  ? IntConstraint | FloatConstraint
-  : T extends string
-  ? StringConstraint
-  : T extends (infer Type)[]
-  ? ArrayConstraint<Type>
-  : T extends Date
-  ? DateConstraint
-  : BaseConstraint<T>;
 
 interface PropertyTypeBase {
   type: Type;
@@ -354,35 +307,6 @@ export function constrain<Prop extends PropertyType>(
   return {
     ...property,
     constraint,
-  };
-}
-
-interface RelatedResources {
-  children: ErasedDesiredState[];
-}
-
-export function dependentGenerator<Inputs extends PropertyMap, Prop>(
-  inputs: Inputs,
-  func: (
-    values: PropertyValues<Inputs>,
-    related: RelatedResources
-  ) => Value<Prop> | GenerationResult
-): BaseConstraint<Prop> {
-  return {
-    generateConstrainedValue: func as (
-      values: PropertyValues<PropertyMap>,
-      related: RelatedResources
-    ) => Value<Prop> | GenerationResult,
-  };
-}
-
-export function generator<Prop>(
-  func: () => Prop | GenerationResult
-): BaseConstraint<Prop> {
-  return {
-    generateConstrainedValue: func as (
-      values: PropertyValues<PropertyMap>
-    ) => Value<Prop> | GenerationResult,
   };
 }
 

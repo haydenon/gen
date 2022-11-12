@@ -1,11 +1,10 @@
 import { InputValues, PropertyMap, PropertyValues } from '../resource';
 import { RuntimeValue } from '../runtime-values';
+import { BaseConstraint, Constraint } from './constraints';
 import {
   ArrayType,
-  BaseConstraint,
   BooleanType,
   ComplexType,
-  Constraint,
   DateType,
   FloatType,
   IntType,

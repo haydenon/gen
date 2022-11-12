@@ -7,10 +7,7 @@ export {
   ResourceGroup,
 } from './resource';
 export {
-  GenerationResult,
   PropertyDefinition,
-  dependentGenerator,
-  generator,
   getLink,
   def,
   constrain,
@@ -28,3 +25,8 @@ export {
 } from './properties/properties';
 export { DesiredState, createDesiredState } from './desired-state';
 export { mapValue, mapValues } from './runtime-values/runtime-values';
+export {
+  GenerationResult,
+  dependentGenerator,
+  generator,
+} from './properties/constraints';

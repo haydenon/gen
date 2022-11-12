@@ -1,8 +1,5 @@
 export {
-  GenerationResult,
   PropertyDefinition,
-  dependentGenerator,
-  generator,
   getLink,
   def,
   constrain,
@@ -20,3 +17,4 @@ export {
   Value,
 } from './properties';
 export { validateInputValue, validateInputValues } from './validation';
+export { dependentGenerator, generator, GenerationResult } from './constraints';
