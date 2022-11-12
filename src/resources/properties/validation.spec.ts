@@ -6,7 +6,6 @@ import {
   array,
   bool,
   complex,
-  constrain,
   date,
   def,
   float,
@@ -188,7 +187,7 @@ describe('validateInputValue', () => {
         const result = validateInputValue(
           name,
           input,
-          def<number>(constrain(int(), options)),
+          def<number>(int(options)),
           num
         );
 
@@ -204,7 +203,7 @@ describe('validateInputValue', () => {
       const result = validateInputValue(
         name,
         input,
-        def<number>(constrain(int(), { min: 8, max: 8 })),
+        def<number>(int({ min: 8, max: 8 })),
         8
       );
 
@@ -255,7 +254,7 @@ describe('validateInputValue', () => {
         const result = validateInputValue(
           name,
           input,
-          def<number>(constrain(float(), options)),
+          def<number>(float(options)),
           num
         );
 
@@ -271,7 +270,7 @@ describe('validateInputValue', () => {
       const result = validateInputValue(
         name,
         input,
-        def<number>(constrain(float(), { min: 8.1, max: 8.1 })),
+        def<number>(float({ min: 8.1, max: 8.1 })),
         8.1
       );
 
@@ -322,7 +321,7 @@ describe('validateInputValue', () => {
         const result = validateInputValue(
           name,
           input,
-          def<string>(constrain(str(), options)),
+          def<string>(str(options)),
           string
         );
 
@@ -338,7 +337,7 @@ describe('validateInputValue', () => {
       const result = validateInputValue(
         name,
         input,
-        def<string>(constrain(str(), { minLength: 5, maxLength: 5 })),
+        def<string>(str({ minLength: 5, maxLength: 5 })),
         'hello'
       );
 
@@ -393,7 +392,7 @@ describe('validateInputValue', () => {
         const result = validateInputValue(
           name,
           input,
-          def<Date>(constrain(date(), options)),
+          def<Date>(date(options)),
           string
         );
 
@@ -410,7 +409,7 @@ describe('validateInputValue', () => {
         name,
         input,
         def<Date>(
-          constrain(date(), {
+          date({
             minDate: new Date(2022, 5, 8),
             maxDate: new Date(2022, 5, 8),
           })
@@ -465,7 +464,7 @@ describe('validateInputValue', () => {
         const result = validateInputValue(
           name,
           input,
-          def<number[]>(constrain(array(int()), options)),
+          def<number[]>(array(int(), options)),
           string
         );
 
@@ -482,7 +481,7 @@ describe('validateInputValue', () => {
         name,
         input,
         def<number[]>(
-          constrain(array(int()), {
+          array(int(), {
             minItems: 3,
             maxItems: 3,
           })
@@ -597,9 +596,7 @@ describe('validateInputValue', () => {
       const result = validateInputValue(
         name,
         input,
-        def<string>(
-          constrain(str(), { isValid: (value) => value === 'OnlyThisIsValid' })
-        ),
+        def<string>(str({ isValid: (value) => value === 'OnlyThisIsValid' })),
         'NotValidValue'
       );
 
@@ -616,9 +613,7 @@ describe('validateInputValue', () => {
       const result = validateInputValue(
         name,
         input,
-        def<string>(
-          constrain(str(), { isValid: (value) => value === 'OnlyThisIsValid' })
-        ),
+        def<string>(str({ isValid: (value) => value === 'OnlyThisIsValid' })),
         'OnlyThisIsValid'
       );
 

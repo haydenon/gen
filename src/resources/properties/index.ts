@@ -2,7 +2,6 @@ export {
   PropertyDefinition,
   getLink,
   def,
-  constrain,
   bool,
   str,
   int,

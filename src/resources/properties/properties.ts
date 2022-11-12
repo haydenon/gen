@@ -207,7 +207,8 @@ export function getLink<
   Key extends keyof Out
 >(
   resource: Resource<PropertyMap, Out>,
-  propKey: Key
+  propKey: Key,
+  constraint?: Constraint<T>
 ): PropertyTypeForValue<T> & LinkType;
 export function getLink<
   T extends TypeForProperty<Out[Key]>,
@@ -215,7 +216,8 @@ export function getLink<
   Key extends keyof Out
 >(
   resources: Resource<PropertyMap, Out>[],
-  propKey: Key
+  propKey: Key,
+  constraint?: Constraint<T>
 ): PropertyTypeForValue<T> & LinkType;
 export function getLink<
   T extends TypeForProperty<Out[Key]>,
@@ -223,7 +225,8 @@ export function getLink<
   Key extends keyof Out
 >(
   resources: Resource<PropertyMap, Out> | Resource<PropertyMap, Out>[],
-  propKey: Key
+  propKey: Key,
+  constraint?: Constraint<T>
 ): PropertyTypeForValue<T> & LinkType {
   const outputProperty = (
     resources instanceof Array ? resources[0].outputs : resources.outputs
@@ -233,6 +236,7 @@ export function getLink<
     ...linkType,
     resources: resources instanceof Array ? resources : [resources],
     outputKey: propKey.toString(),
+    constraint,
   };
 }
 
@@ -249,63 +253,65 @@ export function lookup<Prop extends PropertyType>(
   };
 }
 
-export function bool(): BooleanType {
+export function bool(constraint?: Constraint<boolean>): BooleanType {
   return {
     type: Type.Boolean,
+    constraint,
   };
 }
 
-export function int(): IntType {
+export function int(constraint?: IntConstraint): IntType {
   return {
     type: Type.Int,
+    constraint,
   };
 }
 
-export function float(): FloatType {
+export function float(constraint?: FloatConstraint): FloatType {
   return {
     type: Type.Float,
+    constraint,
   };
 }
 
-export function str(): StringType {
+export function str(constraint?: Constraint<string>): StringType {
   return {
     type: Type.String,
+    constraint,
   };
 }
 
-export function date(): DateType {
+export function date(constraint?: Constraint<Date>): DateType {
   return {
     type: Type.Date,
+    constraint,
   };
 }
 
 export function array<Prop extends PropertyType>(
-  prop: Prop
-): { type: Type.Array; inner: Prop } {
+  prop: Prop,
+  constraint?: Constraint<Prop[]>
+): { type: Type.Array; inner: Prop; constraint?: ArrayConstraint<unknown> } {
   return {
     type: Type.Array,
     inner: prop,
+    constraint: constraint as ArrayConstraint<unknown>,
   };
 }
 
 type ComplexFields<T> = { [F in keyof T]: PropertyTypeForValue<T[F]> };
 
-export function complex<T>(fields: ComplexFields<T>): {
+export function complex<T>(
+  fields: ComplexFields<T>,
+  constraint?: Constraint<T>
+): {
   type: Type.Complex;
   fields: ComplexFields<T>;
+  constraint?: Constraint<any>;
 } {
   return {
     type: Type.Complex,
     fields,
-  };
-}
-
-export function constrain<Prop extends PropertyType>(
-  property: Prop,
-  constraint: Constraint<TypeForProperty<Prop>>
-): Prop {
-  return {
-    ...property,
     constraint,
   };
 }

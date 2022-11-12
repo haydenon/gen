@@ -39,7 +39,7 @@ export interface StringConstraint extends BaseConstraint<string> {
   maxLength?: number;
 }
 
-export interface ArrayConstraint<T> extends BaseConstraint<T> {
+export interface ArrayConstraint<T> extends BaseConstraint<T[]> {
   minItems?: number;
   maxItems?: number;
 }

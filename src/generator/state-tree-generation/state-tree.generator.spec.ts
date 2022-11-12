@@ -2,7 +2,6 @@ import {
   array,
   bool,
   complex,
-  constrain,
   createDesiredState,
   def,
   dependentGenerator,
@@ -46,16 +45,14 @@ class AnyOutput extends PropertiesBase {}
 class ValidDependentInput extends PropertiesBase {
   a: PropertyDefinition<string> = def(str());
   b: PropertyDefinition<string> = def(
-    constrain(
-      str(),
+    str(
       dependentGenerator(this, (values) =>
         mapValue(values.a, (a) => a.toUpperCase())
       )
     )
   );
   c: PropertyDefinition<string> = def(
-    constrain(
-      str(),
+    str(
       dependentGenerator(this, (values) =>
         mapValues([values.a, values.b], (a, b) => a.split(' ')[0] + b.length)
       )
@@ -72,8 +69,7 @@ const Valid = new ValidResource();
 
 class CircularDependentInput extends PropertiesBase {
   a: PropertyDefinition<string> = def(
-    constrain(
-      str(),
+    str(
       dependentGenerator<CircularDependentInput, string>(
         this,
         (values) => values.b
@@ -81,8 +77,7 @@ class CircularDependentInput extends PropertiesBase {
     )
   );
   b: PropertyDefinition<string> = def(
-    constrain(
-      str(),
+    str(
       dependentGenerator<CircularDependentInput, string>(
         this,
         (values) => values.a
@@ -135,34 +130,28 @@ class AdvancedInput extends PropertiesBase {
     })
   );
   array: PropertyDefinition<number[]> = def(
-    constrain(array(float()), {
+    array(float(), {
       minItems: minArrayCount,
       maxItems: maxArrayCount,
     })
   );
   arrayOfComplex: PropertyDefinition<ComplexValue[]> = def(
-    constrain(
-      array(
-        complex<ComplexValue>({
-          name: str(),
-          age: int(),
-          living: bool(),
-          favouriteColours: array(str()),
-        })
-      ),
+    array(
+      complex<ComplexValue>({
+        name: str(),
+        age: int(),
+        living: bool(),
+        favouriteColours: array(str()),
+      }),
       { minItems: 1 }
     )
   );
   generatedConstraint: PropertyDefinition<number> = def(
-    constrain(
-      int(),
-      generator(() => overriddenStandardOutput ?? 1)
-    )
+    int(generator(() => overriddenStandardOutput ?? 1))
   );
   dependentField: PropertyDefinition<number> = def(int());
   depdendentGeneratedConstraint: PropertyDefinition<number> = def(
-    constrain(
-      int(),
+    int(
       dependentGenerator(
         this,
         (values) => overriddenDependentOutput ?? values.dependentField

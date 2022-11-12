@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker';
 import {
   bool,
-  constrain,
   date,
   float,
   int,
@@ -21,7 +20,7 @@ describe('Getting values for primative types', () => {
         const minLength = faker.datatype.number({ min: 1, max: 200 });
 
         // Act
-        const value = getValueForPrimativeType(constrain(str(), { minLength }));
+        const value = getValueForPrimativeType(str({ minLength }));
 
         // Assert
         expect(typeof value).toBe('string');
@@ -135,7 +134,7 @@ describe('Getting values for primative types', () => {
         const max = 89127;
 
         // Act
-        const result = getValueForPrimativeType(constrain(int(), { min, max }));
+        const result = getValueForPrimativeType(int({ min, max }));
 
         // Assert
         expect(result).toBeGreaterThanOrEqual(min);
@@ -150,9 +149,7 @@ describe('Getting values for primative types', () => {
         const max = 89127;
 
         // Act
-        const result = getValueForPrimativeType(
-          constrain(float(), { min, max })
-        );
+        const result = getValueForPrimativeType(float({ min, max }));
 
         // Assert
         expect(result).toBeGreaterThanOrEqual(min);
@@ -164,7 +161,7 @@ describe('Getting values for primative types', () => {
       runTimes(50, () => {
         // Act
         const result = getValueForPrimativeType(
-          constrain(float(), { min: 0, max: 5, precision: 0.2 })
+          float({ min: 0, max: 5, precision: 0.2 })
         );
 
         // Assert
@@ -190,9 +187,7 @@ describe('Getting values for primative types', () => {
         const maxDate = new Date(2020, 2, 1, 8, 10, 40);
 
         // Act
-        const result = getValueForPrimativeType(
-          constrain(date(), { minDate, maxDate })
-        );
+        const result = getValueForPrimativeType(date({ minDate, maxDate }));
 
         // Assert
         expect(result.getTime()).toBeGreaterThanOrEqual(minDate.getTime());
