@@ -1,6 +1,7 @@
 import {
   ArrayConstructor,
   Call,
+  FormatString,
   GetProp,
   Literal,
   ObjectConstructor,
@@ -47,7 +48,19 @@ class RuntimeOutputVisitor implements Visitor<string> {
   visitGetExpr(expr: GetProp): string {
     return `${expr.obj.accept(this)}.${expr.name.lexeme}`;
   }
+  visitFormatString(expr: FormatString): string {
+    let string = '"' + expr.strings[0];
 
+    for (let i = 0; i < expr.expressions.length; i++) {
+      string +=
+        `\${${expr.expressions[i].accept(this).toString()}}` +
+        expr.strings[i + 1];
+    }
+
+    string += '"';
+
+    return string;
+  }
   visitAnonFuncExpr(): string {
     return '<function>';
   }

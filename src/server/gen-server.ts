@@ -4,7 +4,7 @@ import * as ws from 'ws';
 
 import { Resource, PropertiesBase } from '../resources';
 import { isStateRequest } from './models/state-requests';
-import { DesiredStateMapper, getMapper } from './mapping/desired-state-mapper';
+import { DesiredStateMapper, getMapper } from './mapping/desired-state.mapper';
 import { GenerationResultError, Generator } from '../generator';
 import { ErasedDesiredState } from '../resources/desired-state';
 import {

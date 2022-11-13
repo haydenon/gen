@@ -4,6 +4,7 @@ import {
   ArrayConstructor,
   Call,
   Expr,
+  FormatString,
   GetProp,
   Literal,
   ObjectConstructor,
@@ -39,6 +40,17 @@ class EvalutorVisitor implements Visitor<any> {
 
   visitGetExpr(expr: GetProp): any {
     return expr.obj.accept(this)[expr.name.lexeme];
+  }
+
+  visitFormatString(expr: FormatString) {
+    let string = expr.strings[0];
+
+    for (let i = 0; i < expr.expressions.length; i++) {
+      string +=
+        expr.expressions[i].accept(this).toString() + expr.strings[i + 1];
+    }
+
+    return string;
   }
 
   visitAnonFuncExpr(expr: AnonymousFunction) {

@@ -12,7 +12,7 @@ export interface Visitor<R> {
   visitVariableExpr(expr: Variable): R;
   visitCallExpr(expr: Call): R;
   visitGetExpr(expr: GetProp): R;
-  // visitFormatString(expr: FormatString): R;
+  visitFormatString(expr: FormatString): R;
   visitAnonFuncExpr(expr: AnonymousFunction): R;
 }
 
@@ -60,6 +60,13 @@ export class Call extends Expr {
     super();
   }
   accept = <R>(visitor: Visitor<R>) => visitor.visitCallExpr(this);
+}
+
+export class FormatString extends Expr {
+  constructor(public strings: Literal[], public expressions: Expr[]) {
+    super();
+  }
+  accept = <R>(visitor: Visitor<R>) => visitor.visitFormatString(this);
 }
 
 export class AnonymousFunction extends Expr {

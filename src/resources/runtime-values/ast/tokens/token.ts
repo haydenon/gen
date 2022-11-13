@@ -19,8 +19,7 @@ export const identifier = (lexeme: string): Token => ({
 export const value = (
   type: TokenType,
   lexeme: string,
-  literal: any,
-  line = 0
+  literal: any
 ): Token => ({
   type,
   lexeme,
