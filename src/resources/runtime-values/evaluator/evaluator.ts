@@ -43,11 +43,12 @@ class EvalutorVisitor implements Visitor<any> {
   }
 
   visitFormatString(expr: FormatString) {
-    let string = expr.strings[0];
+    let string: string = expr.strings[0].accept(this).toString();
 
     for (let i = 0; i < expr.expressions.length; i++) {
       string +=
-        expr.expressions[i].accept(this).toString() + expr.strings[i + 1];
+        expr.expressions[i].accept(this).toString() +
+        expr.strings[i + 1].accept(this).toString();
     }
 
     return string;

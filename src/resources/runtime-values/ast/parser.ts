@@ -1,19 +1,22 @@
+import { RuntimeValue } from '../runtime-values';
 import { Expr, GetProp, Variable } from './expressions';
 import { Token } from './tokens/token';
 import { TokenType } from './tokens/token-types';
 import { Tokenizer } from './tokens/tokenizer';
 
 export class Parser {
+  private dependentStateNames: string[] = [];
   private tokens: Token[] = [];
   private current = 0;
 
   constructor(private source: string) {}
 
-  public parse(): Expr {
+  public parse(): RuntimeValue<any> {
     const tokenizer = new Tokenizer(this.source);
     this.tokens = tokenizer.scanTokens();
 
-    return this.expression();
+    const expr = this.expression();
+    return new RuntimeValue(this.dependentStateNames, expr);
   }
 
   private expression(): Expr {
@@ -151,6 +154,7 @@ export class Parser {
 
     if (this.match(TokenType.IDENTIFIER)) {
       const token = this.previous();
+      this.dependentStateNames.push(token.lexeme);
       return new Variable(token);
     }
 
@@ -236,3 +240,12 @@ class ParseError extends Error {
     super(message);
   }
 }
+
+export const parse = (expression: string): RuntimeValue<any> | Error => {
+  const parser = new Parser(expression);
+  try {
+    return parser.parse();
+  } catch (err) {
+    return err as Error;
+  }
+};

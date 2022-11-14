@@ -5,7 +5,9 @@ import {
 } from '../../resources/desired-state';
 import { validateInputValues } from '../../resources/properties/validation';
 import { PropertyMap } from '../../resources/resource';
+import { parse } from '../../resources/runtime-values/ast/parser';
 import { StateItem } from '../models/state-requests';
+import { replaceRuntimeValueTemplates } from './runtime-value.mapper';
 
 export type DesiredStateMapper = (
   item: StateItem
@@ -25,10 +27,18 @@ export function getMapper(
       ];
     }
 
+    const [inputs, errors] = replaceRuntimeValueTemplates(
+      userSuppliedInputs,
+      parse
+    );
+    if (errors.length > 0) {
+      return errors;
+    }
+
     const inputResult = validateInputValues(
       _name ?? _type,
       resource.inputs,
-      userSuppliedInputs as { [prop: string]: any }
+      inputs as { [prop: string]: any }
     );
     if (inputResult instanceof Array) {
       return inputResult;
