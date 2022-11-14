@@ -1,4 +1,3 @@
-import { ErasedDesiredState } from '../../resources/desired-state';
 import { RuntimeValue } from '../../resources/runtime-values';
 import {
   Expr,
@@ -25,9 +24,13 @@ function replaceStringRuntimeTemplates(
         expressionDepth++;
         start = i + 2;
         i++;
-      } else if (value[i] === '$' && matchesNext(i, '$')) {
+      } else if (
+        value[i] === '$' &&
+        matchesNext(i, '$') &&
+        matchesNext(i + 1, '{')
+      ) {
         // Escaped dollar sign
-        i++;
+        i += 2;
       }
     } else {
       if (isAtOpen(i)) {
@@ -59,26 +62,26 @@ function replaceStringRuntimeTemplates(
     }
     const [desired, exprs] = (parsed as RuntimeValue<any>[]).reduce(
       ([desired, exprs], runtime) => {
-        const newStates = runtime.resourceOutputValues.filter((rd) =>
-          desired.every((d) => d.name !== rd.name)
+        const newStates = runtime.depdendentStateNames.filter((rd) =>
+          desired.every((d) => d !== rd)
         );
         return [
           [...desired, ...newStates],
           [...exprs, runtime.expression],
         ];
       },
-      [[], []] as [ErasedDesiredState[], Expr[]]
+      [[], []] as [string[], Expr[]]
     );
     return new RuntimeValue(
       desired,
       new FormatString(
-        strs.map((str) => new Literal(str)),
+        strs.map((str) => new Literal(str.replace(/\$\$\{/g, '${'))),
         exprs
       )
     );
   }
 
-  return value;
+  return value.replace(/\$\$\{/g, '${');
 }
 
 export function replaceRuntimeValueTemplates(
@@ -98,6 +101,10 @@ export function replaceRuntimeValueTemplates(
     }
 
     return [resp, []];
+  }
+
+  if (value instanceof Date) {
+    return [value, []];
   }
 
   if (value instanceof Array) {

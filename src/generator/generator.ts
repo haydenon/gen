@@ -34,8 +34,10 @@ interface GeneratorOptions {
 
 const getNode =
   (stateNodes: StateNode[]) =>
-  (state: ErasedDesiredState): StateNode => {
-    const node = stateNodes.find((n) => n.state === state);
+  (state: ErasedDesiredState | string): StateNode => {
+    const node = stateNodes.find((n) =>
+      typeof state === 'string' ? n.state.name === state : n.state === state
+    );
     if (!node) {
       throw new Error('No node for state');
     }
@@ -218,7 +220,7 @@ export class Generator {
   }
 
   private getRuntimeValue = (runtimeValue: RuntimeValue<any>): any => {
-    const dependentItems = runtimeValue.resourceOutputValues.map(
+    const dependentItems = runtimeValue.depdendentStateNames.map(
       (outputValues) => this.getNodeForState(outputValues)
     );
 
@@ -375,7 +377,7 @@ export class Generator {
           inputDef.type
         );
         for (const item of runtimeValues.flatMap(
-          (l) => l.resourceOutputValues
+          (l) => l.depdendentStateNames
         )) {
           const runtimeValueNode = getNode(nodes)(item);
           node.dependencies.push(runtimeValueNode);

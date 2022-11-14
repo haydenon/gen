@@ -1,4 +1,4 @@
-import { DesiredState, ErasedDesiredState } from '../desired-state';
+import { DesiredState } from '../desired-state';
 import { CreatedState, Value } from '../properties/properties';
 import {
   Resource,
@@ -18,10 +18,7 @@ import { evaluate } from './evaluator/evaluator';
 import { getValueExpr } from './value-mapper';
 
 export class RuntimeValue<T> {
-  constructor(
-    public resourceOutputValues: ErasedDesiredState[],
-    public expression: Expr
-  ) {}
+  constructor(public depdendentStateNames: string[], public expression: Expr) {}
 
   evaluate(createdState: CreatedState): T {
     return evaluate(this.expression, createdState);
@@ -40,7 +37,7 @@ export function mapValue<T, R>(
 ): Value<R> {
   if (value instanceof RuntimeValue) {
     return new RuntimeValue<R>(
-      value.resourceOutputValues,
+      value.depdendentStateNames,
       new Call(new AnonymousFunction(mapper), [value.expression])
     );
   }
@@ -56,7 +53,7 @@ export function mapValues<T extends any[], R>(
     const resourceOutputValues = Array.from(
       new Set(
         values.flatMap((v) =>
-          v instanceof RuntimeValue ? v.resourceOutputValues : []
+          v instanceof RuntimeValue ? v.depdendentStateNames : []
         )
       )
     );
@@ -87,7 +84,7 @@ export function getRuntimeResourceValue<
   key: Key
 ): RuntimeValue<PropertyValueType<Res['outputs'][Key]>> {
   return new RuntimeValue(
-    [item],
+    [item.name],
     new GetProp(new Variable(identifier(item.name)), identifier(key.toString()))
   );
 }
