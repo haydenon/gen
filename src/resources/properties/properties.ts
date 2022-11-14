@@ -134,27 +134,8 @@ export type PropertyTypeForValue<T> = null extends T
   ? BooleanType
   : never;
 
-type NonNullTypeForProp<T> = T extends Nullable ? never : T;
-type NonUndefinedTypeForProp<T> = T extends Undefinable | Nullable ? never : T;
-
-export type TypeForProperty<T> = T extends Nullable
-  ? TypeForProperty<NonNullTypeForProp<T['inner']>> | null
-  : T extends Undefinable
-  ? TypeForProperty<NonUndefinedTypeForProp<T['inner']>> | undefined
-  : T extends ArrayType
-  ? TypeForProperty<T['inner']>[]
-  : T extends DateType
-  ? Date
-  : T extends ComplexType
-  ? {
-      [K in keyof T['fields']]: TypeForProperty<T['fields'][K]['type']>;
-    }
-  : T extends StringType
-  ? string
-  : T extends FloatType | IntType
-  ? number
-  : T extends BooleanType
-  ? boolean
+export type TypeForProperty<T> = T extends PropertyDefinition<infer Type>
+  ? Type
   : never;
 
 interface CreatedStateForDesired {
@@ -237,7 +218,7 @@ export function getLink<
     resources: resources instanceof Array ? resources : [resources],
     outputKey: propKey.toString(),
     constraint,
-  };
+  } as any;
 }
 
 export function lookup<Prop extends PropertyType>(
