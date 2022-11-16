@@ -7,11 +7,12 @@ import {
   PropertyValueType,
 } from '../resource';
 import {
-  AnonymousFunction,
+  FunctionValue,
   Call,
   Expr,
   GetProp,
   Variable,
+  Literal,
 } from './ast/expressions';
 import { identifier } from './ast/tokens/token';
 import { evaluate } from './evaluator/evaluator';
@@ -38,7 +39,7 @@ export function mapValue<T, R>(
   if (value instanceof RuntimeValue) {
     return new RuntimeValue<R>(
       value.depdendentStateNames,
-      new Call(new AnonymousFunction(mapper), [value.expression])
+      new Call(new FunctionValue(mapper), [value.expression])
     );
   }
 
@@ -66,7 +67,7 @@ export function mapValues<T extends any[], R>(
     }) as { [I in keyof T]: T[I] };
     return new RuntimeValue<R>(
       resourceOutputValues,
-      new Call(new AnonymousFunction(mapper), inputValues)
+      new Call(new FunctionValue(mapper), inputValues)
     );
   }
 
@@ -85,6 +86,9 @@ export function getRuntimeResourceValue<
 ): RuntimeValue<PropertyValueType<Res['outputs'][Key]>> {
   return new RuntimeValue(
     [item.name],
-    new GetProp(new Variable(identifier(item.name)), identifier(key.toString()))
+    new GetProp(
+      new Variable(identifier(item.name)),
+      new Literal(key.toString())
+    )
   );
 }

@@ -1,5 +1,5 @@
 import { RuntimeValue } from '../runtime-values';
-import { Expr, GetProp, Variable } from './expressions';
+import { Expr, GetProp, Literal, Variable } from './expressions';
 import { Token } from './tokens/token';
 import { TokenType } from './tokens/token-types';
 import { Tokenizer } from './tokens/tokenizer';
@@ -123,7 +123,7 @@ export class Parser {
           "Expect property name after '.'.",
           TokenType.IDENTIFIER
         );
-        expr = new GetProp(expr, name);
+        expr = new GetProp(expr, new Literal(name));
       } else {
         break;
       }

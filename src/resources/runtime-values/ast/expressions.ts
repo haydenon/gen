@@ -1,3 +1,4 @@
+import { ExprType } from '../type-inferrer/inferrer';
 import { Token } from './tokens/token';
 
 export interface Visitor<R> {
@@ -13,7 +14,7 @@ export interface Visitor<R> {
   visitCallExpr(expr: Call): R;
   visitGetExpr(expr: GetProp): R;
   visitFormatString(expr: FormatString): R;
-  visitAnonFuncExpr(expr: AnonymousFunction): R;
+  visitFunctionExpr(expr: FunctionValue): R;
 }
 
 export abstract class Expr {
@@ -28,7 +29,7 @@ export class Variable extends Expr {
 }
 
 export class GetProp extends Expr {
-  constructor(public obj: Expr, public name: Token) {
+  constructor(public obj: Expr, public indexer: Expr) {
     super();
   }
   accept = <R>(visitor: Visitor<R>) => visitor.visitGetExpr(this);
@@ -69,9 +70,17 @@ export class FormatString extends Expr {
   accept = <R>(visitor: Visitor<R>) => visitor.visitFormatString(this);
 }
 
-export class AnonymousFunction extends Expr {
-  constructor(public func: (...args: any[]) => any) {
+export interface Signature {
+  parameters: ExprType[];
+  returnType: ExprType;
+}
+
+export class FunctionValue extends Expr {
+  constructor(
+    public func: (...args: any[]) => any,
+    public signatures?: Signature[]
+  ) {
     super();
   }
-  accept = <R>(visitor: Visitor<R>) => visitor.visitAnonFuncExpr(this);
+  accept = <R>(visitor: Visitor<R>) => visitor.visitFunctionExpr(this);
 }

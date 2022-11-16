@@ -1,6 +1,6 @@
 import { CreatedState } from '../../properties/properties';
 import {
-  AnonymousFunction,
+  FunctionValue,
   ArrayConstructor,
   Call,
   Expr,
@@ -39,7 +39,8 @@ class EvalutorVisitor implements Visitor<any> {
   }
 
   visitGetExpr(expr: GetProp): any {
-    return expr.obj.accept(this)[expr.name.lexeme];
+    const indexer = expr.indexer.accept(this);
+    return expr.obj.accept(this)[indexer];
   }
 
   visitFormatString(expr: FormatString) {
@@ -54,7 +55,7 @@ class EvalutorVisitor implements Visitor<any> {
     return string;
   }
 
-  visitAnonFuncExpr(expr: AnonymousFunction) {
+  visitFunctionExpr(expr: FunctionValue) {
     return expr.func;
   }
 }

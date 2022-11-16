@@ -1,6 +1,7 @@
 import {
   ArrayConstructor,
   Call,
+  Expr,
   FormatString,
   GetProp,
   Literal,
@@ -46,7 +47,12 @@ class RuntimeOutputVisitor implements Visitor<string> {
     return expr.name.lexeme;
   }
   visitGetExpr(expr: GetProp): string {
-    return `${expr.obj.accept(this)}.${expr.name.lexeme}`;
+    const prop = expr.indexer.accept(this);
+    if (prop.startsWith('"') && prop.endsWith('"')) {
+      return `${expr.obj.accept(this)}.${prop.substring(1, prop.length - 1)}`;
+    } else {
+      return `${expr.obj.accept(this)}[${prop}]`;
+    }
   }
   visitFormatString(expr: FormatString): string {
     let string = '"' + expr.strings[0];
@@ -61,13 +67,17 @@ class RuntimeOutputVisitor implements Visitor<string> {
 
     return string;
   }
-  visitAnonFuncExpr(): string {
+  visitFunctionExpr(): string {
     return '<function>';
   }
 }
 
 const visitor = new RuntimeOutputVisitor();
 
+export function outputExpression(expression: Expr): string {
+  return expression.accept(visitor);
+}
+
 export function outputRuntimeValue<T>(value: RuntimeValue<T>): string {
-  return value.expression.accept(visitor);
+  return outputExpression(value.expression);
 }
