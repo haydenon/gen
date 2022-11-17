@@ -4,7 +4,11 @@ import * as ws from 'ws';
 
 import { Resource, PropertiesBase } from '../resources';
 import { isStateRequest } from './models/state-requests';
-import { DesiredStateMapper, getMapper } from './mapping/desired-state.mapper';
+import {
+  DesiredStateMapper,
+  getContextForDesiredState,
+  getMapper,
+} from './mapping/desired-state.mapper';
 import { GenerationResultError, Generator } from '../generator';
 import { ErasedDesiredState } from '../resources/desired-state';
 import {
@@ -25,11 +29,20 @@ export class GenServer {
   private mapper: DesiredStateMapper;
 
   constructor(
-    resources: Resource<PropertiesBase, PropertiesBase>[],
+    private resources: Resource<PropertiesBase, PropertiesBase>[],
     serverOptions?: ServerOptions
   ) {
     this.options = { ...defaultOptions, ...(serverOptions || {}) };
     this.mapper = getMapper(resources);
+  }
+
+  private sendErrors(res: any, errors: Error[]) {
+    res.status(400);
+    res.send({
+      errors: errors.map((e) => ({
+        message: e.message,
+      })),
+    });
   }
 
   run() {
@@ -65,17 +78,15 @@ export class GenServer {
         return;
       }
 
-      const mappedState = body.state.map((s, _, allState) =>
-        this.mapper(s, allState)
-      );
+      const context = getContextForDesiredState(this.resources, body.state);
+      if (context instanceof Array) {
+        this.sendErrors(res, context);
+        return;
+      }
+      const mappedState = body.state.map((s) => this.mapper(s, context));
       const errors = mappedState.filter((s) => s instanceof Array) as Error[][];
       if (errors.length > 0) {
-        res.status(400);
-        res.send({
-          errors: errors.flat().map((e) => ({
-            message: e.message,
-          })),
-        });
+        this.sendErrors(res, errors.flat());
         return;
       }
 

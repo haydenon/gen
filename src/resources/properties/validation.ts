@@ -86,7 +86,9 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
     if (value instanceof RuntimeValue) {
       const runtimeResult = this.validateRuntimeValue(propType, value);
       if (runtimeResult instanceof Error) {
-        return `${this.baseError} has a runtime value validation error: ${runtimeResult.message}`;
+        throw new Error(
+          `${this.baseError} has a runtime value validation error: ${runtimeResult.message}`
+        );
       }
       return value;
     }

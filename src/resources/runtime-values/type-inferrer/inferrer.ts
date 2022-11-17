@@ -244,7 +244,7 @@ export type ExprType =
   | Complex
   | Func;
 
-const containsType = (actual: ExprType, expected: ExprType): boolean => {
+export const containsType = (actual: ExprType, expected: ExprType): boolean => {
   const getInnerTypes = (type: ExprType) => {
     if (type.type === Type.Union) {
       const types: ExprType[] = [];

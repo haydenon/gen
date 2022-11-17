@@ -3,26 +3,89 @@ import {
   createDesiredState,
   ErasedDesiredState,
 } from '../../resources/desired-state';
+import { PropertyType } from '../../resources/properties/properties';
 import { validateInputValues } from '../../resources/properties/validation';
 import { PropertyMap } from '../../resources/resource';
+import { RuntimeValue } from '../../resources/runtime-values';
 import { parse } from '../../resources/runtime-values/ast/parser';
+import {
+  complex,
+  containsType,
+  ExprType,
+  inferType,
+} from '../../resources/runtime-values/type-inferrer/inferrer';
+import { mapPropTypeToExprType } from '../../resources/runtime-values/type-inferrer/prop-expr-type.mappers';
 import { StateItem } from '../models/state-requests';
 import { replaceRuntimeValueTemplates } from './runtime-value.mapper';
 
 export type DesiredStateMapper = (
   item: StateItem,
-  context: StateItem[]
+  context: DesiredStateContext
 ) => ErasedDesiredState | Error[];
 
-const getContextForDesiredState = (
+export interface DesiredStateContext {
+  [desiredState: string]: ExprType;
+}
+export const getContextForDesiredState = (
   resources: Resource<PropertyMap, PropertyMap>[],
   context: StateItem[]
-) => {};
+): DesiredStateContext | Error[] =>
+  context.reduce((acc, stateItem) => {
+    if (!stateItem._name) {
+      return acc;
+    }
+
+    const resource = resources.find(
+      (r) => r.constructor.name === stateItem._type
+    );
+    const createError = () =>
+      new Error(
+        `Invalid state item: resource type '${stateItem._type}' does not exist.`
+      );
+    if (acc instanceof Array && !resource) {
+      return [...acc, createError()];
+    } else if (!resource) {
+      return [createError()];
+    } else if (acc instanceof Array) {
+      return acc;
+    }
+
+    const name = stateItem._name;
+    acc[name] = complex(
+      Object.keys(resource.outputs).reduce((outputs, output) => {
+        outputs[output] = mapPropTypeToExprType(resource.outputs[output].type);
+        return outputs;
+      }, {} as { [field: string]: ExprType })
+    );
+
+    return acc;
+  }, {} as DesiredStateContext | Error[]);
+
+const createValidator = (context: DesiredStateContext) => {
+  return (propType: PropertyType, value: RuntimeValue<any>) => {
+    const requiredContext = Object.keys(context)
+      .filter((stateItem) => value.depdendentStateNames.includes(stateItem))
+      .reduce((acc, item) => {
+        acc[item] = context[item];
+        return acc;
+      }, {} as { [name: string]: ExprType });
+    const actualType = inferType(value.expression, requiredContext);
+    if (actualType instanceof Error) {
+      return actualType;
+    }
+
+    const expectedType = mapPropTypeToExprType(propType);
+    // TODO: Better error message
+    return containsType(actualType, expectedType)
+      ? undefined
+      : new Error(`Expected type '${expectedType}' but got '${actualType}'`);
+  };
+};
 
 export function getMapper(
   resources: Resource<PropertyMap, PropertyMap>[]
 ): DesiredStateMapper {
-  return (state: StateItem, context: StateItem[]) => {
+  return (state: StateItem, context: DesiredStateContext) => {
     const { _type, _name, ...userSuppliedInputs } = state;
     const resource = resources.find((r) => r.constructor.name === state._type);
     if (!resource) {
@@ -45,7 +108,7 @@ export function getMapper(
       _name ?? _type,
       resource.inputs,
       inputs as { [prop: string]: any },
-      () => undefined // TODO
+      createValidator(context)
     );
     if (inputResult instanceof Array) {
       return inputResult;

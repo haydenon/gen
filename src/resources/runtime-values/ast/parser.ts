@@ -123,7 +123,7 @@ export class Parser {
           "Expect property name after '.'.",
           TokenType.IDENTIFIER
         );
-        expr = new GetProp(expr, new Literal(name));
+        expr = new GetProp(expr, new Literal(name.lexeme));
       } else {
         break;
       }
