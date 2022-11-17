@@ -1,4 +1,4 @@
-import { ExprType } from '../type-inferrer/inferrer';
+import { ExprType } from '../types/expression-types';
 import { Token } from './tokens/token';
 
 export interface Visitor<R> {

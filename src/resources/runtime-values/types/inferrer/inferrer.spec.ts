@@ -9,23 +9,23 @@ import {
   ObjectConstructor,
   Signature,
   Variable,
-} from '../ast/expressions';
-import { identifier } from '../ast/tokens/token';
+} from '../../ast/expressions';
+import { identifier } from '../../ast/tokens/token';
 import {
-  anyType,
-  array,
-  complex,
-  createUnion,
   ExprType,
-  func,
-  inferType,
+  undefinedType,
   nullType,
   primative,
-  PrimativeType,
   Type,
-  undefinedType,
+  array,
+  complex,
+  func,
+  createUnion,
+  anyType,
   unknownType,
-} from './inferrer';
+  PrimativeType,
+} from '../expression-types';
+import { inferType } from './inferrer';
 
 describe('Inferrer', () => {
   describe('Literals', () => {

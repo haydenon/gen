@@ -8,7 +8,7 @@ import {
   Type as EType,
   undefinedType,
   complex,
-} from './inferrer';
+} from './expression-types';
 
 export const mapPropTypeToExprType = (propType: PropertyType): ExprType => {
   switch (propType.type) {

@@ -8,13 +8,14 @@ import { validateInputValues } from '../../resources/properties/validation';
 import { PropertyMap } from '../../resources/resource';
 import { RuntimeValue } from '../../resources/runtime-values';
 import { parse } from '../../resources/runtime-values/ast/parser';
+import { outputExprType } from '../../resources/runtime-values/types/expre-type.outputter';
 import {
   complex,
-  containsType,
   ExprType,
-  inferType,
-} from '../../resources/runtime-values/type-inferrer/inferrer';
-import { mapPropTypeToExprType } from '../../resources/runtime-values/type-inferrer/prop-expr-type.mappers';
+} from '../../resources/runtime-values/types/expression-types';
+import { inferType } from '../../resources/runtime-values/types/inferrer/inferrer';
+import { containsType } from '../../resources/runtime-values/types/inferrer/inferrer';
+import { mapPropTypeToExprType } from '../../resources/runtime-values/types/prop-expr-type.mappers';
 import { StateItem } from '../models/state-requests';
 import { replaceRuntimeValueTemplates } from './runtime-value.mapper';
 
@@ -75,10 +76,13 @@ const createValidator = (context: DesiredStateContext) => {
     }
 
     const expectedType = mapPropTypeToExprType(propType);
-    // TODO: Better error message
     return containsType(actualType, expectedType)
       ? undefined
-      : new Error(`Expected type '${expectedType}' but got '${actualType}'`);
+      : new Error(
+          `Expected type '${outputExprType(
+            expectedType
+          )}' but got '${outputExprType(actualType)}'`
+        );
   };
 };
 
