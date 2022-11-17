@@ -27,19 +27,23 @@ export enum Type {
   Union = 'Union',
 }
 
-type PrimativeType = Type.Boolean | Type.Number | Type.String | Type.Date;
+export type PrimativeType =
+  | Type.Boolean
+  | Type.Number
+  | Type.String
+  | Type.Date;
 
 interface Any {
   type: Type.Any;
 }
-const anyType: Any = {
+export const anyType: Any = {
   type: Type.Any,
 };
 
 interface Unknown {
   type: Type.Unknown;
 }
-const unknownType: Unknown = {
+export const unknownType: Unknown = {
   type: Type.Unknown,
 };
 
@@ -66,8 +70,8 @@ export const primative = (type: PrimativeType): Primative => ({
 interface Union {
   type: Type.Union;
   inner?: ExprType;
-  undefined?: Type.Undefined;
-  null?: Type.Null;
+  undefined?: Undefined;
+  null?: Null;
 }
 
 export const createUnion = (t1: ExprType, t2: ExprType): ExprType => {
@@ -93,8 +97,8 @@ export const createUnion = (t1: ExprType, t2: ExprType): ExprType => {
   const hasNull = types.includes(nullType);
   const hasUndefined = types.includes(undefinedType);
   const baseUnion: Partial<Union> = {
-    null: hasNull ? Type.Null : undefined,
-    undefined: hasUndefined ? Type.Undefined : undefined,
+    null: hasNull ? nullType : undefined,
+    undefined: hasUndefined ? undefinedType : undefined,
   };
   const nonNullTypes = types.filter((t) => !nullTypes.includes(t));
   if (nonNullTypes.length === 1) {
@@ -132,7 +136,7 @@ const unifyExpressions = (t1: ExprType, t2: ExprType): ExprType => {
   const nullOrUndefined: ExprType[] = [nullType, undefinedType];
 
   if (nullOrUndefined.includes(t1) || nullOrUndefined.includes(t2)) {
-    return createUnion(t1, t2);
+    return t1.type === t2.type ? t1 : createUnion(t1, t2);
   }
 
   if (t1.type === Type.Function || t2.type === Type.Function) {
@@ -390,6 +394,10 @@ class TypeVisitor implements Visitor<ExprType> {
 
   visitCallExpr(expr: Call): ExprType {
     const baseType = expr.callee.accept(this);
+    if ([Type.Any, Type.Unknown].includes(baseType.type)) {
+      return baseType;
+    }
+
     if (baseType.type !== Type.Function) {
       throw new Error(`Cannot call value '${outputExpression(expr.callee)}'`);
     }
