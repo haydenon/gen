@@ -8,22 +8,23 @@ import {
   Signature,
   Variable,
   Visitor,
+  Expr,
 } from '../ast/expressions';
 import { outputExpression } from '../outputer/outputer';
 
-enum Type {
-  Any,
-  Unknown,
-  Undefined,
-  Null,
-  Boolean,
-  Number,
-  String,
-  Date,
-  Array,
-  Object,
-  Function,
-  Union,
+export enum Type {
+  Any = 'Any',
+  Unknown = 'Unknown',
+  Undefined = 'Undefined',
+  Null = 'Null',
+  Boolean = 'Boolean',
+  Number = 'Number',
+  String = 'String',
+  Date = 'Date',
+  Array = 'Array',
+  Object = 'Object',
+  Function = 'Function',
+  Union = 'Union',
 }
 
 type PrimativeType = Type.Boolean | Type.Number | Type.String | Type.Date;
@@ -45,20 +46,20 @@ const unknownType: Unknown = {
 interface Null {
   type: Type.Null;
 }
-const nullType: Null = {
+export const nullType: Null = {
   type: Type.Null,
 };
 interface Undefined {
   type: Type.Undefined;
 }
-const undefinedType: Undefined = {
+export const undefinedType: Undefined = {
   type: Type.Undefined,
 };
 
 interface Primative {
   type: PrimativeType;
 }
-const primative = (type: PrimativeType): Primative => ({
+export const primative = (type: PrimativeType): Primative => ({
   type,
 });
 
@@ -69,12 +70,7 @@ interface Union {
   null?: Type.Null;
 }
 
-// | Null
-// | Undefined
-// | Primative
-// | Union
-
-const createUnion = (t1: ExprType, t2: ExprType): ExprType => {
+export const createUnion = (t1: ExprType, t2: ExprType): ExprType => {
   let types: ExprType[] = [];
   if (t1.type === Type.Union) {
     types = [
@@ -210,17 +206,25 @@ interface Array {
   type: Type.Array;
   inner: ExprType;
 }
+export const array = (inner: ExprType): Array => ({
+  type: Type.Array,
+  inner,
+});
 
 interface Complex {
   type: Type.Object;
   fields: { [property: string]: ExprType };
 }
+export const complex = (fields: { [property: string]: ExprType }): Complex => ({
+  type: Type.Object,
+  fields,
+});
 
 interface Func {
   type: Type.Function;
   signatures?: Signature[];
 }
-const func = (signatures: Signature[] | undefined): Func => ({
+export const func = (signatures: Signature[] | undefined): Func => ({
   type: Type.Function,
   signatures,
 });
@@ -313,7 +317,7 @@ const doesSignatureMatch = (
   signature: Signature,
   parameters: ExprType[]
 ): boolean =>
-  signature.parameters.length !== parameters.length &&
+  signature.parameters.length === parameters.length &&
   signature.parameters.every((sp, i) => containsType(parameters[i], sp));
 
 class TypeVisitor implements Visitor<ExprType> {
@@ -323,7 +327,7 @@ class TypeVisitor implements Visitor<ExprType> {
     const value = expr.value;
     if (value === null) {
       return nullType;
-    } else if (value) {
+    } else if (value === undefined) {
       return undefinedType;
     }
 
@@ -345,6 +349,7 @@ class TypeVisitor implements Visitor<ExprType> {
     // TODO: Array and objects?
     throw new Error('Invalid literal type.');
   }
+
   visitArrayConstructorExpr(expr: ArrayConstructor): ExprType {
     if (expr.items.length < 1) {
       return {
@@ -415,25 +420,34 @@ class TypeVisitor implements Visitor<ExprType> {
     const baseType = expr.obj.accept(this);
     const indexerType = expr.indexer.accept(this);
 
+    if ([Type.Any, Type.Unknown].includes(baseType.type)) {
+      return baseType;
+    }
+
+    const unwrappedBase =
+      baseType.type === Type.Union ? baseType.inner : baseType;
     if (
-      baseType.type === Type.Object &&
-      // indexerType.type !== undefined &&
+      unwrappedBase &&
+      unwrappedBase.type === Type.Object &&
       [Type.String, Type.Number].includes(indexerType.type)
     ) {
       if (!(expr.indexer instanceof Literal)) {
         throw new Error(`Invalid object field access '${expr}'`);
       }
       const property = expr.indexer.value;
-      if (!Object.prototype.hasOwnProperty.call(baseType.fields, property)) {
+      if (
+        !Object.prototype.hasOwnProperty.call(unwrappedBase.fields, property)
+      ) {
         throw new Error();
       }
 
-      return baseType.fields[property];
+      return unwrappedBase.fields[property];
     } else if (
-      baseType.type === Type.Array &&
+      unwrappedBase &&
+      unwrappedBase.type === Type.Array &&
       indexerType.type === Type.Number
     ) {
-      return baseType.inner;
+      return unwrappedBase.inner;
     } else {
       throw new Error(`Invalid indexer used for '${outputExpression(expr)}'`);
     }
@@ -445,5 +459,17 @@ class TypeVisitor implements Visitor<ExprType> {
 
   visitFunctionExpr(expr: FunctionValue): ExprType {
     return func(expr.signatures);
+  }
+}
+
+export function inferType(
+  expression: Expr,
+  context: { [name: string]: ExprType }
+): ExprType | Error {
+  try {
+    const inferrer = new TypeVisitor(context);
+    return expression.accept(inferrer);
+  } catch (err) {
+    return err as Error;
   }
 }

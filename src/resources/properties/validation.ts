@@ -18,13 +18,19 @@ import {
   acceptPropertyType,
 } from './property-visitor';
 
+export type RuntimeValueValidator = (
+  propType: PropertyType,
+  value: RuntimeValue<any>
+) => Error | undefined;
+
 export const getBaseError = (name: string, input: string) =>
   `Input value '${input}' for '${name}'`;
 
 export function validateInputValues(
   name: string,
   properties: PropertyMap,
-  values: PropertyValues<PropertyMap>
+  values: PropertyValues<PropertyMap>,
+  validateRuntimeValue: RuntimeValueValidator
 ): InputValues<PropertyMap> | Error[] {
   const propertyKeys = Object.keys(properties);
 
@@ -38,7 +44,8 @@ export function validateInputValues(
         name,
         key,
         properties[key],
-        values[key]
+        values[key],
+        validateRuntimeValue
       );
       if (result instanceof Error) {
         return [acc, [...errors, result]];
@@ -60,7 +67,12 @@ export function validateInputValues(
 class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
   private baseError = getBaseError(this.name, this.input);
 
-  constructor(value: any, private name: string, private input: string) {
+  constructor(
+    value: any,
+    private name: string,
+    private input: string,
+    private validateRuntimeValue: RuntimeValueValidator
+  ) {
     super(value);
   }
 
@@ -72,6 +84,10 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
     length?: (value: any) => number
   ): any {
     if (value instanceof RuntimeValue) {
+      const runtimeResult = this.validateRuntimeValue(propType, value);
+      if (runtimeResult instanceof Error) {
+        return `${this.baseError} has a runtime value validation error: ${runtimeResult.message}`;
+      }
       return value;
     }
 
@@ -192,9 +208,15 @@ export function validateInputValue(
   name: string,
   input: string,
   property: PropertyDefinition<any>,
-  value: any
+  value: any,
+  validateRuntimeValue: RuntimeValueValidator
 ): any {
-  const visitor = new ValidateInputVisitor(value, name, input);
+  const visitor = new ValidateInputVisitor(
+    value,
+    name,
+    input,
+    validateRuntimeValue
+  );
   try {
     return acceptPropertyType(visitor, property.type);
   } catch (err) {

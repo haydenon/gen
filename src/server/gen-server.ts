@@ -65,7 +65,9 @@ export class GenServer {
         return;
       }
 
-      const mappedState = body.state.map(this.mapper);
+      const mappedState = body.state.map((s, _, allState) =>
+        this.mapper(s, allState)
+      );
       const errors = mappedState.filter((s) => s instanceof Array) as Error[][];
       if (errors.length > 0) {
         res.status(400);

@@ -21,6 +21,8 @@ import {
   validateInputValues,
 } from './validation';
 
+const runtimeValidator = () => undefined;
+
 describe('validateInputValues', () => {
   test('returns errors for multiple invalid inputs', () => {
     // Arrange
@@ -31,7 +33,12 @@ describe('validateInputValues', () => {
     };
 
     // Act
-    const result = validateInputValues(name, new MockBase(), values);
+    const result = validateInputValues(
+      name,
+      new MockBase(),
+      values,
+      runtimeValidator
+    );
 
     // Assert
     expect(result).toBeInstanceOf(Array);
@@ -47,7 +54,12 @@ describe('validateInputValues', () => {
     const values: Partial<InputValues<MockBase>> = {};
 
     // Act
-    const result = validateInputValues(name, new MockBase(), values);
+    const result = validateInputValues(
+      name,
+      new MockBase(),
+      values,
+      runtimeValidator
+    );
 
     // Assert
     expect(result).toEqual({});
@@ -63,7 +75,12 @@ describe('validateInputValues', () => {
     };
 
     // Act
-    const result = validateInputValues(name, new MockBase(), values);
+    const result = validateInputValues(
+      name,
+      new MockBase(),
+      values,
+      runtimeValidator
+    );
 
     // Assert
     expect(result).toEqual(values);
@@ -80,7 +97,12 @@ describe('validateInputValues', () => {
     } as any;
 
     // Act
-    const result = validateInputValues(name, new MockBase(), values);
+    const result = validateInputValues(
+      name,
+      new MockBase(),
+      values,
+      runtimeValidator
+    );
 
     // Assert
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -115,7 +137,8 @@ describe('validateInputValue', () => {
         name,
         input,
         def<any>(type as any),
-        validValue
+        validValue,
+        runtimeValidator
       );
 
       // Assert
@@ -133,7 +156,8 @@ describe('validateInputValue', () => {
         name,
         input,
         def<boolean>(bool()),
-        invalidValue
+        invalidValue,
+        runtimeValidator
       );
 
       // Assert
@@ -154,7 +178,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def<number>(int()),
-          invalidValue
+          invalidValue,
+          runtimeValidator
         );
 
         // Assert
@@ -166,7 +191,13 @@ describe('validateInputValue', () => {
 
     test('returns error for floating int properties', () => {
       // Act
-      const result = validateInputValue(name, input, def<number>(int()), 8.6);
+      const result = validateInputValue(
+        name,
+        input,
+        def<number>(int()),
+        8.6,
+        runtimeValidator
+      );
 
       // Assert
       expect(result).toEqual(
@@ -188,7 +219,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def<number>(int(options)),
-          num
+          num,
+          runtimeValidator
         );
 
         // Assert
@@ -204,7 +236,8 @@ describe('validateInputValue', () => {
         name,
         input,
         def<number>(int({ min: 8, max: 8 })),
-        8
+        8,
+        runtimeValidator
       );
 
       // Assert
@@ -223,7 +256,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def<number>(float()),
-          invalidValue
+          invalidValue,
+          runtimeValidator
         );
 
         // Assert
@@ -235,7 +269,13 @@ describe('validateInputValue', () => {
 
     test('returns value for floating int properties', () => {
       // Act
-      const result = validateInputValue(name, input, def<number>(float()), 8.6);
+      const result = validateInputValue(
+        name,
+        input,
+        def<number>(float()),
+        8.6,
+        runtimeValidator
+      );
 
       // Assert
       expect(result).toEqual(8.6);
@@ -255,7 +295,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def<number>(float(options)),
-          num
+          num,
+          runtimeValidator
         );
 
         // Assert
@@ -271,7 +312,8 @@ describe('validateInputValue', () => {
         name,
         input,
         def<number>(float({ min: 8.1, max: 8.1 })),
-        8.1
+        8.1,
+        runtimeValidator
       );
 
       // Assert
@@ -290,7 +332,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def<string>(string()),
-          invalidValue
+          invalidValue,
+          runtimeValidator
         );
 
         // Assert
@@ -322,7 +365,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def<string>(string(options)),
-          str
+          str,
+          runtimeValidator
         );
 
         // Assert
@@ -338,7 +382,8 @@ describe('validateInputValue', () => {
         name,
         input,
         def<string>(string({ minLength: 5, maxLength: 5 })),
-        'hello'
+        'hello',
+        runtimeValidator
       );
 
       // Assert
@@ -357,7 +402,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def<Date>(date()),
-          invalidValue
+          invalidValue,
+          runtimeValidator
         );
 
         // Assert
@@ -393,7 +439,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def<Date>(date(options)),
-          string
+          string,
+          runtimeValidator
         );
 
         // Assert
@@ -414,7 +461,8 @@ describe('validateInputValue', () => {
             maxDate: new Date(2022, 5, 8),
           })
         ),
-        new Date(2022, 5, 8)
+        new Date(2022, 5, 8),
+        runtimeValidator
       );
 
       // Assert
@@ -433,7 +481,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def<number[]>(array(int())),
-          invalidValue
+          invalidValue,
+          runtimeValidator
         );
 
         // Assert
@@ -465,7 +514,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def<number[]>(array(int(), options)),
-          string
+          string,
+          runtimeValidator
         );
 
         // Assert
@@ -486,7 +536,8 @@ describe('validateInputValue', () => {
             maxItems: 3,
           })
         ),
-        [1, 6, 4]
+        [1, 6, 4],
+        runtimeValidator
       );
 
       // Assert
@@ -499,7 +550,8 @@ describe('validateInputValue', () => {
         name,
         input,
         def<number[]>(array(int())),
-        [1, 6, 4, 'not a number']
+        [1, 6, 4, 'not a number'],
+        runtimeValidator
       );
 
       // Assert
@@ -520,7 +572,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def<string | null>(nullable(string())),
-          invalidValue
+          invalidValue,
+          runtimeValidator
         );
 
         // Assert
@@ -542,7 +595,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def<string | undefined>(undefinable(string())),
-          invalidValue
+          invalidValue,
+          runtimeValidator
         );
 
         // Assert
@@ -564,7 +618,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def<{ text: string }>(complex<{ text: string }>({ text: string() })),
-          invalidValue
+          invalidValue,
+          runtimeValidator
         );
 
         // Assert
@@ -580,7 +635,8 @@ describe('validateInputValue', () => {
         name,
         input,
         def<{ text: string }>(complex<{ text: string }>({ text: string() })),
-        { text: 8 }
+        { text: 8 },
+        runtimeValidator
       );
 
       // Assert
@@ -599,7 +655,8 @@ describe('validateInputValue', () => {
         def<string>(
           string({ isValid: (value) => value === 'OnlyThisIsValid' })
         ),
-        'NotValidValue'
+        'NotValidValue',
+        runtimeValidator
       );
 
       // Assert
@@ -618,7 +675,8 @@ describe('validateInputValue', () => {
         def<string>(
           string({ isValid: (value) => value === 'OnlyThisIsValid' })
         ),
-        'OnlyThisIsValid'
+        'OnlyThisIsValid',
+        runtimeValidator
       );
 
       // Assert
@@ -648,7 +706,8 @@ describe('validateInputValue', () => {
           name,
           input,
           def(type as any),
-          runtimeValue
+          runtimeValue,
+          runtimeValidator
         );
 
         // Assert
@@ -665,7 +724,8 @@ describe('validateInputValue', () => {
         name,
         input,
         def<number[]>(array(int())),
-        [runtimeValue]
+        [runtimeValue],
+        runtimeValidator
       );
 
       // Assert
@@ -681,7 +741,8 @@ describe('validateInputValue', () => {
         name,
         input,
         def<{ text: string }>(complex<{ text: string }>({ text: string() })),
-        { text: runtimeValue }
+        { text: runtimeValue },
+        runtimeValidator
       );
 
       // Assert
