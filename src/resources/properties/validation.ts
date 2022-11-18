@@ -23,8 +23,8 @@ export type RuntimeValueValidator = (
   value: RuntimeValue<any>
 ) => Error | undefined;
 
-export const getBaseError = (name: string, input: string) =>
-  `Input value '${input}' for '${name}'`;
+export const getBaseError = (name: string, inputSegments: string[]) =>
+  `Input '${inputSegments.join('')}' for '${name}'`;
 
 export function validateInputValues(
   name: string,
@@ -65,16 +65,19 @@ export function validateInputValues(
 }
 
 class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
-  private baseError = getBaseError(this.name, this.input);
+  private inputSegments: string[];
 
   constructor(
     value: any,
     private name: string,
-    private input: string,
+    input: string,
     private validateRuntimeValue: RuntimeValueValidator
   ) {
     super(value);
+    this.inputSegments = [input];
   }
+
+  private getBaseError = () => getBaseError(this.name, this.inputSegments);
 
   private checkValue(
     propType: PropertyType,
@@ -87,7 +90,7 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
       const runtimeResult = this.validateRuntimeValue(propType, value);
       if (runtimeResult instanceof Error) {
         throw new Error(
-          `${this.baseError} has a runtime value validation error: ${runtimeResult.message}`
+          `${this.getBaseError()} runtime value error: ${runtimeResult.message}`
         );
       }
       return value;
@@ -101,7 +104,7 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
     const typeString =
       typeof valueType === 'string' ? valueType : valueType.name;
     if (!isValidType) {
-      throw new Error(`${this.baseError} is not of type '${typeString}'`);
+      throw new Error(`${this.getBaseError()} is not of type '${typeString}'`);
     }
 
     const unknownConstraint = propType.constraint as BaseConstraint<any>;
@@ -110,7 +113,7 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
     }
     if (unknownConstraint.isValid && !unknownConstraint.isValid(value)) {
       throw new Error(
-        `${this.baseError} does not pass custom validation rules`
+        `${this.getBaseError()} does not pass custom validation rules`
       );
     }
 
@@ -131,7 +134,9 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
           const diff = (value * (1 / numConstraint.precision)) % 1;
           if (diff > 0.01) {
             // TODO: Validate this works
-            throw new Error(`${this.baseError} has invalid floating precision`);
+            throw new Error(
+              `${this.getBaseError()} has invalid floating precision`
+            );
           }
         }
         min = numConstraint.min;
@@ -160,10 +165,12 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
 
     if (min !== undefined && length && length(value) < min) {
       throw new Error(
-        `${this.baseError} is smaller than a min value of ${min}`
+        `${this.getBaseError()} is smaller than a min value of ${min}`
       );
     } else if (max !== undefined && length && length(value) > max) {
-      throw new Error(`${this.baseError} is larger than a max value of ${max}`);
+      throw new Error(
+        `${this.getBaseError()} is larger than a max value of ${max}`
+      );
     }
 
     return value;
@@ -174,7 +181,7 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
   };
   visitIntValue = (type: IntType, value: any) => {
     if (typeof value === 'number' && Math.abs(value) % 1 !== 0) {
-      throw new Error(`${this.baseError} is not an integer`);
+      throw new Error(`${this.getBaseError()} is not an integer`);
     }
     return this.checkValue(type, value, 'number', (num) => num);
   };
@@ -204,6 +211,17 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
   checkComplexValue = (_: ComplexType, value: any): [true, any] | [false] =>
     value instanceof RuntimeValue ? [true, value] : [false];
   mapComplexValue = (_: ComplexType, value: { [key: string]: any }) => value;
+
+  protected onEnteringArrayValue = (type: any, value: any, index: number) =>
+    this.inputSegments.push(`[${index}]`);
+  protected onExitingArrayValue = () => {
+    this.inputSegments.pop();
+  };
+  protected onEnteringComplexValue = (type: any, value: any, field: string) =>
+    this.inputSegments.push(`.${field}`);
+  protected onExitingComplexValue = () => {
+    this.inputSegments.pop();
+  };
 }
 
 export function validateInputValue(

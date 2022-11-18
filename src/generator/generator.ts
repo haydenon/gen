@@ -77,6 +77,11 @@ class RuntimeValueFillVisitor extends ValueAndPropertyVisitor<any> {
     isRuntimeValue(value) ? [true, this.getRuntimeValue(value)] : [false];
   mapComplexValue = (type: ComplexType, value: { [props: string]: any }) =>
     value;
+
+  protected onEnteringArrayValue = undefined;
+  protected onExitingArrayValue = undefined;
+  protected onEnteringComplexValue = undefined;
+  protected onExitingComplexValue = undefined;
 }
 
 class RuntimeValueVisitor extends ValueAndPropertyVisitor<RuntimeValue<any>[]> {
@@ -113,6 +118,11 @@ class RuntimeValueVisitor extends ValueAndPropertyVisitor<RuntimeValue<any>[]> {
     type: ComplexType,
     value: { [prop: string]: RuntimeValue<any>[] }
   ) => Object.values(value).flat();
+
+  protected onEnteringArrayValue = undefined;
+  protected onExitingArrayValue = undefined;
+  protected onEnteringComplexValue = undefined;
+  protected onExitingComplexValue = undefined;
 }
 
 interface GeneratedStateResponse {

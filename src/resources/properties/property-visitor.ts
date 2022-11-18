@@ -75,9 +75,16 @@ export abstract class ValueAndPropertyVisitor<T>
     }
     const arr = this.value as any[];
     const innerType = type.inner;
-    const result: any[] = arr.map((item) => {
+    const result: any[] = arr.map((item, i) => {
       this.value = item;
-      return acceptPropertyType(this, innerType);
+
+      if (this.onEnteringArrayValue) this.onEnteringArrayValue(type, item, i);
+
+      const value = acceptPropertyType(this, innerType);
+
+      if (this.onExitingArrayValue) this.onExitingArrayValue(type, item, i);
+
+      return value;
     });
     this.value = arr;
     return this.mapArrayValue(type, result);
@@ -101,7 +108,15 @@ export abstract class ValueAndPropertyVisitor<T>
     const originalValue = this.value;
     const result = Object.keys(type.fields).reduce((acc, key) => {
       this.value = originalValue ? originalValue[key] : undefined;
+
+      if (this.onEnteringComplexValue)
+        this.onEnteringComplexValue(type, fields[key], key);
+
       acc[key] = acceptPropertyType<T>(this, fields[key]);
+
+      if (this.onExitingComplexValue)
+        this.onExitingComplexValue(type, fields[key], key);
+
       return acc;
     }, {} as { [key: string]: T });
     this.value = originalValue;
@@ -115,15 +130,37 @@ export abstract class ValueAndPropertyVisitor<T>
   protected abstract visitDateValue: (type: DateType, value: any) => T;
   protected abstract mapNullValue: (type: Nullable) => T;
   protected abstract mapUndefinedValue: (type: Undefinable) => T;
+
   protected abstract checkArrayValue?: (
     type: ArrayType,
     value: any
   ) => [true, T] | [false];
+  protected abstract onEnteringArrayValue?: (
+    type: ArrayType,
+    value: any,
+    index: number
+  ) => void;
+  protected abstract onExitingArrayValue?: (
+    type: ArrayType,
+    value: any,
+    index: number
+  ) => void;
   protected abstract mapArrayValue: (type: ArrayType, value: T[]) => T;
+
   protected abstract checkComplexValue?: (
     type: ComplexType,
     value: any
   ) => [true, T] | [false];
+  protected abstract onEnteringComplexValue?: (
+    type: ComplexType,
+    value: any,
+    field: string
+  ) => void;
+  protected abstract onExitingComplexValue?: (
+    type: ComplexType,
+    value: any,
+    field: string
+  ) => void;
   protected abstract mapComplexValue: (
     type: ComplexType,
     value: { [key: string]: T }

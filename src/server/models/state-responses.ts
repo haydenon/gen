@@ -64,6 +64,11 @@ class RuntimeOutputVisitor extends ValueAndPropertyVisitor<any> {
     type: ComplexType,
     value: { [key: string]: any }
   ) => value;
+
+  protected onEnteringArrayValue = undefined;
+  protected onExitingArrayValue = undefined;
+  protected onEnteringComplexValue = undefined;
+  protected onExitingComplexValue = undefined;
 }
 
 export function mapDesiredStateToResponse(
