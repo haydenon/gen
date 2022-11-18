@@ -11,8 +11,7 @@ export class GenerationResult {
 export interface BaseConstraint<T> {
   isValid?: (value: T) => boolean;
   generateConstrainedValue?: (
-    values: PropertyValues<PropertyMap>,
-    related: RelatedResources
+    values: PropertyValues<PropertyMap>
   ) => T | RuntimeValue<T> | GenerationResult;
 }
 
@@ -58,21 +57,13 @@ export type Constraint<T> = null extends T
   ? DateConstraint
   : BaseConstraint<T>;
 
-interface RelatedResources {
-  children: ErasedDesiredState[];
-}
-
 export function dependentGenerator<Inputs extends PropertyMap, Prop>(
   inputs: Inputs,
-  func: (
-    values: PropertyValues<Inputs>,
-    related: RelatedResources
-  ) => Value<Prop> | GenerationResult
+  func: (values: PropertyValues<Inputs>) => Value<Prop> | GenerationResult
 ): BaseConstraint<Prop> {
   return {
     generateConstrainedValue: func as (
-      values: PropertyValues<PropertyMap>,
-      related: RelatedResources
+      values: PropertyValues<PropertyMap>
     ) => Value<Prop> | GenerationResult,
   };
 }
