@@ -43,8 +43,8 @@ describe('validateInputValues', () => {
     // Assert
     expect(result).toBeInstanceOf(Array);
     expect(result).toEqual([
-      new Error(`${getBaseError(name, 'text')} is not of type 'string'`),
-      new Error(`${getBaseError(name, 'number')} is not of type 'number'`),
+      new Error(`${getBaseError(name, ['text'])} is not of type 'string'`),
+      new Error(`${getBaseError(name, ['number'])} is not of type 'number'`),
     ]);
   });
 
@@ -162,7 +162,7 @@ describe('validateInputValue', () => {
 
       // Assert
       expect(result).toEqual(
-        new Error(`${getBaseError(name, input)} is not of type 'boolean'`)
+        new Error(`${getBaseError(name, [input])} is not of type 'boolean'`)
       );
     }
   });
@@ -184,7 +184,7 @@ describe('validateInputValue', () => {
 
         // Assert
         expect(result).toEqual(
-          new Error(`${getBaseError(name, input)} is not of type 'number'`)
+          new Error(`${getBaseError(name, [input])} is not of type 'number'`)
         );
       }
     });
@@ -201,7 +201,7 @@ describe('validateInputValue', () => {
 
       // Assert
       expect(result).toEqual(
-        new Error(`${getBaseError(name, input)} is not an integer`)
+        new Error(`${getBaseError(name, [input])} is not an integer`)
       );
     });
 
@@ -225,7 +225,7 @@ describe('validateInputValue', () => {
 
         // Assert
         expect(result).toEqual(
-          new Error(`${getBaseError(name, input)} ${err}`)
+          new Error(`${getBaseError(name, [input])} ${err}`)
         );
       }
     });
@@ -262,7 +262,7 @@ describe('validateInputValue', () => {
 
         // Assert
         expect(result).toEqual(
-          new Error(`${getBaseError(name, input)} is not of type 'number'`)
+          new Error(`${getBaseError(name, [input])} is not of type 'number'`)
         );
       }
     });
@@ -301,7 +301,7 @@ describe('validateInputValue', () => {
 
         // Assert
         expect(result).toEqual(
-          new Error(`${getBaseError(name, input)} ${err}`)
+          new Error(`${getBaseError(name, [input])} ${err}`)
         );
       }
     });
@@ -338,7 +338,7 @@ describe('validateInputValue', () => {
 
         // Assert
         expect(result).toEqual(
-          new Error(`${getBaseError(name, input)} is not of type 'string'`)
+          new Error(`${getBaseError(name, [input])} is not of type 'string'`)
         );
       }
     });
@@ -371,7 +371,7 @@ describe('validateInputValue', () => {
 
         // Assert
         expect(result).toEqual(
-          new Error(`${getBaseError(name, input)} ${err}`)
+          new Error(`${getBaseError(name, [input])} ${err}`)
         );
       }
     });
@@ -408,7 +408,7 @@ describe('validateInputValue', () => {
 
         // Assert
         expect(result).toEqual(
-          new Error(`${getBaseError(name, input)} is not of type 'Date'`)
+          new Error(`${getBaseError(name, [input])} is not of type 'Date'`)
         );
       }
     });
@@ -445,7 +445,7 @@ describe('validateInputValue', () => {
 
         // Assert
         expect(result).toEqual(
-          new Error(`${getBaseError(name, input)} ${err}`)
+          new Error(`${getBaseError(name, [input])} ${err}`)
         );
       }
     });
@@ -487,7 +487,7 @@ describe('validateInputValue', () => {
 
         // Assert
         expect(result).toEqual(
-          new Error(`${getBaseError(name, input)} is not of type 'Array'`)
+          new Error(`${getBaseError(name, [input])} is not of type 'Array'`)
         );
       }
     });
@@ -520,7 +520,7 @@ describe('validateInputValue', () => {
 
         // Assert
         expect(result).toEqual(
-          new Error(`${getBaseError(name, input)} ${err}`)
+          new Error(`${getBaseError(name, [input])} ${err}`)
         );
       }
     });
@@ -556,7 +556,9 @@ describe('validateInputValue', () => {
 
       // Assert
       expect(result).toEqual(
-        new Error(`${getBaseError(name, input)} is not of type 'number'`)
+        new Error(
+          `${getBaseError(name, [`${input}[3]`])} is not of type 'number'`
+        )
       );
     });
   });
@@ -578,7 +580,7 @@ describe('validateInputValue', () => {
 
         // Assert
         expect(result).toEqual(
-          new Error(`${getBaseError(name, input)} is not of type 'string'`)
+          new Error(`${getBaseError(name, [input])} is not of type 'string'`)
         );
       }
     });
@@ -601,7 +603,7 @@ describe('validateInputValue', () => {
 
         // Assert
         expect(result).toEqual(
-          new Error(`${getBaseError(name, input)} is not of type 'string'`)
+          new Error(`${getBaseError(name, [input])} is not of type 'string'`)
         );
       }
     });
@@ -624,7 +626,9 @@ describe('validateInputValue', () => {
 
         // Assert
         expect(result).toEqual(
-          new Error(`${getBaseError(name, input)} is not of type 'string'`)
+          new Error(
+            `${getBaseError(name, [`${input}.text`])} is not of type 'string'`
+          )
         );
       }
     });
@@ -641,7 +645,9 @@ describe('validateInputValue', () => {
 
       // Assert
       expect(result).toEqual(
-        new Error(`${getBaseError(name, input)} is not of type 'string'`)
+        new Error(
+          `${getBaseError(name, [`${input}.text`])} is not of type 'string'`
+        )
       );
     });
   });
@@ -662,7 +668,7 @@ describe('validateInputValue', () => {
       // Assert
       expect(result).toEqual(
         new Error(
-          `${getBaseError(name, input)} does not pass custom validation rules`
+          `${getBaseError(name, [input])} does not pass custom validation rules`
         )
       );
     });
