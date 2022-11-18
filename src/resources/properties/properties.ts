@@ -1,11 +1,6 @@
 import { isOneOf, LookupValues, oneOf } from '../../utilities';
 import { ErasedDesiredState } from '../desired-state';
-import {
-  Resource,
-  PropertyValues,
-  PropertyMap,
-  OutputValues,
-} from '../resource';
+import { PropertyMap, OutputValues } from '../resource';
 import { RuntimeValue } from '../runtime-values';
 import {
   ArrayConstraint,
@@ -161,64 +156,6 @@ export function def<T>(
     type,
     ...(properties || {}),
   };
-}
-
-export interface LinkProperty<T> extends PropertyDefinition<T> {
-  item: Resource<PropertyMap, PropertyMap>;
-  outputAccessor: (
-    outputs: PropertyValues<PropertyMap>
-  ) => PropertyTypeForValue<T>;
-}
-
-export function isLinkType(
-  type: PropertyType
-): type is PropertyType & LinkType {
-  const prop = type as any as LinkType;
-  return !!prop.resources && !!prop.outputKey;
-}
-
-export interface LinkType {
-  resources: Resource<PropertyMap, PropertyMap>[];
-  outputKey: string;
-}
-
-export function getLink<
-  T extends TypeForProperty<Out[Key]>,
-  Out extends PropertyMap,
-  Key extends keyof Out
->(
-  resource: Resource<PropertyMap, Out>,
-  propKey: Key,
-  constraint?: Constraint<T>
-): PropertyTypeForValue<T> & LinkType;
-export function getLink<
-  T extends TypeForProperty<Out[Key]>,
-  Out extends PropertyMap,
-  Key extends keyof Out
->(
-  resources: Resource<PropertyMap, Out>[],
-  propKey: Key,
-  constraint?: Constraint<T>
-): PropertyTypeForValue<T> & LinkType;
-export function getLink<
-  T extends TypeForProperty<Out[Key]>,
-  Out extends PropertyMap,
-  Key extends keyof Out
->(
-  resources: Resource<PropertyMap, Out> | Resource<PropertyMap, Out>[],
-  propKey: Key,
-  constraint?: Constraint<T>
-): PropertyTypeForValue<T> & LinkType {
-  const outputProperty = (
-    resources instanceof Array ? resources[0].outputs : resources.outputs
-  )[propKey];
-  const linkType: PropertyTypeForValue<T> = outputProperty.type as any;
-  return {
-    ...linkType,
-    resources: resources instanceof Array ? resources : [resources],
-    outputKey: propKey.toString(),
-    constraint,
-  } as any;
 }
 
 export function lookup<Prop extends PropertyType>(

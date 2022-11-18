@@ -1,6 +1,5 @@
 export {
   PropertyDefinition,
-  getLink,
   def,
   bool,
   string as str,

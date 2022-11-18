@@ -1,7 +1,6 @@
 import {
   PropertyDefinition,
   PropertyType,
-  isLinkType,
   isComplex,
   isArray,
 } from '../../resources/properties/properties';
@@ -14,6 +13,7 @@ import { getRandomInt } from '../../utilities';
 import { getValueForPrimativeType } from './primatives.generator';
 import { getRuntimeResourceValue } from '../../resources/runtime-values';
 import { GenerationResult } from '../../resources/properties';
+import { isLinkType } from '../../resources/properties/links';
 
 function fillInType(
   current: ErasedDesiredState,

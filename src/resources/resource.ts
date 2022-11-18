@@ -41,6 +41,16 @@ export abstract class PropertiesBase implements PropertyMap {
   [name: string]: PropertyDefinition<any>;
 }
 
+export interface ResourceGroupItem<
+  Inputs extends PropertyMap,
+  Outputs extends PropertyMap
+> {
+  inputs: Inputs;
+  outputs: Outputs;
+
+  create(inputs: any): Promise<any>;
+}
+
 export abstract class Resource<
   Inputs extends PropertyMap,
   Outputs extends PropertyMap
@@ -52,7 +62,15 @@ export abstract class Resource<
   createTimeoutMillis?: number;
 }
 
-export type ResourceGroup<Out extends PropertyMap> = Resource<
-  PropertyMap,
-  Out
->[];
+export type ResourceGroup<
+  In extends PropertyMap,
+  Out extends PropertyMap
+> = ResourceGroupItem<In, Out>[];
+
+export interface ResourceOrGroupItem<
+  Inputs extends PropertyMap,
+  Outputs extends PropertyMap
+> {
+  inputs: Inputs;
+  outputs: Outputs;
+}

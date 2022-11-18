@@ -8,7 +8,6 @@ export {
 } from './resource';
 export {
   PropertyDefinition,
-  getLink,
   def,
   bool,
   string,
@@ -22,6 +21,11 @@ export {
   complex,
   lookup,
 } from './properties/properties';
+export {
+  getLink,
+  ParentCreationMode,
+  parentConstraint,
+} from './properties/links';
 export { DesiredState, createDesiredState } from './desired-state';
 export { mapValue, mapValues } from './runtime-values/runtime-values';
 export {
