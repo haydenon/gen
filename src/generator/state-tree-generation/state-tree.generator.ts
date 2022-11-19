@@ -206,12 +206,6 @@ function fillInType(
       const [utils, constraints] = getParentConstraintsUtilsAndResults();
       constraint.parentConstraint(utils, inputs);
       parentConstraints = constraints;
-      const first = parentConstraints[0];
-      if (first) {
-        console.log(first.path[0]);
-        console.log(first.value);
-        console.log(first.mode);
-      }
     }
 
     const resourceCount = type.resources.length;
