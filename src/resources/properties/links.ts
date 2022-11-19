@@ -35,11 +35,11 @@ export interface LinkType {
 }
 
 export enum ParentCreationMode {
-  OnlySetIfParentCreated,
-  ForceParentCreation,
+  OnlySetIfParentCreated = 'OnlySetIfParentCreated',
+  ForceParentCreation = 'ForceParentCreation',
 }
 
-interface ParentConstraints<
+export interface ParentConstraints<
   T extends ResourceOrGroupItem<PropertyMap, PropertyMap>
 > {
   doNotCreateParent(): void;
@@ -56,6 +56,7 @@ export function parentConstraint<
   Parent extends ResourceOrGroupItem<PropertyMap, PropertyMap>
 >(
   inputs: Inputs,
+  parent: Parent,
   func: (
     constraints: ParentConstraints<Parent>,
     childValues: PropertyValues<Inputs>
@@ -69,7 +70,7 @@ export function parentConstraint<
   };
 }
 
-interface LinkConstraint<
+export interface LinkConstraint<
   T extends ResourceOrGroupItem<PropertyMap, PropertyMap>
 > {
   parentConstraint?: (
