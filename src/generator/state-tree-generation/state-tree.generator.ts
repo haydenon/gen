@@ -22,13 +22,29 @@ import {
 } from '../../resources/properties/links';
 
 class ParentProxyHandler {
-  public paths: (string | number | symbol)[] = [];
+  public proxy?: typeof Proxy;
+  public paths: (string | number | symbol | AllIndexMarker)[] = [];
 
-  get(_: any, property: string | number | symbol): ParentProxyHandler {
-    this.paths.push(property);
-    return this;
+  get(_: any, property: string | number | symbol): typeof Proxy {
+    const asInt =
+      typeof property === 'string'
+        ? parseInt(property)
+        : typeof property === 'number'
+        ? property
+        : NaN;
+    if (!isNaN(asInt)) {
+      this.paths.push(asInt);
+    } else {
+      this.paths.push(property);
+    }
+    if (!this.proxy) {
+      throw new Error('Proxy incorrectly configured');
+    }
+    return this.proxy;
   }
 }
+
+class AllIndexMarker {}
 
 const getParentConstraintsUtilsAndResults = (): [
   ParentConstraints<any>,
@@ -40,10 +56,15 @@ const getParentConstraintsUtilsAndResults = (): [
       setValue(accessor, value, mode) {
         const handler = new ParentProxyHandler();
         const parentValueProxy = new Proxy({}, handler);
+        handler.proxy = parentValueProxy;
         accessor(parentValueProxy as any);
         const path: PropertyPathSegment[] = handler.paths.map((p) =>
           // TODO: Support all indexes for arrays
-          typeof p === 'number' ? arrayIndexAccess(p) : propAccess(p)
+          typeof p === 'number'
+            ? arrayIndexAccess(p)
+            : p instanceof AllIndexMarker
+            ? arrayIndexAccess('all')
+            : propAccess(p)
         );
         results.push({
           path,
@@ -55,9 +76,8 @@ const getParentConstraintsUtilsAndResults = (): [
         throw new Error('TODO!');
       },
       all(value: any): any {
-        throw new Error('TODO!');
-
-        if (value instanceof Proxy) {
+        if (value instanceof ParentProxyHandler) {
+          value.paths.push(new AllIndexMarker());
           return value;
         }
 
