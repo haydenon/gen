@@ -11,7 +11,6 @@ import {
   PropertyDefinition,
   PropertyType,
   PropertyTypeForValue,
-  TypeForProperty,
   Value,
 } from './properties';
 
@@ -90,61 +89,66 @@ type OutputsForResourceOrGroup<T> = T extends Resource<PropertyMap, PropertyMap>
   ? T[0]['outputs']
   : never;
 
-type OutputForResourceOrGroup<T, Key> = T extends Resource<
-  PropertyMap,
-  PropertyMap
->
-  ? Key extends keyof T['outputs']
-    ? T['outputs'][Key]
-    : never
-  : T extends ResourceGroup<PropertyMap, PropertyMap>
-  ? Key extends keyof T[0]['outputs']
-    ? T[0]['outputs'][Key]
-    : never
-  : never;
-
-export function getLink<
-  Res extends Resource<PropertyMap, PropertyMap>,
-  Key extends keyof Res['outputs'],
-  T extends TypeForProperty<Res['outputs'][Key]>
->(
+export function getLink<Res extends Resource<PropertyMap, PropertyMap>, T>(
   resource: Res,
-  propKey: Key,
+  accessor: (res: OutputsForResourceOrGroup<Res>) => PropertyDefinition<T>,
   constraint?: LinkValueConstraint<Res, T>
 ): PropertyTypeForValue<T> & LinkType;
 export function getLink<
   ResGroup extends ResourceGroup<PropertyMap, PropertyMap>,
-  Key extends keyof ResGroup[0]['outputs'],
-  T extends TypeForProperty<ResGroup[0]['outputs'][Key]>
+  T
 >(
   resources: ResGroup,
-  propKey: Key,
+  accessor: (res: OutputsForResourceOrGroup<ResGroup>) => PropertyDefinition<T>,
   constraint?: LinkValueConstraint<ResGroup[0], T>
 ): PropertyTypeForValue<T> & LinkType;
 export function getLink<
   Res extends
     | Resource<PropertyMap, PropertyMap>
     | ResourceGroup<PropertyMap, PropertyMap>,
-  Key extends OutputsForResourceOrGroup<Res>,
-  T extends TypeForProperty<OutputForResourceOrGroup<Res, Key>>
+  T
 >(
-  resources: Res | Res[],
-  propKey: Key,
+  resources: Res,
+  accessor: (res: OutputsForResourceOrGroup<Res>) => PropertyDefinition<T>,
   constraint?: LinkValueConstraint<
     Res extends Array<infer Item> ? Item : Res,
     T
   >
 ): PropertyTypeForValue<T> & LinkType {
-  const resourceOutputs: PropertyMap = //Res extends ResourceGroup<any, any> ? Res[0]['outputs'] : Res extends Resource<any, any> ? Res['outputs'] :never =
+  const paths: string[] = [];
+
+  // We want to get a string representation of the property name so we can use
+  // it in expressions. Functions have better intellisense support, though so we're
+  // using a proxy to get the property name.
+
+  // eslint-disable-next-line prefer-const
+  let proxy: typeof Proxy;
+  const handler = {
+    get(_: any, property: string) {
+      if (paths.length > 0) {
+        // TODO: Support nested link properties?
+        throw new Error('Nested link properties are not yet supported.');
+      }
+      paths.push(property);
+      return proxy;
+    },
+  };
+  proxy = new Proxy({}, handler);
+  accessor(proxy as any);
+  if (paths.length !== 1) {
+    throw new Error('Invalid link property.');
+  }
+
+  const resourceOutputs =
     resources instanceof Array
       ? (resources as ResourceGroup<any, any>)[0].outputs
       : resources.outputs;
-  const outputProperty = resourceOutputs[propKey as any];
+  const outputProperty = accessor(resourceOutputs);
   const linkType: PropertyTypeForValue<T> = outputProperty.type as any;
   return {
     ...linkType,
     resources: resources instanceof Array ? resources : [resources],
-    outputKey: propKey.toString(),
+    outputKey: paths[0].toString(),
     constraint,
   } as any;
 }
