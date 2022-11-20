@@ -1,13 +1,21 @@
+import { LinkPropertyDefinition } from './properties/links';
 import { PropertyDefinition } from './properties/properties';
 import { RuntimeValue } from './runtime-values';
 
 export interface PropertyMap {
-  [name: string]: PropertyDefinition<unknown>;
+  [name: string]:
+    | PropertyDefinition<unknown>
+    | LinkPropertyDefinition<
+        ResourceGroupItem<PropertyMap, PropertyMap>,
+        unknown
+      >;
 }
 
 export type PropertyValueType<Prop> = Prop extends PropertyDefinition<
   infer Type
 >
+  ? Type
+  : Prop extends LinkPropertyDefinition<any, infer Type>
   ? Type
   : never;
 
@@ -38,7 +46,9 @@ export type OutputValues<Props extends PropertyMap> = RemoveIndex<
 >;
 
 export abstract class PropertiesBase implements PropertyMap {
-  [name: string]: PropertyDefinition<any>;
+  [name: string]:
+    | PropertyDefinition<any>
+    | LinkPropertyDefinition<ResourceGroupItem<PropertyMap, PropertyMap>, any>;
 }
 
 export interface ResourceGroupItem<

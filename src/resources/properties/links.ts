@@ -1,4 +1,5 @@
 import { ResolvedInputs } from '..';
+import * as util from 'util';
 import {
   PropertyMap,
   PropertyValues,
@@ -6,6 +7,12 @@ import {
   ResourceGroup,
   ResourceOrGroupItem,
 } from '../resource';
+import {
+  PropertyPathSegment,
+  arrayIndexAccess,
+  propAccess,
+  StateConstraint,
+} from '../state-constraints';
 import { Constraint } from './constraints';
 import {
   PropertyDefinition,
@@ -14,23 +21,25 @@ import {
   Value,
 } from './properties';
 
-export interface LinkProperty<T> extends PropertyDefinition<T> {
-  item: Resource<PropertyMap, PropertyMap>;
-  outputAccessor: (
-    outputs: PropertyValues<PropertyMap>
-  ) => PropertyTypeForValue<T>;
-}
-
 export function isLinkType(
   type: PropertyType
-): type is PropertyType & LinkType {
-  const prop = type as any as LinkType;
+): type is PropertyType & LinkType<any> {
+  const prop = type as any as LinkType<any>;
   return !!prop.resources && !!prop.outputKey;
 }
 
-export interface LinkType {
-  resources: Resource<PropertyMap, PropertyMap>[];
+export interface LinkType<
+  Parent extends ResourceOrGroupItem<PropertyMap, PropertyMap>
+> {
+  resources: Parent[];
   outputKey: string;
+}
+
+export interface LinkPropertyDefinition<
+  Parent extends ResourceOrGroupItem<PropertyMap, PropertyMap>,
+  T
+> extends PropertyDefinition<T> {
+  type: PropertyTypeForValue<T> & LinkType<Parent>;
 }
 
 export enum ParentCreationMode {
@@ -41,14 +50,118 @@ export enum ParentCreationMode {
 export interface ParentConstraints<
   T extends ResourceOrGroupItem<PropertyMap, PropertyMap>
 > {
-  doNotCreateParent(): void;
+  doNotCreate(): void;
   setValue<V>(
     accessor: (parentInputs: ResolvedInputs<T['inputs']>) => V,
     value: Value<V>,
     mode: ParentCreationMode
   ): void;
-  all<V>(list: V[]): V;
+  ancestor<Ancestor extends ResourceOrGroupItem<PropertyMap, PropertyMap>>(
+    accessor: (
+      parentInputs: T['inputs']
+    ) => LinkPropertyDefinition<Ancestor, any>,
+    mode: ParentCreationMode
+  ): ParentConstraints<Ancestor>;
 }
+
+export const constrainAll = <T>(value: T[]): T => {
+  if (util.types.isProxy(value)) {
+    (value as any).__setPathValue__ = new AllIndexMarker();
+    return value as any;
+  }
+
+  throw new Error('Expected a valid parent value to be passed in');
+};
+
+class ParentProxyHandler {
+  public proxy?: typeof Proxy;
+  public paths: (string | number | symbol | AllIndexMarker)[] = [];
+
+  get(_: any, property: string | number | symbol): typeof Proxy {
+    const asInt =
+      typeof property === 'string'
+        ? parseInt(property)
+        : typeof property === 'number'
+        ? property
+        : NaN;
+    if (!isNaN(asInt)) {
+      this.paths.push(asInt);
+    } else {
+      this.paths.push(property);
+    }
+    if (!this.proxy) {
+      throw new Error('Proxy incorrectly configured');
+    }
+
+    return this.proxy;
+  }
+
+  set(
+    target: any,
+    prop: string,
+    value: string | number | symbol | AllIndexMarker
+  ) {
+    if (prop === '__setPathValue__') {
+      this.paths.push(value);
+      return true;
+    }
+
+    throw new Error('Invalid property accessor');
+  }
+}
+
+class AllIndexMarker {}
+
+export const getParentConstraintsUtilsAndResults = (): [
+  ParentConstraints<any>,
+  StateConstraint[]
+] => {
+  const results: StateConstraint[] = [];
+  const getPath = (accessor: (inputs: any) => any): PropertyPathSegment[] => {
+    const handler = new ParentProxyHandler();
+    const parentValueProxy = new Proxy({}, handler);
+    handler.proxy = parentValueProxy;
+    accessor(parentValueProxy as any);
+    return handler.paths.map((p) =>
+      // TODO: Support all indexes for arrays
+      typeof p === 'number'
+        ? arrayIndexAccess(p)
+        : p instanceof AllIndexMarker
+        ? arrayIndexAccess('all')
+        : propAccess(p)
+    ) as PropertyPathSegment[];
+  };
+  return [
+    {
+      setValue(accessor, value, mode) {
+        const path = getPath(accessor);
+        results.push({
+          path,
+          value,
+          mode,
+        });
+      },
+      doNotCreate() {
+        throw new Error('TODO!');
+      },
+      ancestor<Ancestor extends ResourceOrGroupItem<PropertyMap, PropertyMap>>(
+        accessor: (parentInputs: any) => LinkPropertyDefinition<Ancestor, any>,
+        mode: ParentCreationMode
+      ) {
+        const [parentConstraints, constraints] =
+          getParentConstraintsUtilsAndResults();
+        const path = getPath(accessor);
+        results.push({
+          path,
+          ancestorConstraints: constraints,
+          mode,
+        });
+        return parentConstraints;
+      },
+    },
+    results,
+  ];
+};
 
 export function parentConstraint<
   Inputs extends PropertyMap,
@@ -93,7 +206,7 @@ export function getLink<Res extends Resource<PropertyMap, PropertyMap>, T>(
   resource: Res,
   accessor: (res: OutputsForResourceOrGroup<Res>) => PropertyDefinition<T>,
   constraint?: LinkValueConstraint<Res, T>
-): PropertyTypeForValue<T> & LinkType;
+): PropertyTypeForValue<T> & LinkType<Res>;
 export function getLink<
   ResGroup extends ResourceGroup<PropertyMap, PropertyMap>,
   T
@@ -101,11 +214,9 @@ export function getLink<
   resources: ResGroup,
   accessor: (res: OutputsForResourceOrGroup<ResGroup>) => PropertyDefinition<T>,
   constraint?: LinkValueConstraint<ResGroup[0], T>
-): PropertyTypeForValue<T> & LinkType;
+): PropertyTypeForValue<T> & LinkType<ResGroup[0]>;
 export function getLink<
-  Res extends
-    | Resource<PropertyMap, PropertyMap>
-    | ResourceGroup<PropertyMap, PropertyMap>,
+  Res extends ResourceOrGroupItem<PropertyMap, PropertyMap>,
   T
 >(
   resources: Res,
@@ -114,7 +225,7 @@ export function getLink<
     Res extends Array<infer Item> ? Item : Res,
     T
   >
-): PropertyTypeForValue<T> & LinkType {
+): PropertyTypeForValue<T> & LinkType<Res> {
   const paths: string[] = [];
 
   // We want to get a string representation of the property name so we can use

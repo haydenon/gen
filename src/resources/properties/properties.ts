@@ -1,6 +1,6 @@
 import { isOneOf, LookupValues, oneOf } from '../../utilities';
 import { ErasedDesiredState } from '../desired-state';
-import { PropertyMap, OutputValues } from '../resource';
+import { PropertyMap, OutputValues, ResourceOrGroupItem } from '../resource';
 import { RuntimeValue } from '../runtime-values';
 import {
   ArrayConstraint,
@@ -10,6 +10,7 @@ import {
   IntConstraint,
   StringConstraint,
 } from './constraints';
+import { LinkPropertyDefinition, LinkType } from './links';
 
 export enum Type {
   Boolean = 'Boolean',
@@ -151,7 +152,18 @@ export interface PropertyDefinition<T> {
 export function def<T>(
   type: PropertyTypeForValue<T>,
   properties?: Partial<Omit<PropertyDefinition<T>, 'type'>>
-): PropertyDefinition<T> {
+): PropertyDefinition<T>;
+export function def<
+  T,
+  Parent extends ResourceOrGroupItem<PropertyMap, PropertyMap>
+>(
+  type: PropertyTypeForValue<T> & LinkType<Parent>,
+  properties?: Partial<Omit<PropertyDefinition<T>, 'type'>>
+): LinkPropertyDefinition<Parent, T>;
+export function def<T>(
+  type: PropertyTypeForValue<T> | (PropertyTypeForValue<T> & LinkType<any>),
+  properties?: Partial<Omit<PropertyDefinition<T>, 'type'>>
+): PropertyDefinition<T> | LinkPropertyDefinition<any, T> {
   return {
     type,
     ...(properties || {}),

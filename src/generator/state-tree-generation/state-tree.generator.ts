@@ -3,7 +3,6 @@ import {
   PropertyType,
   isComplex,
   isArray,
-  Value,
 } from '../../resources/properties/properties';
 import {
   ErasedDesiredState,
@@ -15,154 +14,18 @@ import { getValueForPrimativeType } from './primatives.generator';
 import { getRuntimeResourceValue } from '../../resources/runtime-values';
 import { GenerationResult } from '../../resources/properties';
 import {
+  getParentConstraintsUtilsAndResults,
   isLinkType,
   LinkConstraint,
-  ParentConstraints,
-  ParentCreationMode as StateCreationConstraint,
 } from '../../resources/properties/links';
-
-class ParentProxyHandler {
-  public proxy?: typeof Proxy;
-  public paths: (string | number | symbol | AllIndexMarker)[] = [];
-
-  get(_: any, property: string | number | symbol): typeof Proxy {
-    const asInt =
-      typeof property === 'string'
-        ? parseInt(property)
-        : typeof property === 'number'
-        ? property
-        : NaN;
-    if (!isNaN(asInt)) {
-      this.paths.push(asInt);
-    } else {
-      this.paths.push(property);
-    }
-    if (!this.proxy) {
-      throw new Error('Proxy incorrectly configured');
-    }
-    return this.proxy;
-  }
-}
-
-class AllIndexMarker {}
-
-const getParentConstraintsUtilsAndResults = (): [
-  ParentConstraints<any>,
-  StateConstraint[]
-] => {
-  const results: StateConstraint[] = [];
-  return [
-    {
-      setValue(accessor, value, mode) {
-        const handler = new ParentProxyHandler();
-        const parentValueProxy = new Proxy({}, handler);
-        handler.proxy = parentValueProxy;
-        accessor(parentValueProxy as any);
-        const path: PropertyPathSegment[] = handler.paths.map((p) =>
-          // TODO: Support all indexes for arrays
-          typeof p === 'number'
-            ? arrayIndexAccess(p)
-            : p instanceof AllIndexMarker
-            ? arrayIndexAccess('all')
-            : propAccess(p)
-        );
-        results.push({
-          path,
-          value,
-          mode,
-        });
-      },
-      doNotCreateParent() {
-        throw new Error('TODO!');
-      },
-      all(value: any): any {
-        if (value instanceof ParentProxyHandler) {
-          value.paths.push(new AllIndexMarker());
-          return value;
-        }
-
-        throw new Error('Expected a valid parent value to be passed in');
-      },
-    },
-    results,
-  ];
-};
-
-enum PropertyPathType {
-  PropertyAccess,
-  ArrayIndexAccess,
-}
-interface PropertyAccess {
-  type: PropertyPathType.PropertyAccess;
-  propertyName: string;
-}
-const propAccess = (prop: string | symbol): PropertyAccess => ({
-  type: PropertyPathType.PropertyAccess,
-  propertyName: prop.toString(),
-});
-interface ArrayIndexAccess {
-  type: PropertyPathType.ArrayIndexAccess;
-  indexAccess: number | 'all';
-}
-const arrayIndexAccess = (indexAccess: number | 'all'): ArrayIndexAccess => ({
-  type: PropertyPathType.ArrayIndexAccess,
-  indexAccess,
-});
-type PropertyPathSegment = PropertyAccess | ArrayIndexAccess;
-
-interface StateConstraint {
-  path: PropertyPathSegment[];
-  value: Value<any>;
-  mode: StateCreationConstraint;
-}
-
-interface StateAndConstraints {
-  state: ErasedDesiredState;
-  constraints: StateConstraint[];
-}
-
-const pathMatches = (
-  p1: PropertyPathSegment[],
-  p2: PropertyPathSegment[]
-): boolean => {
-  if (p1.length !== p2.length) {
-    return false;
-  }
-  if (p1.length === 0) {
-    return true;
-  }
-
-  const [next1, ...rest1] = p1;
-  const [next2, ...rest2] = p2;
-
-  if (
-    next1.type === PropertyPathType.ArrayIndexAccess &&
-    next2.type === PropertyPathType.ArrayIndexAccess
-  ) {
-    if (
-      next1.indexAccess === 'all' ||
-      next2.indexAccess === 'all' ||
-      next1.indexAccess === next2.indexAccess
-    ) {
-      return pathMatches(rest1, rest2);
-    } else {
-      return false;
-    }
-  }
-
-  if (
-    next1.type === PropertyPathType.PropertyAccess &&
-    next2.type === PropertyPathType.PropertyAccess
-  ) {
-    if (next1.propertyName === next2.propertyName) {
-      return pathMatches(rest1, rest2);
-    } else {
-      return false;
-    }
-  }
-
-  return false;
-};
+import {
+  arrayIndexAccess,
+  pathMatches,
+  propAccess,
+  PropertyPathSegment,
+  StateAndConstraints,
+  StateConstraint,
+} from '../../resources/state-constraints';
 
 function fillInType(
   current: StateAndConstraints,
@@ -173,8 +36,7 @@ function fillInType(
   const matchingConstraint = current.constraints.find(({ path }) =>
     pathMatches(currentPath, path)
   );
-  if (matchingConstraint) {
-    // TODO: Nested children constraints?
+  if (matchingConstraint && matchingConstraint.value) {
     return [matchingConstraint.value, []];
   }
 
@@ -222,6 +84,7 @@ function fillInType(
   if (isLinkType(type)) {
     const constraint = type.constraint as LinkConstraint<any> | undefined;
     let parentConstraints: StateConstraint[] = [];
+
     if (constraint?.parentConstraint) {
       const [utils, constraints] = getParentConstraintsUtilsAndResults();
       constraint.parentConstraint(utils, inputs);
@@ -298,7 +161,11 @@ export function fillInDesiredStateTree(
     for (const inputKey of Object.keys(item.state.resource.inputs)) {
       const input = item.state.resource.inputs[inputKey];
       if (!(inputKey in item.state.inputs)) {
-        const [value, dependentStates] = fillInInput(item, input, inputKey);
+        const [value, dependentStates] = fillInInput(
+          item,
+          input as PropertyDefinition<unknown>,
+          inputKey
+        );
         item.state.inputs[inputKey] = value;
         for (const state of dependentStates) {
           newState.push(state);
