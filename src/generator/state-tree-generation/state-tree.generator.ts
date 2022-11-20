@@ -11,7 +11,10 @@ import {
 import { PropertyValues, PropertyMap } from '../../resources/resource';
 import { getRandomInt } from '../../utilities';
 import { getValueForPrimativeType } from './primatives.generator';
-import { getRuntimeResourceValue } from '../../resources/runtime-values';
+import {
+  getRuntimeResourceValue,
+  isRuntimeValue,
+} from '../../resources/runtime-values';
 import { GenerationResult } from '../../resources/properties';
 import {
   getParentConstraintsUtilsAndResults,
@@ -20,6 +23,7 @@ import {
 } from '../../resources/properties/links';
 import {
   arrayIndexAccess,
+  NewStateAndConstraints,
   pathMatches,
   propAccess,
   PropertyPathSegment,
@@ -28,16 +32,35 @@ import {
 } from '../../resources/state-constraints';
 
 function fillInType(
-  current: StateAndConstraints,
+  current: NewStateAndConstraints,
   currentPath: PropertyPathSegment[],
   type: PropertyType,
   inputs: PropertyValues<PropertyMap>
 ): [any, StateAndConstraints[]] {
-  const matchingConstraint = current.constraints.find(({ path }) =>
+  const matchingConstraints = current.constraints.filter(({ path }) =>
     pathMatches(currentPath, path)
   );
-  if (matchingConstraint && matchingConstraint.value) {
-    return [matchingConstraint.value, []];
+  if (matchingConstraints.length > 0) {
+    const valueConstraint = matchingConstraints.find((c) => c.value);
+    if (valueConstraint) {
+      const value = valueConstraint.value;
+      // TODO: Better access and modeling for links
+      if (isRuntimeValue(value) && value.depdendentStateNames.length > 0) {
+        const ancestorConstraints = matchingConstraints
+          .filter((c) => c.ancestorConstraints)
+          .flatMap((c) => c.ancestorConstraints as StateConstraint[]);
+        return [
+          value,
+          [
+            {
+              name: value.depdendentStateNames[0],
+              constraints: ancestorConstraints,
+            },
+          ],
+        ];
+      }
+      return [value, []];
+    }
   }
 
   if (isComplex(type)) {
@@ -102,7 +125,7 @@ function fillInType(
 }
 
 function fillInInput(
-  stateAndConstraints: StateAndConstraints,
+  stateAndConstraints: NewStateAndConstraints,
   input: PropertyDefinition<any>,
   fieldName: string
 ): [any, StateAndConstraints[]] {
@@ -154,10 +177,11 @@ export function fillInDesiredStateTree(
   state: ErasedDesiredState[]
 ): ErasedDesiredState[] {
   // TODO: Explicit link support
-  const newState: StateAndConstraints[] = [
+  const newState: NewStateAndConstraints[] = [
     ...state.map((s) => ({ state: s, constraints: [] })),
   ];
   for (const item of newState) {
+    const constraints: StateAndConstraints[] = [];
     for (const inputKey of Object.keys(item.state.resource.inputs)) {
       const input = item.state.resource.inputs[inputKey];
       if (!(inputKey in item.state.inputs)) {
@@ -168,7 +192,28 @@ export function fillInDesiredStateTree(
         );
         item.state.inputs[inputKey] = value;
         for (const state of dependentStates) {
-          newState.push(state);
+          constraints.push(state);
+        }
+      }
+    }
+
+    for (const constraint of constraints.reverse()) {
+      if (constraint.state) {
+        newState.push(constraint);
+      } else {
+        let queuedState: NewStateAndConstraints | undefined = newState.find(
+          (s) => s.state.name === constraint.name
+        );
+        if (!queuedState) {
+          queuedState = constraints.find(
+            (s) => s.state && s.state.name === constraint.name
+          ) as NewStateAndConstraints;
+        }
+
+        if (queuedState) {
+          for (const parentConstraint of constraint.constraints) {
+            queuedState.constraints.push(parentConstraint);
+          }
         }
       }
     }

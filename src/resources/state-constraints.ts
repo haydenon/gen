@@ -19,10 +19,25 @@ interface AncestorStateConstraint extends BaseConstraint {
 
 export type StateConstraint = BasicStateConstraint | AncestorStateConstraint;
 
-export interface StateAndConstraints {
-  state: ErasedDesiredState;
+export interface BaseStateAndConstraints {
+  state?: ErasedDesiredState;
+  name?: string;
   constraints: StateConstraint[];
 }
+
+export interface NewStateAndConstraints extends BaseStateAndConstraints {
+  state: ErasedDesiredState;
+  name?: undefined;
+}
+
+export interface ExistingStateAndConstraints extends BaseStateAndConstraints {
+  name: string;
+  state?: undefined;
+}
+
+export type StateAndConstraints =
+  | NewStateAndConstraints
+  | ExistingStateAndConstraints;
 
 enum PropertyPathType {
   PropertyAccess,
