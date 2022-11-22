@@ -154,7 +154,7 @@ export function def<T>(
   properties?: Partial<Omit<PropertyDefinition<T>, 'type'>>
 ): PropertyDefinition<T>;
 export function def<
-  T,
+  T extends string | number | undefined,
   Parent extends ResourceOrGroupItem<PropertyMap, PropertyMap>
 >(
   type: PropertyTypeForValue<T> & LinkType<Parent>,
@@ -163,7 +163,7 @@ export function def<
 export function def<T>(
   type: PropertyTypeForValue<T> | (PropertyTypeForValue<T> & LinkType<any>),
   properties?: Partial<Omit<PropertyDefinition<T>, 'type'>>
-): PropertyDefinition<T> | LinkPropertyDefinition<any, T> {
+): PropertyDefinition<T> | LinkPropertyDefinition<any, any> {
   return {
     type,
     ...(properties || {}),

@@ -5,10 +5,7 @@ import { RuntimeValue } from './runtime-values';
 export interface PropertyMap {
   [name: string]:
     | PropertyDefinition<unknown>
-    | LinkPropertyDefinition<
-        ResourceGroupItem<PropertyMap, PropertyMap>,
-        unknown
-      >;
+    | LinkPropertyDefinition<ResourceGroupItem<PropertyMap, PropertyMap>, any>;
 }
 
 export type PropertyValueType<Prop> = Prop extends PropertyDefinition<

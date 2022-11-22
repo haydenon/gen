@@ -9,7 +9,7 @@ import {
   createDesiredState,
 } from '../../resources/desired-state';
 import { PropertyValues, PropertyMap } from '../../resources/resource';
-import { getRandomInt } from '../../utilities';
+import { getRandomInt, maybeUndefined } from '../../utilities';
 import { getValueForPrimativeType } from './primatives.generator';
 import {
   getRuntimeResourceValue,
@@ -20,6 +20,8 @@ import {
   getParentConstraintsUtilsAndResults,
   isLinkType,
   LinkConstraint,
+  ParentCreationConstraint,
+  ParentCreationMode,
 } from '../../resources/properties/links';
 import {
   arrayIndexAccess,
@@ -105,13 +107,33 @@ function fillInType(
   }
 
   if (isLinkType(type)) {
-    const constraint = type.constraint as LinkConstraint<any> | undefined;
+    const constraint = type.constraint as
+      | (LinkConstraint<any> & ParentCreationConstraint)
+      | undefined;
     let parentConstraints: StateConstraint[] = [];
 
     if (constraint?.parentConstraint) {
       const [utils, constraints] = getParentConstraintsUtilsAndResults();
       constraint.parentConstraint(utils, inputs);
       parentConstraints = constraints;
+    }
+
+    const parentCreateConstraint = current.constraints.find(
+      ({ path, creationMode }) => pathMatches(currentPath, path) && creationMode
+    );
+
+    const creationMode =
+      parentCreateConstraint?.creationMode ?? constraint?.mode;
+
+    const shouldCreate = !!(type.required ||
+    creationMode === ParentCreationMode.DoCreate
+      ? true
+      : creationMode === ParentCreationMode.DoNotCreate
+      ? false
+      : maybeUndefined(true));
+
+    if (!shouldCreate) {
+      return [undefined, []];
     }
 
     const resourceCount = type.resources.length;

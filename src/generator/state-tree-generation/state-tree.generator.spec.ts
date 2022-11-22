@@ -8,12 +8,15 @@ import {
   float,
   GenerationResult,
   generator,
+  getLink,
   int,
   PropertyDefinition,
+  ResolvedInputs,
   string,
 } from '../../resources';
 import {
   InputValues,
+  OutputValues,
   PropertiesBase,
   Resource,
 } from '../../resources/resource';
@@ -33,6 +36,12 @@ import {
   mapValues,
   RuntimeValue,
 } from '../../resources/runtime-values';
+import {
+  getOptionalLink,
+  LinkPropertyDefinition,
+  parentConstraint,
+  ParentCreationMode,
+} from '../../resources/properties/links';
 
 const anyMockInputs = {
   text: expect.anything(),
@@ -445,5 +454,125 @@ describe('State tree creation', () => {
       const inputs: InputValues<AdvancedInput> = filledIn.inputs as any;
       expect(accessor(inputs)).toBe(anyGeneratedPrimative);
     });
+  });
+
+  describe('parent constraints', () => {
+    //---------------------------------
+    // Helper resources
+    //---------------------------------
+    class GreatGrandparentInputs extends PropertiesBase {
+      text: PropertyDefinition<string> = def(string());
+      numbers: PropertyDefinition<number[]> = def(array(int()));
+    }
+    class GreatGrandparentOutputs extends GreatGrandparentInputs {
+      id: PropertyDefinition<number> = def(int());
+    }
+    class GreatGrandparentResource extends Resource<
+      GreatGrandparentInputs,
+      GreatGrandparentOutputs
+    > {
+      constructor() {
+        super(new GreatGrandparentInputs(), new GreatGrandparentOutputs());
+      }
+      create({
+        text,
+        numbers,
+      }: ResolvedInputs<GreatGrandparentInputs>): Promise<
+        OutputValues<GreatGrandparentOutputs>
+      > {
+        return Promise.resolve({
+          text,
+          numbers,
+          id: 1,
+        });
+      }
+    }
+    const GreatGrandparent = new GreatGrandparentResource();
+
+    class GrandparentInputs extends PropertiesBase {
+      text: PropertyDefinition<string> = def(string());
+      numbers: PropertyDefinition<number[]> = def(array(int()));
+      parentId: LinkPropertyDefinition<typeof GreatGrandparent, number> = def(
+        getLink(GreatGrandparent, (g) => g.id)
+      );
+    }
+    class GrandparentOutputs extends GrandparentInputs {
+      id: PropertyDefinition<string> = def(string());
+    }
+    class GrandparentResource extends Resource<
+      GrandparentInputs,
+      GrandparentOutputs
+    > {
+      constructor() {
+        super(new GrandparentInputs(), new GrandparentOutputs());
+      }
+      create(
+        inputs: ResolvedInputs<GrandparentInputs>
+      ): Promise<OutputValues<GrandparentOutputs>> {
+        return Promise.resolve({
+          ...inputs,
+          id: '1',
+        });
+      }
+    }
+    const Grandparent = new GrandparentResource();
+
+    class ParentInputs extends PropertiesBase {
+      parentId: LinkPropertyDefinition<typeof Grandparent, string | undefined> =
+        def(
+          getOptionalLink(
+            Grandparent,
+            (g) => g.id,
+            ParentCreationMode.MaybeCreate
+          )
+        );
+      text: PropertyDefinition<string> = def(string());
+    }
+    class ParentOutputs extends ParentInputs {
+      id: PropertyDefinition<number> = def(int());
+    }
+    class ParentResource extends Resource<ParentInputs, ParentOutputs> {
+      constructor() {
+        super(new ParentInputs(), new ParentOutputs());
+      }
+      create(
+        inputs: ResolvedInputs<ParentInputs>
+      ): Promise<OutputValues<ParentOutputs>> {
+        return Promise.resolve({
+          ...inputs,
+          id: 1,
+        });
+      }
+    }
+    const Parent = new ParentResource();
+
+    class ChildInputs extends PropertiesBase {
+      parentId: LinkPropertyDefinition<typeof Parent, number | undefined> = def(
+        getOptionalLink(Parent, (g) => g.id, ParentCreationMode.MaybeCreate),
+        parentConstraint(this, Parent, (c) => {})
+      );
+    }
+    class ChildOutputs extends ChildInputs {
+      id: PropertyDefinition<number> = def(int());
+    }
+    class ChildResource extends Resource<ChildInputs, ChildOutputs> {
+      constructor() {
+        super(new ChildInputs(), new ChildOutputs());
+      }
+      create(
+        inputs: ResolvedInputs<ChildInputs>
+      ): Promise<OutputValues<ChildOutputs>> {
+        return Promise.resolve({
+          ...inputs,
+          id: 1,
+        });
+      }
+    }
+
+    //---------------------------------
+    // Tests
+    //---------------------------------
+
+    test('');
   });
 });

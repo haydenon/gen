@@ -5,19 +5,32 @@ import { ParentCreationMode } from './properties/links';
 interface BaseConstraint {
   path: PropertyPathSegment[];
   value?: Value<any>;
-  mode: ParentCreationMode;
+  creationMode?: ParentCreationMode;
   ancestorConstraints?: BaseConstraint[];
 }
 
 interface BasicStateConstraint extends BaseConstraint {
   value: Value<any>;
+  ancestorCreationMode?: undefined;
+  creationMode?: undefined;
 }
 
 interface AncestorStateConstraint extends BaseConstraint {
+  value?: undefined;
   ancestorConstraints: StateConstraint[];
+  creationMode?: undefined;
 }
 
-export type StateConstraint = BasicStateConstraint | AncestorStateConstraint;
+interface StateCreationConstraint extends BaseConstraint {
+  value?: undefined;
+  ancestorConstraints?: undefined;
+  creationMode: ParentCreationMode;
+}
+
+export type StateConstraint =
+  | BasicStateConstraint
+  | AncestorStateConstraint
+  | StateCreationConstraint;
 
 export interface BaseStateAndConstraints {
   state?: ErasedDesiredState;

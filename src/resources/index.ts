@@ -26,6 +26,8 @@ export {
   ParentCreationMode,
   parentConstraint,
   constrainAll,
+  LinkPropertyDefinition,
+  getOptionalLink,
 } from './properties/links';
 export { DesiredState, createDesiredState } from './desired-state';
 export { mapValue, mapValues } from './runtime-values/runtime-values';
