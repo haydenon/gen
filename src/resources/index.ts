@@ -24,9 +24,7 @@ export {
 export {
   getLink,
   ParentCreationMode,
-  parentConstraint,
   constrainAll,
-  LinkPropertyDefinition,
   getOptionalLink,
 } from './properties/links';
 export { DesiredState, createDesiredState } from './desired-state';
@@ -35,4 +33,5 @@ export {
   GenerationResult,
   dependentGenerator,
   generator,
+  parentConstraint,
 } from './properties/constraints';

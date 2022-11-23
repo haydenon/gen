@@ -17,6 +17,7 @@ import {
   Nullable,
   Undefinable,
   ComplexType,
+  isStr,
 } from './properties';
 
 export function acceptPropertyType<T>(
@@ -39,8 +40,10 @@ export function acceptPropertyType<T>(
     return visitor.visitFloat(type);
   } else if (isDate(type)) {
     return visitor.visitDate(type);
-  } else {
+  } else if (isStr(type)) {
     return visitor.visitStr(type);
+  } else {
+    throw new Error('TODO');
   }
 }
 

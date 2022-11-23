@@ -19,8 +19,6 @@ import { GenerationResult } from '../../resources/properties';
 import {
   getParentConstraintsUtilsAndResults,
   isLinkType,
-  LinkConstraint,
-  ParentCreationConstraint,
   ParentCreationMode,
 } from '../../resources/properties/links';
 import {
@@ -32,6 +30,7 @@ import {
   StateAndConstraints,
   StateConstraint,
 } from '../../resources/state-constraints';
+import { LinkConstraint } from '../../resources/properties/constraints';
 
 function fillInType(
   current: NewStateAndConstraints,
@@ -107,9 +106,7 @@ function fillInType(
   }
 
   if (isLinkType(type)) {
-    const constraint = type.constraint as
-      | (LinkConstraint<any> & ParentCreationConstraint)
-      | undefined;
+    const constraint = type.constraint as LinkConstraint<any> | undefined;
     let parentConstraints: StateConstraint[] = [];
 
     if (constraint?.parentConstraint) {
@@ -122,8 +119,7 @@ function fillInType(
       ({ path, creationMode }) => pathMatches(currentPath, path) && creationMode
     );
 
-    const creationMode =
-      parentCreateConstraint?.creationMode ?? constraint?.mode;
+    const creationMode = parentCreateConstraint?.creationMode ?? type?.mode;
 
     const shouldCreate = !!(type.required ||
     creationMode === ParentCreationMode.DoCreate

@@ -1,8 +1,6 @@
-import { ResolvedInputs } from '..';
 import * as util from 'util';
 import {
   PropertyMap,
-  PropertyValues,
   Resource,
   ResourceGroup,
   ResourceOrGroupItem,
@@ -13,17 +11,19 @@ import {
   propAccess,
   StateConstraint,
 } from '../state-constraints';
-import { Constraint } from './constraints';
+import { Constraint, LinkConstraint, ParentConstraints } from './constraints';
 import {
+  IntType,
+  Link,
+  LinkOfType,
   PropertyDefinition,
   PropertyType,
   PropertyTypeForValue,
-  Value,
+  StringType,
+  TypeForProperty,
 } from './properties';
 
-export function isLinkType(
-  type: PropertyType
-): type is PropertyType & LinkType<any> {
+export function isLinkType(type: PropertyType): type is Link<any> {
   const prop = type as any as LinkType<any>;
   return !!prop.resources && !!prop.outputKey;
 }
@@ -36,41 +36,10 @@ export interface LinkType<
   outputKey: string;
 }
 
-export interface LinkPropertyDefinition<
-  Parent extends ResourceOrGroupItem<PropertyMap, PropertyMap>,
-  T extends string | number | undefined
-> extends PropertyDefinition<T> {
-  type: PropertyTypeForValue<T> & LinkType<Parent>;
-}
-
 export enum ParentCreationMode {
   MaybeCreate = 'MaybeCreate',
   DoCreate = 'DoCreate',
   DoNotCreate = 'DoNotCreat',
-}
-
-export interface ParentConstraints<
-  T extends ResourceOrGroupItem<PropertyMap, PropertyMap>
-> {
-  setValue<V>(
-    accessor: (parentInputs: ResolvedInputs<T['inputs']>) => V,
-    value: Value<V>
-  ): void;
-  ancestor<Ancestor extends ResourceOrGroupItem<PropertyMap, PropertyMap>>(
-    accessor: (
-      parentInputs: T['inputs']
-    ) =>
-      | LinkPropertyDefinition<Ancestor, string>
-      | LinkPropertyDefinition<Ancestor, number>
-  ): ParentConstraints<Ancestor>;
-  ancestor<Ancestor extends ResourceOrGroupItem<PropertyMap, PropertyMap>>(
-    accessor: (
-      parentInputs: T['inputs']
-    ) =>
-      | LinkPropertyDefinition<Ancestor, string | undefined>
-      | LinkPropertyDefinition<Ancestor, number | undefined>,
-    creationMode: ParentCreationMode
-  ): ParentConstraints<Ancestor>;
 }
 
 export const constrainAll = <T>(value: T[]): T => {
@@ -149,14 +118,8 @@ export const getParentConstraintsUtilsAndResults = (): [
           value,
         });
       },
-      // setCreationMode(creationMode: ParentCreationMode) {
-      //   results.push({
-      //     path: [],
-      //     creationMode,
-      //   });
-      // },
-      ancestor<Ancestor extends ResourceOrGroupItem<PropertyMap, PropertyMap>>(
-        accessor: (parentInputs: any) => LinkPropertyDefinition<Ancestor, any>,
+      ancestor(
+        accessor: (parentInputs: any) => string | number | undefined,
         creationMode?: ParentCreationMode
       ) {
         const [parentConstraints, constraints] =
@@ -179,34 +142,6 @@ export const getParentConstraintsUtilsAndResults = (): [
   ];
 };
 
-export function parentConstraint<
-  Inputs extends PropertyMap,
-  Parent extends ResourceOrGroupItem<PropertyMap, PropertyMap>
->(
-  inputs: Inputs,
-  parent: Parent,
-  func: (
-    constraints: ParentConstraints<Parent>,
-    childValues: PropertyValues<Inputs>
-  ) => void
-): LinkConstraint<Parent> {
-  return {
-    parentConstraint: func as (
-      constraints: ParentConstraints<Parent>,
-      childValues: PropertyValues<PropertyMap>
-    ) => void,
-  };
-}
-
-export interface LinkConstraint<
-  T extends ResourceOrGroupItem<PropertyMap, PropertyMap>
-> {
-  parentConstraint?: (
-    constraints: ParentConstraints<T>,
-    childValues: PropertyValues<PropertyMap>
-  ) => void;
-}
-
 export interface ParentCreationConstraint {
   mode?: ParentCreationMode;
 }
@@ -222,68 +157,78 @@ type OutputsForResourceOrGroup<T> = T extends Resource<PropertyMap, PropertyMap>
   ? T[0]['outputs']
   : never;
 
-export function getLink<Res extends Resource<PropertyMap, PropertyMap>, T>(
+type BaseLinkType<Prop extends PropertyDefinition<any>> =
+  TypeForProperty<Prop> extends number
+    ? IntType
+    : TypeForProperty<Prop> extends string
+    ? StringType
+    : never;
+
+export function getLink<
+  Res extends Resource<PropertyMap, PropertyMap>,
+  T,
+  Prop extends PropertyDefinition<T>
+>(
   resource: Res,
   accessor: (res: OutputsForResourceOrGroup<Res>) => PropertyDefinition<T>,
-  constraint?: LinkValueConstraint<Res, T>
-): PropertyTypeForValue<T> & LinkType<Res>;
+  constraint?: LinkConstraint<Res>
+): LinkOfType<Res, BaseLinkType<Prop>, true>;
 export function getLink<
   ResGroup extends ResourceGroup<PropertyMap, PropertyMap>,
-  T
+  T,
+  Prop extends PropertyDefinition<T>
 >(
   resources: ResGroup,
   accessor: (res: OutputsForResourceOrGroup<ResGroup>) => PropertyDefinition<T>,
-  constraint?: LinkValueConstraint<ResGroup[0], T>
-): PropertyTypeForValue<T> & LinkType<ResGroup[0]>;
+  constraint?: LinkConstraint<ResGroup[0]>
+): LinkOfType<ResGroup[0], BaseLinkType<Prop>, true>;
 export function getLink<
   Res extends ResourceOrGroupItem<PropertyMap, PropertyMap>,
-  T
+  T,
+  Prop extends PropertyDefinition<T>
 >(
   resources: Res,
-  accessor: (res: OutputsForResourceOrGroup<Res>) => PropertyDefinition<T>,
-  constraint?: LinkValueConstraint<
-    Res extends Array<infer Item> ? Item : Res,
-    T
-  >
-): PropertyTypeForValue<T> & LinkType<Res> {
-  return getLinkBase(resources, accessor, constraint);
+  accessor: (res: OutputsForResourceOrGroup<Res>) => Prop,
+  constraint?: LinkConstraint<Res>
+): LinkOfType<Res, BaseLinkType<Prop>, true> {
+  return getLinkBase<T, Prop, Res, true>(resources, accessor, constraint);
 }
 
 export function getOptionalLink<
   Res extends Resource<PropertyMap, PropertyMap>,
-  T
+  T,
+  Prop extends PropertyDefinition<T>
 >(
   resource: Res,
   accessor: (res: OutputsForResourceOrGroup<Res>) => PropertyDefinition<T>,
   mode: ParentCreationMode,
   constraint?: LinkValueConstraint<Res, T>
-): PropertyTypeForValue<T | undefined> & LinkType<Res>;
+): LinkOfType<Res, BaseLinkType<Prop>, false>;
 export function getOptionalLink<
   ResGroup extends ResourceGroup<PropertyMap, PropertyMap>,
-  T
+  T,
+  Prop extends PropertyDefinition<T>
 >(
   resources: ResGroup,
   accessor: (res: OutputsForResourceOrGroup<ResGroup>) => PropertyDefinition<T>,
   mode: ParentCreationMode,
   constraint?: LinkValueConstraint<ResGroup[0], T>
-): PropertyTypeForValue<T | undefined> & LinkType<ResGroup[0]>;
+): LinkOfType<ResGroup[0], BaseLinkType<Prop>, false>;
 export function getOptionalLink<
   Res extends ResourceOrGroupItem<PropertyMap, PropertyMap>,
-  T
+  T,
+  Prop extends PropertyDefinition<T>
 >(
   resources: Res,
-  accessor: (res: OutputsForResourceOrGroup<Res>) => PropertyDefinition<T>,
+  accessor: (res: OutputsForResourceOrGroup<Res>) => Prop,
   mode: ParentCreationMode,
-  constraint?: LinkValueConstraint<
-    Res extends Array<infer Item> ? Item : Res,
-    T
-  >
-): PropertyTypeForValue<T | undefined> & LinkType<Res> {
-  const baseLink = getLinkBase(
+  constraint?: LinkConstraint<Res>
+): LinkOfType<Res, BaseLinkType<Prop>, false> {
+  const baseLink = getLinkBase<T, Prop, Res, false>(
     resources as any,
     accessor as any,
     constraint
-  ) as any;
+  );
   return {
     ...baseLink,
     required: false,
@@ -292,13 +237,14 @@ export function getOptionalLink<
 
 function getLinkBase<
   T,
+  Prop extends PropertyDefinition<T>,
   Res extends ResourceOrGroupItem<PropertyMap, PropertyMap>,
-  Constraint
+  Required extends boolean
 >(
   resources: Res,
-  accessor: (res: OutputsForResourceOrGroup<Res>) => PropertyDefinition<T>,
-  constraint?: Constraint
-): PropertyTypeForValue<T> & LinkType<Res> {
+  accessor: (res: OutputsForResourceOrGroup<Res>) => Prop,
+  constraint?: LinkConstraint<Res>
+): LinkOfType<Res, BaseLinkType<Prop>, Required> {
   const paths: string[] = [];
 
   // We want to get a string representation of the property name so we can use

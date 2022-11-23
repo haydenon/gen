@@ -9,8 +9,9 @@ import {
   FloatConstraint,
   IntConstraint,
   StringConstraint,
+  LinkConstraint,
 } from './constraints';
-import { LinkPropertyDefinition, LinkType } from './links';
+import { ParentCreationMode } from './links';
 
 export enum Type {
   Boolean = 'Boolean',
@@ -22,6 +23,7 @@ export enum Type {
   Undefinable = 'Undefinable',
   Array = 'Array',
   Complex = 'Complex',
+  Link = 'Link',
 }
 
 interface PropertyTypeBase {
@@ -74,6 +76,30 @@ export interface ComplexType extends PropertyTypeBase {
   fields: { [name: string]: PropertyType };
 }
 
+export interface LinkOfType<
+  Res extends ResourceOrGroupItem<PropertyMap, PropertyMap>,
+  T,
+  Required extends boolean
+> {
+  type: Type.Link;
+  inner: T;
+  required: Required;
+  resources: Res[];
+  outputKey: string;
+}
+
+export interface Link<
+  Parent extends ResourceOrGroupItem<PropertyMap, PropertyMap>
+> extends PropertyTypeBase {
+  type: Type.Link;
+  constraint?: LinkConstraint<any>;
+  inner: PropertyType;
+  required: boolean;
+  resources: Parent[];
+  outputKey: string;
+  mode?: ParentCreationMode;
+}
+
 export type PropertyType =
   | BooleanType
   | FloatType
@@ -83,7 +109,8 @@ export type PropertyType =
   | ArrayType
   | Nullable
   | Undefinable
-  | ComplexType;
+  | ComplexType
+  | Link<any>;
 
 export const isBool = (type: PropertyType): type is BooleanType =>
   (type as any)?.type === Type.Boolean;
@@ -112,7 +139,10 @@ type NonNull<T> = undefined extends T
 export type PropertyTypeForValue<T> = null extends T
   ? { type: Type.Nullable; inner: PropertyTypeForValue<NonNull<T>> }
   : undefined extends T
-  ? { type: Type.Undefinable; inner: PropertyTypeForValue<NonUndefined<T>> }
+  ?
+      | { type: Type.Undefinable; inner: PropertyTypeForValue<NonUndefined<T>> }
+      | LinkOfType<any, StringType, false>
+      | LinkOfType<any, IntType, false>
   : T extends (infer Type)[]
   ? { type: Type.Array; inner: PropertyTypeForValue<Type> }
   : T extends Date
@@ -123,9 +153,9 @@ export type PropertyTypeForValue<T> = null extends T
       fields: { [K in keyof T]: PropertyTypeForValue<T[K]> };
     }
   : T extends string
-  ? StringType
+  ? StringType | LinkOfType<any, StringType, true>
   : T extends number
-  ? IntType | FloatType
+  ? IntType | FloatType | LinkOfType<any, IntType, true>
   : T extends boolean
   ? BooleanType
   : never;
@@ -152,18 +182,7 @@ export interface PropertyDefinition<T> {
 export function def<T>(
   type: PropertyTypeForValue<T>,
   properties?: Partial<Omit<PropertyDefinition<T>, 'type'>>
-): PropertyDefinition<T>;
-export function def<
-  T extends string | number | undefined,
-  Parent extends ResourceOrGroupItem<PropertyMap, PropertyMap>
->(
-  type: PropertyTypeForValue<T> & LinkType<Parent>,
-  properties?: Partial<Omit<PropertyDefinition<T>, 'type'>>
-): LinkPropertyDefinition<Parent, T>;
-export function def<T>(
-  type: PropertyTypeForValue<T> | (PropertyTypeForValue<T> & LinkType<any>),
-  properties?: Partial<Omit<PropertyDefinition<T>, 'type'>>
-): PropertyDefinition<T> | LinkPropertyDefinition<any, any> {
+): PropertyDefinition<T> {
   return {
     type,
     ...(properties || {}),

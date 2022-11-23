@@ -1,7 +1,7 @@
-import { ErasedDesiredState } from '../desired-state';
-import { PropertyMap, PropertyValues } from '../resource';
+import { ParentCreationMode, ResolvedInputs } from '..';
+import { PropertyMap, PropertyValues, ResourceOrGroupItem } from '../resource';
 import { RuntimeValue } from '../runtime-values';
-import { Value } from './properties';
+import { IntType, LinkOfType, StringType, Value } from './properties';
 
 export class GenerationResult {
   private constructor(public wasGenerated: boolean) {}
@@ -43,6 +43,40 @@ export interface ArrayConstraint<T> extends BaseConstraint<T[]> {
   maxItems?: number;
 }
 
+export type StringOrIntLink<
+  Res extends ResourceOrGroupItem<PropertyMap, PropertyMap>
+> = LinkOfType<Res, StringType, true> | LinkOfType<Res, IntType, true>;
+export type UndefinableStringOrIntLink<
+  Res extends ResourceOrGroupItem<PropertyMap, PropertyMap>
+> = LinkOfType<Res, StringType, false> | LinkOfType<Res, IntType, false>;
+
+export interface ParentConstraints<
+  T extends ResourceOrGroupItem<PropertyMap, PropertyMap>
+> {
+  setValue<V>(
+    accessor: (parentInputs: ResolvedInputs<T['inputs']>) => V,
+    value: Value<V>
+  ): void;
+  ancestor<Ancestor extends ResourceOrGroupItem<PropertyMap, PropertyMap>>(
+    accessor: (parentInputs: ResolvedInputs<T['inputs']>) => string | number
+  ): ParentConstraints<Ancestor>;
+  ancestor<Ancestor extends ResourceOrGroupItem<PropertyMap, PropertyMap>>(
+    accessor: (
+      parentInputs: ResolvedInputs<T['inputs']>
+    ) => (string | undefined) | (number | undefined),
+    creationMode: ParentCreationMode
+  ): ParentConstraints<Ancestor>;
+}
+
+export interface LinkConstraint<
+  Res extends ResourceOrGroupItem<PropertyMap, PropertyMap>
+> extends BaseConstraint<any> {
+  parentConstraint?: (
+    constraints: ParentConstraints<Res>,
+    childValues: PropertyValues<PropertyMap>
+  ) => void;
+}
+
 export type Constraint<T> = null extends T
   ? BaseConstraint<T>
   : undefined extends T
@@ -75,5 +109,24 @@ export function generator<Prop>(
     generateConstrainedValue: func as (
       values: PropertyValues<PropertyMap>
     ) => Value<Prop> | GenerationResult,
+  };
+}
+
+export function parentConstraint<
+  Inputs extends PropertyMap,
+  Parent extends ResourceOrGroupItem<PropertyMap, PropertyMap>
+>(
+  inputs: Inputs,
+  parent: Parent,
+  func: (
+    constraints: ParentConstraints<Parent>,
+    childValues: PropertyValues<Inputs>
+  ) => void
+): LinkConstraint<Parent> {
+  return {
+    parentConstraint: func as (
+      constraints: ParentConstraints<Parent>,
+      childValues: PropertyValues<PropertyMap>
+    ) => void,
   };
 }

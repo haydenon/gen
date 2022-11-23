@@ -27,6 +27,8 @@ export const mapPropTypeToExprType = (propType: PropertyType): ExprType => {
       return createUnion(undefinedType, mapPropTypeToExprType(propType.inner));
     case PType.Array:
       return array(mapPropTypeToExprType(propType.inner));
+    case PType.Link:
+      return mapPropTypeToExprType(propType.inner);
     case PType.Complex:
       return complex(
         Object.keys(propType.fields).reduce((acc, field) => {
