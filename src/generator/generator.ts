@@ -3,6 +3,7 @@ import {
   ArrayType,
   ComplexType,
   CreatedState,
+  Link,
   PropertyType,
 } from '../resources/properties/properties';
 import { ErasedResourceInstance } from '../resources/instance';
@@ -82,6 +83,7 @@ class RuntimeValueFillVisitor extends ValueAndPropertyVisitor<any> {
   protected onExitingArrayValue = undefined;
   protected onEnteringComplexValue = undefined;
   protected onExitingComplexValue = undefined;
+  protected mapLink = undefined;
 }
 
 class RuntimeValueVisitor extends ValueAndPropertyVisitor<RuntimeValue<any>[]> {
@@ -123,6 +125,7 @@ class RuntimeValueVisitor extends ValueAndPropertyVisitor<RuntimeValue<any>[]> {
   protected onExitingArrayValue = undefined;
   protected onEnteringComplexValue = undefined;
   protected onExitingComplexValue = undefined;
+  protected mapLink = undefined;
 }
 
 interface GeneratedStateResponse {

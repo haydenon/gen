@@ -69,6 +69,7 @@ class RuntimeOutputVisitor extends ValueAndPropertyVisitor<any> {
   protected onExitingArrayValue = undefined;
   protected onEnteringComplexValue = undefined;
   protected onExitingComplexValue = undefined;
+  protected mapLink = undefined;
 }
 
 export function mapDesiredStateToResponse(

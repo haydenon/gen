@@ -18,6 +18,8 @@ import {
   Undefinable,
   ComplexType,
   isStr,
+  Link,
+  undefinable,
 } from './properties';
 
 export function acceptPropertyType<T>(
@@ -43,7 +45,7 @@ export function acceptPropertyType<T>(
   } else if (isStr(type)) {
     return visitor.visitStr(type);
   } else {
-    throw new Error('TODO');
+    return visitor.visitLink(type);
   }
 }
 
@@ -57,6 +59,7 @@ export interface PropertyTypeVisitor<T> {
   visitNull: (type: Nullable) => T;
   visitUndefined: (type: Undefinable) => T;
   visitComplex: (type: ComplexType) => T;
+  visitLink: (type: Link<any>) => T;
 }
 
 export abstract class ValueAndPropertyVisitor<T>
@@ -126,6 +129,15 @@ export abstract class ValueAndPropertyVisitor<T>
     return this.mapComplexValue(type, result);
   };
 
+  visitLink = (type: Link<any>): T => {
+    const innerValue =
+      !type.required && this.value === undefined
+        ? this.mapUndefinedValue(undefinable(type.inner))
+        : acceptPropertyType(this, type.inner);
+
+    return this.mapLink ? this.mapLink(type, innerValue) : innerValue;
+  };
+
   protected abstract visitBoolValue: (type: BooleanType, value: any) => T;
   protected abstract visitIntValue: (type: IntType, value: any) => T;
   protected abstract visitFloatValue: (type: FloatType, value: any) => T;
@@ -133,6 +145,7 @@ export abstract class ValueAndPropertyVisitor<T>
   protected abstract visitDateValue: (type: DateType, value: any) => T;
   protected abstract mapNullValue: (type: Nullable) => T;
   protected abstract mapUndefinedValue: (type: Undefinable) => T;
+  protected abstract mapLink?: (type: Link<any>, innerValue: T) => T;
 
   protected abstract checkArrayValue?: (
     type: ArrayType,

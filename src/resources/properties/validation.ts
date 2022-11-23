@@ -222,6 +222,8 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
   protected onExitingComplexValue = () => {
     this.inputSegments.pop();
   };
+
+  protected mapLink = undefined;
 }
 
 export function validateInputValue(
