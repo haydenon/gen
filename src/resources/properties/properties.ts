@@ -86,6 +86,7 @@ export interface LinkOfType<
   required: Required;
   resources: Res[];
   outputKey: string;
+  constraint?: LinkConstraint<any>;
 }
 
 export interface Link<
@@ -179,13 +180,9 @@ export interface PropertyDefinition<T> {
   type: PropertyTypeForValue<T>;
 }
 
-export function def<T>(
-  type: PropertyTypeForValue<T>,
-  properties?: Partial<Omit<PropertyDefinition<T>, 'type'>>
-): PropertyDefinition<T> {
+export function def<T>(type: PropertyTypeForValue<T>): PropertyDefinition<T> {
   return {
     type,
-    ...(properties || {}),
   };
 }
 

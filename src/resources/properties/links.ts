@@ -20,6 +20,7 @@ import {
   PropertyType,
   PropertyTypeForValue,
   StringType,
+  Type,
   TypeForProperty,
 } from './properties';
 
@@ -37,9 +38,9 @@ export interface LinkType<
 }
 
 export enum ParentCreationMode {
+  Create = 'Create',
+  DoNotCreate = 'DoNotCreate',
   MaybeCreate = 'MaybeCreate',
-  DoCreate = 'DoCreate',
-  DoNotCreate = 'DoNotCreat',
 }
 
 export const constrainAll = <T>(value: T[]): T => {
@@ -191,7 +192,7 @@ export function getLink<
   accessor: (res: OutputsForResourceOrGroup<Res>) => Prop,
   constraint?: LinkConstraint<Res>
 ): LinkOfType<Res, BaseLinkType<Prop>, true> {
-  return getLinkBase<T, Prop, Res, true>(resources, accessor, constraint);
+  return getLinkBase<T, Prop, Res, true>(resources, accessor, constraint, true);
 }
 
 export function getOptionalLink<
@@ -202,7 +203,7 @@ export function getOptionalLink<
   resource: Res,
   accessor: (res: OutputsForResourceOrGroup<Res>) => PropertyDefinition<T>,
   mode: ParentCreationMode,
-  constraint?: LinkValueConstraint<Res, T>
+  constraint?: LinkConstraint<Res>
 ): LinkOfType<Res, BaseLinkType<Prop>, false>;
 export function getOptionalLink<
   ResGroup extends ResourceGroup<PropertyMap, PropertyMap>,
@@ -212,7 +213,7 @@ export function getOptionalLink<
   resources: ResGroup,
   accessor: (res: OutputsForResourceOrGroup<ResGroup>) => PropertyDefinition<T>,
   mode: ParentCreationMode,
-  constraint?: LinkValueConstraint<ResGroup[0], T>
+  constraint?: LinkConstraint<ResGroup[0]>
 ): LinkOfType<ResGroup[0], BaseLinkType<Prop>, false>;
 export function getOptionalLink<
   Res extends ResourceOrGroupItem<PropertyMap, PropertyMap>,
@@ -224,15 +225,13 @@ export function getOptionalLink<
   mode: ParentCreationMode,
   constraint?: LinkConstraint<Res>
 ): LinkOfType<Res, BaseLinkType<Prop>, false> {
-  const baseLink = getLinkBase<T, Prop, Res, false>(
-    resources as any,
-    accessor as any,
-    constraint
+  return getLinkBase<T, Prop, Res, false>(
+    resources,
+    accessor,
+    constraint,
+    false,
+    mode
   );
-  return {
-    ...baseLink,
-    required: false,
-  };
 }
 
 function getLinkBase<
@@ -243,7 +242,9 @@ function getLinkBase<
 >(
   resources: Res,
   accessor: (res: OutputsForResourceOrGroup<Res>) => Prop,
-  constraint?: LinkConstraint<Res>
+  constraint: LinkConstraint<Res> | undefined,
+  required: Required,
+  mode?: ParentCreationMode
 ): LinkOfType<Res, BaseLinkType<Prop>, Required> {
   const paths: string[] = [];
 
@@ -274,19 +275,16 @@ function getLinkBase<
       ? (resources as ResourceGroup<any, any>)[0].outputs
       : resources.outputs;
   const outputProperty = accessor(resourceOutputs);
-  const linkedProperty: PropertyTypeForValue<T> = outputProperty.type as any;
-  const linkType: LinkType<Res> = {
-    required: true,
+  const linkedProperty: Prop = outputProperty;
+  const linkType: LinkOfType<Res, BaseLinkType<Prop>, Required> = {
+    type: Type.Link,
+    inner: linkedProperty.type as any,
+    required,
     resources: resources instanceof Array ? resources : [resources],
     outputKey: paths[0].toString(),
-  };
-  const response: LinkType<Res> & PropertyTypeForValue<T> = {
-    ...linkedProperty,
-    ...linkType,
+    constraint,
+    ...(mode ? { mode } : {}),
   };
 
-  return {
-    ...response,
-    constraint,
-  } as any;
+  return linkType;
 }

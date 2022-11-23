@@ -122,7 +122,7 @@ function fillInType(
     const creationMode = parentCreateConstraint?.creationMode ?? type?.mode;
 
     const shouldCreate = !!(type.required ||
-    creationMode === ParentCreationMode.DoCreate
+    creationMode === ParentCreationMode.Create
       ? true
       : creationMode === ParentCreationMode.DoNotCreate
       ? false

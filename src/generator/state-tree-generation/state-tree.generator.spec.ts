@@ -10,6 +10,7 @@ import {
   generator,
   getLink,
   int,
+  parentConstraint,
   PropertyDefinition,
   ResolvedInputs,
   string,
@@ -38,8 +39,6 @@ import {
 } from '../../resources/runtime-values';
 import {
   getOptionalLink,
-  LinkPropertyDefinition,
-  parentConstraint,
   ParentCreationMode,
 } from '../../resources/properties/links';
 
@@ -456,7 +455,7 @@ describe('State tree creation', () => {
     });
   });
 
-  describe('parent constraints', () => {
+  describe('Parent constraints', () => {
     //---------------------------------
     // Helper resources
     //---------------------------------
@@ -492,7 +491,7 @@ describe('State tree creation', () => {
     class GrandparentInputs extends PropertiesBase {
       text: PropertyDefinition<string> = def(string());
       numbers: PropertyDefinition<number[]> = def(array(int()));
-      parentId: LinkPropertyDefinition<typeof GreatGrandparent, number> = def(
+      parentId: PropertyDefinition<number> = def(
         getLink(GreatGrandparent, (g) => g.id)
       );
     }
@@ -518,14 +517,13 @@ describe('State tree creation', () => {
     const Grandparent = new GrandparentResource();
 
     class ParentInputs extends PropertiesBase {
-      parentId: LinkPropertyDefinition<typeof Grandparent, string | undefined> =
-        def(
-          getOptionalLink(
-            Grandparent,
-            (g) => g.id,
-            ParentCreationMode.MaybeCreate
-          )
-        );
+      parentId: PropertyDefinition<string | undefined> = def(
+        getOptionalLink(
+          Grandparent,
+          (g) => g.id,
+          ParentCreationMode.MaybeCreate
+        )
+      );
       text: PropertyDefinition<string> = def(string());
     }
     class ParentOutputs extends ParentInputs {
@@ -547,9 +545,15 @@ describe('State tree creation', () => {
     const Parent = new ParentResource();
 
     class ChildInputs extends PropertiesBase {
-      parentId: LinkPropertyDefinition<typeof Parent, number | undefined> = def(
-        getOptionalLink(Parent, (g) => g.id, ParentCreationMode.MaybeCreate),
-        parentConstraint(this, Parent, (c) => {})
+      constraintedTextParentId: PropertyDefinition<number | undefined> = def(
+        getOptionalLink(
+          Parent,
+          (g) => g.id,
+          ParentCreationMode.Create,
+          parentConstraint(this, Parent, (c) => {
+            c.setValue((p) => p.text, 'Setting value from child');
+          })
+        )
       );
     }
     class ChildOutputs extends ChildInputs {
@@ -568,11 +572,25 @@ describe('State tree creation', () => {
         });
       }
     }
+    const Child = new ChildResource();
 
     //---------------------------------
     // Tests
     //---------------------------------
 
-    test('');
+    test('constrains generated parent inputs', () => {
+      // Arrange
+      const state = [createDesiredState(Child, {})];
+
+      // Act
+      const filledInState = fillInDesiredStateTree(state);
+
+      // Assert
+      const parentState = filledInState.find(
+        (s) => s.resource === Parent
+      ) as ErasedDesiredState;
+      expect(parentState).toBeDefined();
+      expect(parentState.inputs.text).toEqual('Setting value from child');
+    });
   });
 });
