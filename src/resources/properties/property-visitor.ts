@@ -18,7 +18,7 @@ import {
   Undefinable,
   ComplexType,
   isStr,
-  Link,
+  LinkType,
   undefinable,
 } from './properties';
 
@@ -59,7 +59,7 @@ export interface PropertyTypeVisitor<T> {
   visitNull: (type: Nullable) => T;
   visitUndefined: (type: Undefinable) => T;
   visitComplex: (type: ComplexType) => T;
-  visitLink: (type: Link<any>) => T;
+  visitLink: (type: LinkType<any>) => T;
 }
 
 export abstract class ValueAndPropertyVisitor<T>
@@ -129,7 +129,7 @@ export abstract class ValueAndPropertyVisitor<T>
     return this.mapComplexValue(type, result);
   };
 
-  visitLink = (type: Link<any>): T => {
+  visitLink = (type: LinkType<any>): T => {
     const innerValue =
       !type.required && this.value === undefined
         ? this.mapUndefinedValue(undefinable(type.inner))
@@ -145,7 +145,7 @@ export abstract class ValueAndPropertyVisitor<T>
   protected abstract visitDateValue: (type: DateType, value: any) => T;
   protected abstract mapNullValue: (type: Nullable) => T;
   protected abstract mapUndefinedValue: (type: Undefinable) => T;
-  protected abstract mapLink?: (type: Link<any>, innerValue: T) => T;
+  protected abstract mapLink?: (type: LinkType<any>, innerValue: T) => T;
 
   protected abstract checkArrayValue?: (
     type: ArrayType,

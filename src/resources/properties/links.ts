@@ -11,30 +11,21 @@ import {
   propAccess,
   StateConstraint,
 } from '../state-constraints';
-import { Constraint, LinkConstraint, ParentConstraints } from './constraints';
+import { LinkConstraint, ParentConstraints } from './constraints';
 import {
   IntType,
-  Link,
+  LinkType,
   LinkOfType,
   PropertyDefinition,
   PropertyType,
-  PropertyTypeForValue,
   StringType,
   Type,
   TypeForProperty,
 } from './properties';
 
-export function isLinkType(type: PropertyType): type is Link<any> {
+export function isLinkType(type: PropertyType): type is LinkType<any> {
   const prop = type as any as LinkType<any>;
   return !!prop.resources && !!prop.outputKey;
-}
-
-export interface LinkType<
-  Parent extends ResourceOrGroupItem<PropertyMap, PropertyMap>
-> {
-  required: boolean;
-  resources: Parent[];
-  outputKey: string;
 }
 
 export enum ParentCreationMode {
@@ -136,6 +127,7 @@ export const getParentConstraintsUtilsAndResults = (): [
             creationMode,
           });
         }
+
         return parentConstraints;
       },
     },
@@ -146,11 +138,6 @@ export const getParentConstraintsUtilsAndResults = (): [
 export interface ParentCreationConstraint {
   mode?: ParentCreationMode;
 }
-
-export type LinkValueConstraint<
-  Res extends ResourceOrGroupItem<PropertyMap, PropertyMap>,
-  T
-> = Constraint<T> & LinkConstraint<Res> & ParentCreationConstraint;
 
 type OutputsForResourceOrGroup<T> = T extends Resource<PropertyMap, PropertyMap>
   ? T['outputs']

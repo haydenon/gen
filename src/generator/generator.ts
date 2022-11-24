@@ -3,7 +3,6 @@ import {
   ArrayType,
   ComplexType,
   CreatedState,
-  Link,
   PropertyType,
 } from '../resources/properties/properties';
 import { ErasedResourceInstance } from '../resources/instance';

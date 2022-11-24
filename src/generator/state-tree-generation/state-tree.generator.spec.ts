@@ -517,12 +517,22 @@ describe('State tree creation', () => {
     const Grandparent = new GrandparentResource();
 
     class ParentInputs extends PropertiesBase {
-      parentId: PropertyDefinition<string | undefined> = def(
+      doNotCreateParentId: PropertyDefinition<string | undefined> = def(
+        getOptionalLink(
+          Grandparent,
+          (g) => g.id,
+          ParentCreationMode.DoNotCreate
+        )
+      );
+      maybeCreateParentId: PropertyDefinition<string | undefined> = def(
         getOptionalLink(
           Grandparent,
           (g) => g.id,
           ParentCreationMode.MaybeCreate
         )
+      );
+      createParentId: PropertyDefinition<string | undefined> = def(
+        getOptionalLink(Grandparent, (g) => g.id, ParentCreationMode.Create)
       );
       text: PropertyDefinition<string> = def(string());
     }
@@ -555,6 +565,51 @@ describe('State tree creation', () => {
           })
         )
       );
+      createGrandparentParentId: PropertyDefinition<number | undefined> = def(
+        getOptionalLink(
+          Parent,
+          (g) => g.id,
+          ParentCreationMode.Create,
+          parentConstraint(this, Parent, (c) => {
+            c.setValue((p) => p.maybeCreateParentId, undefined);
+            c.ancestor<typeof Grandparent>(
+              (p) => p.createParentId,
+              ParentCreationMode.Create
+            );
+          })
+        )
+      );
+      doNotCreateGrandparentParentId: PropertyDefinition<number | undefined> =
+        def(
+          getOptionalLink(
+            Parent,
+            (g) => g.id,
+            ParentCreationMode.Create,
+            parentConstraint(this, Parent, (c) => {
+              c.setValue((p) => p.maybeCreateParentId, undefined);
+              c.setValue((p) => p.createParentId, undefined);
+              c.ancestor<typeof Grandparent>(
+                (p) => p.createParentId,
+                ParentCreationMode.DoNotCreate
+              );
+            })
+          )
+        );
+      maybeCreateGrandparentParentId: PropertyDefinition<number | undefined> =
+        def(
+          getOptionalLink(
+            Parent,
+            (g) => g.id,
+            ParentCreationMode.Create,
+            parentConstraint(this, Parent, (c) => {
+              c.setValue((p) => p.maybeCreateParentId, undefined);
+              c.ancestor<typeof Grandparent>(
+                (p) => p.createParentId,
+                ParentCreationMode.MaybeCreate
+              );
+            })
+          )
+        );
     }
     class ChildOutputs extends ChildInputs {
       id: PropertyDefinition<number> = def(int());
@@ -580,7 +635,13 @@ describe('State tree creation', () => {
 
     test('constrains generated parent inputs', () => {
       // Arrange
-      const state = [createDesiredState(Child, {})];
+      const state = [
+        createDesiredState(Child, {
+          createGrandparentParentId: undefined,
+          doNotCreateGrandparentParentId: undefined,
+          maybeCreateGrandparentParentId: undefined,
+        }),
+      ];
 
       // Act
       const filledInState = fillInDesiredStateTree(state);
@@ -591,6 +652,183 @@ describe('State tree creation', () => {
       ) as ErasedDesiredState;
       expect(parentState).toBeDefined();
       expect(parentState.inputs.text).toEqual('Setting value from child');
+    });
+
+    describe('Create Mode', () => {
+      test('always creates parents with create mode constraint', () => {
+        runTimes(20, () => {
+          // Arrange
+          const state = [
+            createDesiredState(Parent, {
+              // createParentId not specified
+              maybeCreateParentId: undefined,
+              doNotCreateParentId: undefined,
+            }),
+          ];
+
+          // Act
+          const filledInState = fillInDesiredStateTree(state);
+
+          // Assert
+          const parentState = filledInState.find(
+            (s) => s.resource === Grandparent
+          ) as ErasedDesiredState;
+          expect(parentState).toBeDefined();
+        });
+      });
+
+      test('never creates parents with create mode constraint', () => {
+        runTimes(20, () => {
+          // Arrange
+          const state = [
+            createDesiredState(Parent, {
+              createParentId: undefined,
+              maybeCreateParentId: undefined,
+              // doNotCreateParentId not specified
+            }),
+          ];
+
+          // Act
+          const filledInState = fillInDesiredStateTree(state);
+
+          // Assert
+          const parentState = filledInState.find(
+            (s) => s.resource === Grandparent
+          ) as ErasedDesiredState;
+          expect(parentState).toBeUndefined();
+        });
+      });
+
+      test('sometimes creates parents with maybe create mode constraint', () => {
+        // Arrange
+        let created = false;
+        let notCreated = false;
+        runTimes(30, () => {
+          const state = [
+            createDesiredState(Parent, {
+              createParentId: undefined,
+              // maybeCreateParentId not specified
+              doNotCreateParentId: undefined,
+            }),
+          ];
+
+          // Act
+          const filledInState = fillInDesiredStateTree(state);
+
+          const parentState = filledInState.find(
+            (s) => s.resource === Grandparent
+          ) as ErasedDesiredState;
+          if (parentState) {
+            created = true;
+          } else {
+            notCreated = true;
+          }
+        });
+
+        // Assert
+        expect(created).toBe(true);
+        expect(notCreated).toBe(true);
+      });
+
+      test('does not create parent with explicit undefined value when parent has create mode constraint', () => {
+        runTimes(20, () => {
+          // Arrange
+          const state = [
+            createDesiredState(Parent, {
+              createParentId: undefined,
+              maybeCreateParentId: undefined,
+              doNotCreateParentId: undefined,
+            }),
+          ];
+
+          // Act
+          const filledInState = fillInDesiredStateTree(state);
+
+          // Assert
+          const parentState = filledInState.find(
+            (s) => s.resource === Grandparent
+          ) as ErasedDesiredState;
+          expect(parentState).toBeUndefined();
+        });
+      });
+
+      test('always creates grandparents when has create mode constraint', () => {
+        runTimes(20, () => {
+          // Arrange
+          const state = [
+            createDesiredState(Child, {
+              constraintedTextParentId: undefined,
+              // createGrandparentParentId not specified
+              doNotCreateGrandparentParentId: undefined,
+              maybeCreateGrandparentParentId: undefined,
+            }),
+          ];
+
+          // Act
+          const filledInState = fillInDesiredStateTree(state);
+
+          // Assert
+          const parentState = filledInState.find(
+            (s) => s.resource === Grandparent
+          ) as ErasedDesiredState;
+          expect(parentState).toBeDefined();
+        });
+      });
+
+      test('maybe creates grandparents when has maybe create mode constraint', () => {
+        // Arrange
+        let created = false;
+        let notCreated = false;
+        runTimes(20, () => {
+          const state = [
+            createDesiredState(Child, {
+              constraintedTextParentId: undefined,
+              createGrandparentParentId: undefined,
+              doNotCreateGrandparentParentId: undefined,
+              // maybeCreateGrandparentParentId not specified
+            }),
+          ];
+
+          // Act
+          const filledInState = fillInDesiredStateTree(state);
+
+          const parentState = filledInState.find(
+            (s) => s.resource === Grandparent
+          ) as ErasedDesiredState;
+          if (parentState) {
+            created = true;
+          } else {
+            notCreated = true;
+          }
+        });
+
+        // Assert
+        expect(created).toBe(true);
+        expect(notCreated).toBe(true);
+      });
+    });
+
+    test('does not create grandparent when has do not create mode constraint', () => {
+      runTimes(20, () => {
+        // Arrange
+        const state = [
+          createDesiredState(Child, {
+            constraintedTextParentId: undefined,
+            createGrandparentParentId: undefined,
+            // doNotCreateGrandparentParentId not specified
+            maybeCreateGrandparentParentId: undefined,
+          }),
+        ];
+
+        // Act
+        const filledInState = fillInDesiredStateTree(state);
+
+        // Assert
+        const parentState = filledInState.find(
+          (s) => s.resource === Grandparent
+        ) as ErasedDesiredState;
+        expect(parentState).toBeUndefined();
+      });
     });
   });
 });

@@ -89,7 +89,7 @@ export interface LinkOfType<
   constraint?: LinkConstraint<any>;
 }
 
-export interface Link<
+export interface LinkType<
   Parent extends ResourceOrGroupItem<PropertyMap, PropertyMap>
 > extends PropertyTypeBase {
   type: Type.Link;
@@ -111,7 +111,7 @@ export type PropertyType =
   | Nullable
   | Undefinable
   | ComplexType
-  | Link<any>;
+  | LinkType<any>;
 
 export const isBool = (type: PropertyType): type is BooleanType =>
   (type as any)?.type === Type.Boolean;

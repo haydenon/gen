@@ -42,10 +42,11 @@ function fillInType(
     pathMatches(currentPath, path)
   );
   if (matchingConstraints.length > 0) {
-    const valueConstraint = matchingConstraints.find((c) => c.value);
+    const valueConstraint = matchingConstraints.find((c) => 'value' in c);
     if (valueConstraint) {
       const value = valueConstraint.value;
       // TODO: Better access and modeling for links
+
       if (isRuntimeValue(value) && value.depdendentStateNames.length > 0) {
         const ancestorConstraints = matchingConstraints
           .filter((c) => c.ancestorConstraints)
