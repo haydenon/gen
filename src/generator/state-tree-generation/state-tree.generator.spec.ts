@@ -534,6 +534,9 @@ describe('State tree creation', () => {
       createParentId: PropertyDefinition<string | undefined> = def(
         getOptionalLink(Grandparent, (g) => g.id, ParentCreationMode.Create)
       );
+      requiredParentId: PropertyDefinition<string> = def(
+        getLink(Grandparent, (g) => g.id)
+      );
       text: PropertyDefinition<string> = def(string());
     }
     class ParentOutputs extends ParentInputs {
@@ -555,13 +558,24 @@ describe('State tree creation', () => {
     const Parent = new ParentResource();
 
     class ChildInputs extends PropertiesBase {
-      constraintedTextParentId: PropertyDefinition<number | undefined> = def(
+      constrainedFieldsParentId: PropertyDefinition<number | undefined> = def(
         getOptionalLink(
           Parent,
           (g) => g.id,
           ParentCreationMode.Create,
           parentConstraint(this, Parent, (c) => {
             c.setValue((p) => p.text, 'Setting value from child');
+
+            c.setValue((p) => p.doNotCreateParentId, undefined);
+            c.setValue((p) => p.maybeCreateParentId, undefined);
+            c.setValue((p) => p.requiredParentId, undefined);
+
+            const gc = c.ancestor<typeof Grandparent>(
+              (c) => c.createParentId,
+              ParentCreationMode.Create
+            );
+
+            gc.setValue((gp) => gp.text, 'Setting value from child');
           })
         )
       );
@@ -572,6 +586,7 @@ describe('State tree creation', () => {
           ParentCreationMode.Create,
           parentConstraint(this, Parent, (c) => {
             c.setValue((p) => p.maybeCreateParentId, undefined);
+            c.setValue((p) => p.requiredParentId, undefined);
             c.ancestor<typeof Grandparent>(
               (p) => p.createParentId,
               ParentCreationMode.Create
@@ -588,6 +603,7 @@ describe('State tree creation', () => {
             parentConstraint(this, Parent, (c) => {
               c.setValue((p) => p.maybeCreateParentId, undefined);
               c.setValue((p) => p.createParentId, undefined);
+              c.setValue((p) => p.requiredParentId, undefined);
               c.ancestor<typeof Grandparent>(
                 (p) => p.createParentId,
                 ParentCreationMode.DoNotCreate
@@ -603,6 +619,7 @@ describe('State tree creation', () => {
             ParentCreationMode.Create,
             parentConstraint(this, Parent, (c) => {
               c.setValue((p) => p.maybeCreateParentId, undefined);
+              c.setValue((p) => p.requiredParentId, undefined);
               c.ancestor<typeof Grandparent>(
                 (p) => p.createParentId,
                 ParentCreationMode.MaybeCreate
@@ -610,6 +627,9 @@ describe('State tree creation', () => {
             })
           )
         );
+      requiredParentId: PropertyDefinition<number> = def(
+        getLink(Parent, (g) => g.id)
+      );
     }
     class ChildOutputs extends ChildInputs {
       id: PropertyDefinition<number> = def(int());
@@ -633,25 +653,50 @@ describe('State tree creation', () => {
     // Tests
     //---------------------------------
 
-    test('constrains generated parent inputs', () => {
-      // Arrange
-      const state = [
-        createDesiredState(Child, {
-          createGrandparentParentId: undefined,
-          doNotCreateGrandparentParentId: undefined,
-          maybeCreateGrandparentParentId: undefined,
-        }),
-      ];
+    describe('Constraining fields', () => {
+      test('constrains generated parent inputs', () => {
+        // Arrange
+        const state = [
+          createDesiredState(Child, {
+            createGrandparentParentId: undefined,
+            doNotCreateGrandparentParentId: undefined,
+            maybeCreateGrandparentParentId: undefined,
+            requiredParentId: undefined,
+          }),
+        ];
 
-      // Act
-      const filledInState = fillInDesiredStateTree(state);
+        // Act
+        const filledInState = fillInDesiredStateTree(state);
 
-      // Assert
-      const parentState = filledInState.find(
-        (s) => s.resource === Parent
-      ) as ErasedDesiredState;
-      expect(parentState).toBeDefined();
-      expect(parentState.inputs.text).toEqual('Setting value from child');
+        // Assert
+        const parentState = filledInState.find(
+          (s) => s.resource === Parent
+        ) as ErasedDesiredState;
+        expect(parentState).toBeDefined();
+        expect(parentState.inputs.text).toEqual('Setting value from child');
+      });
+
+      test('constrains grandparent inputs', () => {
+        // Arrange
+        const state = [
+          createDesiredState(Child, {
+            createGrandparentParentId: undefined,
+            doNotCreateGrandparentParentId: undefined,
+            maybeCreateGrandparentParentId: undefined,
+            requiredParentId: undefined,
+          }),
+        ];
+
+        // Act
+        const filledInState = fillInDesiredStateTree(state);
+
+        // Assert
+        const parentState = filledInState.find(
+          (s) => s.resource === Grandparent
+        ) as ErasedDesiredState;
+        expect(parentState).toBeDefined();
+        expect(parentState.inputs.text).toEqual('Setting value from child');
+      });
     });
 
     describe('Create Mode', () => {
@@ -663,6 +708,7 @@ describe('State tree creation', () => {
               // createParentId not specified
               maybeCreateParentId: undefined,
               doNotCreateParentId: undefined,
+              requiredParentId: undefined,
             }),
           ];
 
@@ -685,6 +731,7 @@ describe('State tree creation', () => {
               createParentId: undefined,
               maybeCreateParentId: undefined,
               // doNotCreateParentId not specified
+              requiredParentId: undefined,
             }),
           ];
 
@@ -709,6 +756,7 @@ describe('State tree creation', () => {
               createParentId: undefined,
               // maybeCreateParentId not specified
               doNotCreateParentId: undefined,
+              requiredParentId: undefined,
             }),
           ];
 
@@ -738,6 +786,7 @@ describe('State tree creation', () => {
               createParentId: undefined,
               maybeCreateParentId: undefined,
               doNotCreateParentId: undefined,
+              requiredParentId: undefined,
             }),
           ];
 
@@ -752,15 +801,39 @@ describe('State tree creation', () => {
         });
       });
 
+      test('always creates parents when link is not optional', () => {
+        runTimes(20, () => {
+          // Arrange
+          const state = [
+            createDesiredState(Parent, {
+              createParentId: undefined,
+              maybeCreateParentId: undefined,
+              doNotCreateParentId: undefined,
+              // requiredParentId not specified
+            }),
+          ];
+
+          // Act
+          const filledInState = fillInDesiredStateTree(state);
+
+          // Assert
+          const parentState = filledInState.find(
+            (s) => s.resource === Grandparent
+          ) as ErasedDesiredState;
+          expect(parentState).toBeDefined();
+        });
+      });
+
       test('always creates grandparents when has create mode constraint', () => {
         runTimes(20, () => {
           // Arrange
           const state = [
             createDesiredState(Child, {
-              constraintedTextParentId: undefined,
+              constrainedFieldsParentId: undefined,
               // createGrandparentParentId not specified
               doNotCreateGrandparentParentId: undefined,
               maybeCreateGrandparentParentId: undefined,
+              requiredParentId: undefined,
             }),
           ];
 
@@ -782,10 +855,11 @@ describe('State tree creation', () => {
         runTimes(20, () => {
           const state = [
             createDesiredState(Child, {
-              constraintedTextParentId: undefined,
+              constrainedFieldsParentId: undefined,
               createGrandparentParentId: undefined,
               doNotCreateGrandparentParentId: undefined,
               // maybeCreateGrandparentParentId not specified
+              requiredParentId: undefined,
             }),
           ];
 
@@ -813,10 +887,11 @@ describe('State tree creation', () => {
         // Arrange
         const state = [
           createDesiredState(Child, {
-            constraintedTextParentId: undefined,
+            constrainedFieldsParentId: undefined,
             createGrandparentParentId: undefined,
             // doNotCreateGrandparentParentId not specified
             maybeCreateGrandparentParentId: undefined,
+            requiredParentId: undefined,
           }),
         ];
 
@@ -828,6 +903,30 @@ describe('State tree creation', () => {
           (s) => s.resource === Grandparent
         ) as ErasedDesiredState;
         expect(parentState).toBeUndefined();
+      });
+    });
+
+    test('always creates grandparent when link is not optional', () => {
+      runTimes(20, () => {
+        // Arrange
+        const state = [
+          createDesiredState(Child, {
+            constrainedFieldsParentId: undefined,
+            createGrandparentParentId: undefined,
+            doNotCreateGrandparentParentId: undefined,
+            maybeCreateGrandparentParentId: undefined,
+            // requiredParentId not specified
+          }),
+        ];
+
+        // Act
+        const filledInState = fillInDesiredStateTree(state);
+
+        // Assert
+        const parentState = filledInState.find(
+          (s) => s.resource === Grandparent
+        ) as ErasedDesiredState;
+        expect(parentState).toBeDefined();
       });
     });
   });

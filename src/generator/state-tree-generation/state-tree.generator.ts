@@ -116,6 +116,13 @@ function fillInType(
       parentConstraints = constraints;
     }
 
+    const constraintsFromChildren = matchingConstraints
+      .filter((c) => c.ancestorConstraints)
+      .flatMap((c) => c.ancestorConstraints as StateConstraint[]);
+
+    // Constraints from children take preference
+    parentConstraints = [...constraintsFromChildren, ...parentConstraints];
+
     const parentCreateConstraint = current.constraints.find(
       ({ path, creationMode }) => pathMatches(currentPath, path) && creationMode
     );
