@@ -1,6 +1,6 @@
-import * as express from 'express';
-import * as bodyParser from 'body-parser';
-import * as ws from 'ws';
+import express from 'express';
+import bodyParser from 'body-parser';
+import ws from 'ws';
 
 import { Resource, PropertiesBase } from '../resources';
 import { isStateRequest } from './models/state-requests';
