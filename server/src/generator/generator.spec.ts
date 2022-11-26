@@ -1,5 +1,3 @@
-import '@types/jest';
-
 import {
   createDesiredState,
   ErasedDesiredState,
