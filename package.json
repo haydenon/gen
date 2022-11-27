@@ -1,0 +1,13 @@
+{
+  "name": "gen",
+  "packageManager": "yarn@3.3.0",
+  "private": true,
+  "scripts": {
+    "build": "yarn workspaces foreach -pti run build"
+  },
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  }
+}
