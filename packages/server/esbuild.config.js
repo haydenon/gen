@@ -1,38 +1,49 @@
-const esbuild = require('esbuild');
+const { build } = require('esbuild');
+const { dependencies, peerDependencies } = require('./package.json');
 
 // Automatically exclude all node_modules from the bundled version
 const { nodeExternalsPlugin } = require('esbuild-node-externals');
 const { Generator } = require('npm-dts');
 
 const generator = new Generator({
-  entry: 'index.js',
-  output: 'index.d.ts',
-  root: 'lib',
+  entry: 'src/index.ts',
+  output: 'dist/index.d.ts',
 });
 generator.generate();
 
 const watch = process.argv.length >= 3 && process.argv[2] === 'watch';
 
-esbuild
-  .build({
-    entryPoints: ['./src/index.ts'],
-    outfile: 'lib/index.js',
-    bundle: true,
-    minify: true,
-    platform: 'node',
-    sourcemap: true,
-    target: 'node14',
-    watch: watch
-      ? {
-          onRebuild(error, result) {
-            if (error) {
-              console.error('watch build failed:', error);
-            } else {
-              generator.generate();
-            }
-          },
-        }
-      : false,
-    plugins: [nodeExternalsPlugin()],
-  })
-  .catch(() => process.exit(1));
+const sharedConfig = {
+  entryPoints: ['src/index.ts'],
+  bundle: true,
+  minify: true,
+  sourcemap: true,
+  external: Object.keys(dependencies).concat(
+    Object.keys(peerDependencies ?? {})
+  ),
+  watch: watch
+    ? {
+        onRebuild(error, result) {
+          if (error) {
+            console.error('watch build failed:', error);
+          } else {
+            generator.generate();
+          }
+        },
+      }
+    : false,
+  plugins: [nodeExternalsPlugin()],
+};
+
+build({
+  ...sharedConfig,
+  platform: 'node', // for CJS
+  outfile: 'dist/index.js',
+}).catch(() => process.exit(1));
+
+build({
+  ...sharedConfig,
+  outfile: 'dist/index.esm.js',
+  platform: 'node', // for ESM
+  format: 'esm',
+}).catch(() => process.exit(1));
