@@ -3,7 +3,8 @@
   "packageManager": "yarn@3.3.0",
   "private": true,
   "scripts": {
-    "build": "yarn workspaces foreach -pti run build"
+    "build": "yarn workspaces foreach -pti run build",
+    "dev": "yarn workspaces foreach -pi run dev"
   },
   "workspaces": {
     "packages": [

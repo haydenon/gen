@@ -28,7 +28,7 @@ const sharedConfig = {
             console.error('watch build failed:', error);
           } else {
             generator.generate();
-            console.error('watch build succeeded for server');
+            console.error('watch build succeeded for core');
           }
         },
       }
@@ -45,6 +45,6 @@ build({
 build({
   ...sharedConfig,
   outfile: 'dist/index.esm.js',
-  platform: 'node', // for ESM
+  platform: 'neutral', // for ESM
   format: 'esm',
 }).catch(() => process.exit(1));
