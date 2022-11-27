@@ -6,11 +6,6 @@ export {
   getRuntimeResourceValue,
 } from './runtime-values';
 
-export {
-  ExprType,
-  mapPropTypeToExprType,
-  complexObject,
-  outputExprType,
-} from './types';
-
+export { mapPropTypeToExprType, complexObject, outputExprType } from './types';
+export type { ExprType } from './types';
 export { parse } from './ast/parser';

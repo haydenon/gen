@@ -1,5 +1,5 @@
 import { ErasedDesiredState } from './desired-state';
-import { Value } from './properties';
+import type { Value } from './properties/properties';
 import { ParentCreationMode } from './properties/links';
 
 interface BaseConstraint {

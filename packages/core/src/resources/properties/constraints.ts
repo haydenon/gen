@@ -1,4 +1,4 @@
-import { ParentCreationMode, ResolvedInputs } from '..';
+import { ParentCreationMode, ResolvedValues } from '..';
 import { PropertyMap, PropertyValues, ResourceOrGroupItem } from '../resource';
 import { RuntimeValue } from '../runtime-values';
 import { IntType, LinkOfType, StringType, Value } from './properties';
@@ -54,15 +54,15 @@ export interface ParentConstraints<
   T extends ResourceOrGroupItem<PropertyMap, PropertyMap>
 > {
   setValue<V>(
-    accessor: (parentInputs: ResolvedInputs<T['inputs']>) => V,
+    accessor: (parentInputs: ResolvedValues<T['inputs']>) => V,
     value: Value<V>
   ): void;
   ancestor<Ancestor extends ResourceOrGroupItem<PropertyMap, PropertyMap>>(
-    accessor: (parentInputs: ResolvedInputs<T['inputs']>) => string | number
+    accessor: (parentInputs: ResolvedValues<T['inputs']>) => string | number
   ): ParentConstraints<Ancestor>;
   ancestor<Ancestor extends ResourceOrGroupItem<PropertyMap, PropertyMap>>(
     accessor: (
-      parentInputs: ResolvedInputs<T['inputs']>
+      parentInputs: ResolvedValues<T['inputs']>
     ) => (string | undefined) | (number | undefined),
     creationMode: ParentCreationMode
   ): ParentConstraints<Ancestor>;

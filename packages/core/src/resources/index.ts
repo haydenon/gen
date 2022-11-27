@@ -1,14 +1,12 @@
-export {
-  Resource,
-  PropertiesBase,
+export { Resource, PropertiesBase } from './resource';
+export type {
   PropertyValues,
-  ResolvedPropertyValues as ResolvedInputs,
+  ResolvedValues,
   OutputValues,
   ResourceGroup,
   PropertyMap,
 } from './resource';
 export {
-  PropertyDefinition,
   def,
   bool,
   string,
@@ -21,27 +19,24 @@ export {
   array,
   complex,
   lookup,
-  PropertyType,
 } from './properties/properties';
+export type { PropertyType, PropertyDefinition } from './properties/properties';
 export {
   getLink,
   ParentCreationMode,
   constrainAll,
   getOptionalLink,
 } from './properties/links';
-export {
-  DesiredState,
-  createDesiredState,
-  ErasedDesiredState,
-} from './desired-state';
+export { createDesiredState } from './desired-state';
+export type { DesiredState, ErasedDesiredState } from './desired-state';
 export {
   RuntimeValue,
   mapValue,
   mapValues,
-  ExprType,
   mapPropTypeToExprType,
   complexObject,
 } from './runtime-values';
+export type { ExprType } from './runtime-values';
 export {
   GenerationResult,
   dependentGenerator,

@@ -12,7 +12,7 @@ import {
   int,
   parentConstraint,
   PropertyDefinition,
-  ResolvedInputs,
+  ResolvedValues,
   string,
 } from '../../resources';
 import {
@@ -29,7 +29,7 @@ import {
   runTimes,
 } from '../../../test';
 import { fillInDesiredStateTree } from './state-tree.generator';
-import { Value } from '../../resources/properties';
+import type { Value } from '../../resources/properties/properties';
 import { ErasedDesiredState } from '../../resources/desired-state';
 import {
   getRuntimeResourceValue,
@@ -477,7 +477,7 @@ describe('State tree creation', () => {
       create({
         text,
         numbers,
-      }: ResolvedInputs<GreatGrandparentInputs>): Promise<
+      }: ResolvedValues<GreatGrandparentInputs>): Promise<
         OutputValues<GreatGrandparentOutputs>
       > {
         return Promise.resolve({
@@ -509,7 +509,7 @@ describe('State tree creation', () => {
         super(new GrandparentInputs(), new GrandparentOutputs());
       }
       create(
-        inputs: ResolvedInputs<GrandparentInputs>
+        inputs: ResolvedValues<GrandparentInputs>
       ): Promise<OutputValues<GrandparentOutputs>> {
         return Promise.resolve({
           ...inputs,
@@ -570,7 +570,7 @@ describe('State tree creation', () => {
         super(new ParentInputs(), new ParentOutputs());
       }
       create(
-        inputs: ResolvedInputs<ParentInputs>
+        inputs: ResolvedValues<ParentInputs>
       ): Promise<OutputValues<ParentOutputs>> {
         return Promise.resolve({
           ...inputs,
@@ -706,7 +706,7 @@ describe('State tree creation', () => {
         super(new ChildInputs(), new ChildOutputs());
       }
       create(
-        inputs: ResolvedInputs<ChildInputs>
+        inputs: ResolvedValues<ChildInputs>
       ): Promise<OutputValues<ChildOutputs>> {
         return Promise.resolve({
           ...inputs,

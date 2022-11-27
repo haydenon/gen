@@ -6,6 +6,8 @@
     "outDir": "./lib",
     "strict": true,
     "removeComments": true,
+    "isolatedModules": true,
+    "noEmit": true,
     "esModuleInterop": true
   },
   "include": ["./src/**/*"],
