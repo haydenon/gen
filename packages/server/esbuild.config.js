@@ -1,3 +1,5 @@
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 const { build } = require('esbuild');
 const { dependencies, peerDependencies } = require('./package.json');
 
@@ -27,6 +29,9 @@ const sharedConfig = {
           if (error) {
             console.error('watch build failed:', error);
           } else {
+            exec('tsc --noEmit')
+              .then(({ stdout }) => console.log(stdout))
+              .catch((err) => console.error(err.stdout));
             generator.generate();
             console.error('watch build succeeded for server');
           }
