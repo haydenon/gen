@@ -1,11 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import logo from './logo.svg';
-import './App.css';
 import { createDesiredState, Generator } from '@haydenon/gen-core';
 import Test from './entities/Test';
-import DarkModeToggle from './components/dark-mode-toggle/DarkModeToggle';
+import styled from 'styled-components';
+import { GlobalStyle } from './styles/global';
+import { ThemeStyle } from './styles/theme';
+import FullWidthWrapper from './components/full-width-wrapper/FullWidthWrapper';
+import Header from './components/header/Header';
 
 const generator = Generator.create([createDesiredState(Test, {})]);
+
+const Wrapper = styled.div`
+  min-height: 100%;
+
+  display: grid;
+
+  grid-template-areas:
+    'header header'
+    'main main';
+  grid-template-rows: auto 1fr;
+`;
+
+const HeaderWrapper = styled.div`
+  grid-area: header;
+`;
+
+const Main = styled.main`
+  grid-area: main;
+`;
 
 function App() {
   const [value, setValue] = useState<any | undefined>(undefined);
@@ -13,24 +34,20 @@ function App() {
     generator.generateState().then(setValue);
   }, []);
   return (
-    <div className="App">
-      <DarkModeToggle />
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <p>{JSON.stringify(value)}</p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <Wrapper>
+        <HeaderWrapper>
+          <Header />
+        </HeaderWrapper>
+        <Main>
+          <FullWidthWrapper>
+            <p>{JSON.stringify(value)}</p>
+          </FullWidthWrapper>
+        </Main>
+      </Wrapper>
+      <GlobalStyle />
+      <ThemeStyle />
+    </>
   );
 }
 
