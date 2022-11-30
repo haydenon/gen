@@ -1,6 +1,6 @@
 import styled from 'styled-components';
-import DarkModeToggle from '../dark-mode-toggle/DarkModeToggle';
-import FullWidthWrapper from '../full-width-wrapper/FullWidthWrapper';
+import DarkModeToggle from '../DarkModeToggle';
+import FullWidthWrapper from '../FullWidthWrapper';
 
 const Wrapper = styled.header`
   display: flex;

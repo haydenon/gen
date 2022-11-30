@@ -18,6 +18,8 @@ export const GlobalStyle = createGlobalStyle`
 
   body {
     background-color: var(--colors-background);
+    transition: background-color 0.3s;
+    transition: color 0.5s;
     color: var(--colors-text);
   }
 

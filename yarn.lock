@@ -14556,6 +14556,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-feather@npm:^2.0.10":
+  version: 2.0.10
+  resolution: "react-feather@npm:2.0.10"
+  dependencies:
+    prop-types: ^15.7.2
+  peerDependencies:
+    react: ">=16.8.6"
+  checksum: 75acb29ee4352cd4e2a509ca81e15f3b553439c069dac19035503d53c0fe2b6133d65f5e32ccdb61ed1514cfda1b615e34de6a9640973a7bda283b7eb98850a1
+  languageName: node
+  linkType: hard
+
 "react-is@npm:^16.12.0, react-is@npm:^16.13.1, react-is@npm:^16.7.0":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
@@ -17622,6 +17633,7 @@ __metadata:
     "@types/styled-components": ^5.1.26
     react: ^18.2.0
     react-dom: ^18.2.0
+    react-feather: ^2.0.10
     react-scripts: 5.0.1
     react-switch: ^7.0.0
     react-use-localstorage: ^3.5.3

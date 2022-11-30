@@ -1,13 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { createDesiredState, Generator } from '@haydenon/gen-core';
-import Test from './entities/Test';
 import styled from 'styled-components';
 import { GlobalStyle } from './styles/global';
 import { ThemeStyle } from './styles/theme';
-import FullWidthWrapper from './components/full-width-wrapper/FullWidthWrapper';
+import FullWidthWrapper from './components/FullWidthWrapper';
 import Header from './components/header/Header';
-
-const generator = Generator.create([createDesiredState(Test, {})]);
+import ResourceCreator from './areas/resources/ResourceCreator';
 
 const Wrapper = styled.div`
   min-height: 100%;
@@ -29,10 +25,6 @@ const Main = styled.main`
 `;
 
 function App() {
-  const [value, setValue] = useState<any | undefined>(undefined);
-  useEffect(() => {
-    generator.generateState().then(setValue);
-  }, []);
   return (
     <>
       <Wrapper>
@@ -41,7 +33,7 @@ function App() {
         </HeaderWrapper>
         <Main>
           <FullWidthWrapper>
-            <p>{JSON.stringify(value)}</p>
+            <ResourceCreator />
           </FullWidthWrapper>
         </Main>
       </Wrapper>
