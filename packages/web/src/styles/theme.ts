@@ -11,6 +11,11 @@ const lightTheme = css`
   --colors-contentBackground-focusable: hsl(0deg 0% 82%);
   --colors-contentBackground-focused: hsl(0deg 0% 86%);
 
+  --colors-contentBackground-light: hsl(0deg 0% 84%);
+  --colors-contentBackground-light-focusable: hsl(0deg 0% 80%);
+  --colors-contentBackground-light-focused: hsl(0deg 0% 82%);
+  --colors-contentBackground-light-disabled: hsl(0deg 0% 60%);
+
   --colors-text: hsla(0deg 0% 0% / 95%);
 
   /* Buttons */
@@ -29,9 +34,9 @@ const darkTheme = css`
   --colors-contentBackground-focusable: hsl(200deg 5% 28%);
   --colors-contentBackground-focused: hsl(200deg 5% 24%);
 
-  --colors-contentBackground-light: hsl(200deg 5% 30%);
-  --colors-contentBackground-light-focusable: hsl(200deg 5% 36%);
-  --colors-contentBackground-light-focused: hsl(200deg 5% 33%);
+  --colors-contentBackground-light: hsl(200deg 5% 26%);
+  --colors-contentBackground-light-focusable: hsl(200deg 5% 32%);
+  --colors-contentBackground-light-focused: hsl(200deg 5% 29%);
   --colors-contentBackground-light-disabled: hsl(200deg 5% 60%);
 
   --colors-text: hsla(0deg 0% 100% / 95%);
@@ -65,6 +70,9 @@ export const ThemeStyle = createGlobalStyle`
   --typography-size-header-4: 1.4rem;
   --typography-size-paragraph: 1rem;
   --typography-lineHeight: 1.4;
+
+  --transition-duration-background: 0.3s;
+  --transition-duration-font: 0.5s;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -1,45 +1,46 @@
-import Card from '../../components/Card';
-import Select from '../../components/Select';
+import { useState } from 'react';
+import ResourceCard from './ResourceCard';
 
-interface Resource {
+export interface Resource {
   type: string;
   name: string;
 }
 const resources: Resource[] = [
   {
-    type: 'Product',
+    type: 'product',
     name: 'SomeProduct',
   },
   {
-    type: 'Product',
+    type: 'product',
     name: 'OtherProduct',
   },
   {
-    type: 'Service',
+    type: 'service',
     name: 'SomeService',
   },
   {
-    type: 'Member',
+    type: 'member',
     name: 'SomeMember',
   },
   {
-    type: 'Order',
+    type: 'order',
     name: 'Order',
   },
 ];
 
 const ResourceList = () => {
+  const [values, setValues] = useState<Resource[]>(resources);
+  const onChange = (idx: number) => (resource: Resource) => {
+    setValues([...values.slice(0, idx), resource, ...values.slice(idx + 1)]);
+  };
   return (
     <div>
-      {resources.map((r) => (
-        <Card key={r.name}>
-          <Select label="Type" value="A">
-            <option>A</option>
-          </Select>
-          {r.type}
-          <br />
-          {r.name}
-        </Card>
+      {values.map((r, i) => (
+        <ResourceCard
+          key={i}
+          resource={r}
+          onChange={onChange(i)}
+        ></ResourceCard>
       ))}
     </div>
   );

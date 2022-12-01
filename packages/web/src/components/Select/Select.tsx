@@ -1,3 +1,5 @@
+import React, { ReactElement } from 'react';
+
 import styled from 'styled-components';
 
 import { ChevronDown } from 'react-feather';
@@ -18,15 +20,20 @@ const NativeSelect = styled.select`
   opacity: 0;
   border: none;
   outline: none;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
 `;
 
 const CustomSelect = styled.div`
   width: max-content;
   background-color: var(--colors-contentBackground-light);
   border-radius: var(--borders-radius);
-  padding: 12px 16px;
+  padding: var(--spacing-tiny) var(--spacing-small);
   padding-right: 52px;
   color: var(--colors-text);
+  transition: color var(--transition-duration-font);
   font-size: ${16 / 16}rem;
   ${NativeSelect}:focus + & {
     outline: 2px solid #4374cb;
@@ -35,6 +42,10 @@ const CustomSelect = styled.div`
   }
   ${NativeSelect}:hover + & {
     background-color: var(--colors-contentBackground-light-focusable);
+  }
+  ${NativeSelect}:disabled + & {
+    background-color: var(--colors-contentBackground-light-disabled);
+    cursor: not-allowed;
   }
 `;
 
@@ -52,19 +63,38 @@ const IconWrapper = styled.div`
 
 interface SelectProps {
   label: string;
-  children?: React.ReactChild | React.ReactChild[];
+  children?: React.ReactNode | React.ReactNode[];
   value: string;
-  onChange?: () => void;
+  onChange: (value: string) => void;
+}
+
+export function getDisplayedValue(
+  value: string,
+  children: React.ReactNode | React.ReactNode[]
+) {
+  const childArray = React.Children.toArray(children);
+  const selectedChild = childArray.find(
+    (child) => (child as ReactElement<any>).props.value === value
+  );
+
+  if (!selectedChild) {
+    return '(not selected)';
+  }
+
+  return (selectedChild as ReactElement<any>).props.children;
 }
 
 const Select = ({ label, value, onChange, children }: SelectProps) => {
+  const handleChange: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
+    onChange(event.target.value);
+  };
   return (
     <Wrapper>
-      <NativeSelect value={value} onChange={onChange}>
+      <NativeSelect value={value} onChange={handleChange}>
         {children}
       </NativeSelect>
       <CustomSelect>
-        {'test'}
+        {getDisplayedValue(value, children)}
         <IconWrapper>
           <ChevronDown size={16} strokeWidth={3} />
         </IconWrapper>
