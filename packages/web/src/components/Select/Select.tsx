@@ -3,6 +3,7 @@ import React, { ReactElement } from 'react';
 import styled from 'styled-components';
 
 import { ChevronDown } from 'react-feather';
+import Label from '../Label';
 
 const Wrapper = styled.div`
   position: relative;
@@ -93,17 +94,19 @@ const Select = ({ label, value, onChange, children }: SelectProps) => {
     onChange(event.target.value);
   };
   return (
-    <Wrapper>
-      <NativeSelect value={value} onChange={handleChange}>
-        {children}
-      </NativeSelect>
-      <CustomSelect>
-        {getDisplayedValue(value, children)}
-        <IconWrapper>
-          <ChevronDown size={16} strokeWidth={3} />
-        </IconWrapper>
-      </CustomSelect>
-    </Wrapper>
+    <Label label={label}>
+      <Wrapper>
+        <NativeSelect value={value} onChange={handleChange}>
+          {children}
+        </NativeSelect>
+        <CustomSelect>
+          {getDisplayedValue(value, children)}
+          <IconWrapper>
+            <ChevronDown size={16} strokeWidth={3} />
+          </IconWrapper>
+        </CustomSelect>
+      </Wrapper>
+    </Label>
   );
 };
 

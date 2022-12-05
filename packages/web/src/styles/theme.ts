@@ -71,6 +71,7 @@ export const ThemeStyle = createGlobalStyle`
   --typography-size-header-3: 1.8rem;
   --typography-size-header-4: 1.4rem;
   --typography-size-paragraph: 1rem;
+  --typography-size-small: 0.75rem;
   --typography-lineHeight: 1.4;
 
   --transition-duration-background: 0.3s;

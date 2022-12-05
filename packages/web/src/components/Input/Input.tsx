@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import Label from '../Label';
 
 const CustomInput = styled.input`
   font-size: 1rem;
@@ -23,21 +24,24 @@ const CustomInput = styled.input`
 
 interface Props {
   placeholder?: string;
+  label: string;
   value?: string;
   onChange: (value: string) => void;
 }
 
-const Input = ({ placeholder, value, onChange }: Props) => {
+const Input = ({ placeholder, label, value, onChange }: Props) => {
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const newValue = event.target.value;
     onChange(newValue);
   };
   return (
-    <CustomInput
-      placeholder={placeholder}
-      value={value}
-      onChange={handleChange}
-    />
+    <Label label={label}>
+      <CustomInput
+        placeholder={placeholder}
+        value={value}
+        onChange={handleChange}
+      />
+    </Label>
   );
 };
 

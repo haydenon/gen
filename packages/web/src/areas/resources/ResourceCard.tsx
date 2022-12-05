@@ -25,6 +25,7 @@ const Header = styled.div`
   display: flex;
   justify-content: flex-start;
   gap: var(--spacing-small);
+  align-items: flex-end;
 `;
 
 const DeleteWrapper = styled.div`
@@ -56,6 +57,7 @@ const ResourceCard = ({ resource, onChange, onDelete }: Props) => {
           ))}
         </Select>
         <Input
+          label="Name"
           placeholder="SomePerson"
           value={resource.name ?? ''}
           onChange={onNameChange}
