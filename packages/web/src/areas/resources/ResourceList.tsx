@@ -40,6 +40,7 @@ const AddButton = styled(Button)`
   flex: 1;
   display: flex;
   justify-content: center;
+  padding: calc(var(--spacing-tiny) * 1.5) 0;
 `;
 
 const AddIcon = styled(PlusCircle)`
@@ -79,6 +80,7 @@ const ResourceList = () => {
           resource={r}
           onChange={onChange(i)}
           onDelete={onDelete(i)}
+          onMaximise={() => console.log(i)}
         ></ResourceCard>
       ))}
       <ResourceAdd onAdd={onAdd} />

@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Trash2 } from 'react-feather';
+import { Trash2, Maximize2 } from 'react-feather';
 
 import Card from '../../components/Card';
 import Input from '../../components/Input';
@@ -12,6 +12,7 @@ interface Props {
   resource: Resource;
   onChange: (resource: Resource) => void;
   onDelete: () => void;
+  onMaximise: () => void;
 }
 
 const typeMap: { [type: string]: string } = {
@@ -28,7 +29,9 @@ const Header = styled.div`
   align-items: flex-end;
 `;
 
-const DeleteWrapper = styled.div`
+const ActionsWrapper = styled.div`
+  display: flex;
+  gap: var(--spacing-tiny);
   margin-left: auto;
 `;
 
@@ -37,7 +40,7 @@ const DeleteIcon = styled(Trash2)`
   transition: color var(--transition-duration-font);
 `;
 
-const ResourceCard = ({ resource, onChange, onDelete }: Props) => {
+const ResourceCard = ({ resource, onChange, onDelete, onMaximise }: Props) => {
   const onTypeChange = (type: string) =>
     onChange({
       ...resource,
@@ -62,12 +65,16 @@ const ResourceCard = ({ resource, onChange, onDelete }: Props) => {
           value={resource.name ?? ''}
           onChange={onNameChange}
         />
-        <DeleteWrapper>
+        <ActionsWrapper>
+          <Button style={ButtonStyle.Icon} onClick={onMaximise}>
+            <VisuallyHidden>Maximise resource details</VisuallyHidden>
+            <Maximize2 size={16} strokeWidth={3} />
+          </Button>
           <Button style={ButtonStyle.Icon} onClick={onDelete}>
             <VisuallyHidden>Delete desired state entry</VisuallyHidden>
             <DeleteIcon size={16} strokeWidth={3} />
           </Button>
-        </DeleteWrapper>
+        </ActionsWrapper>
       </Header>
 
       {resource.type ? typeMap[resource.type] : '(type not selected)'}
