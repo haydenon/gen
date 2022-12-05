@@ -64,14 +64,18 @@ const IconWrapper = styled.div`
 interface SelectProps {
   label: string;
   children?: React.ReactNode | React.ReactNode[];
-  value: string;
+  value?: string;
   onChange: (value: string) => void;
 }
 
 export function getDisplayedValue(
-  value: string,
+  value: string | undefined,
   children: React.ReactNode | React.ReactNode[]
 ) {
+  if (value === undefined) {
+    return '(not selected)';
+  }
+
   const childArray = React.Children.toArray(children);
   const selectedChild = childArray.find(
     (child) => (child as ReactElement<any>).props.value === value

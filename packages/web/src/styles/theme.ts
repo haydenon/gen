@@ -17,6 +17,7 @@ const lightTheme = css`
   --colors-contentBackground-light-disabled: hsl(0deg 0% 60%);
 
   --colors-text: hsla(0deg 0% 0% / 95%);
+  --colors-text-danger: hsla(0deg 87% 38% / 97%);
 
   /* Buttons */
   --colors-button-transparent-hover: hsl(0deg 0% 0% / 10%);
@@ -40,6 +41,7 @@ const darkTheme = css`
   --colors-contentBackground-light-disabled: hsl(200deg 5% 60%);
 
   --colors-text: hsla(0deg 0% 100% / 95%);
+  --colors-text-danger: hsla(0deg 100% 79% / 97%);
 
   /* Buttons */
   --colors-button-transparent-hover: hsl(0deg 0% 100% / 10%);

@@ -1,12 +1,17 @@
 import styled from 'styled-components';
+import { Trash2 } from 'react-feather';
+
 import Card from '../../components/Card';
 import Input from '../../components/Input';
 import Select from '../../components/Select';
 import { Resource } from './ResourceList';
+import Button, { ButtonStyle } from '../../components/Button';
+import VisuallyHidden from '../../components/VisuallyHidden';
 
 interface Props {
   resource: Resource;
   onChange: (resource: Resource) => void;
+  onDelete: () => void;
 }
 
 const typeMap: { [type: string]: string } = {
@@ -22,7 +27,16 @@ const Header = styled.div`
   gap: var(--spacing-small);
 `;
 
-const ResourceCard = ({ resource, onChange }: Props) => {
+const DeleteWrapper = styled.div`
+  margin-left: auto;
+`;
+
+const DeleteIcon = styled(Trash2)`
+  color: var(--colors-text-danger);
+  transition: color var(--transition-duration-font);
+`;
+
+const ResourceCard = ({ resource, onChange, onDelete }: Props) => {
   const onTypeChange = (type: string) =>
     onChange({
       ...resource,
@@ -43,14 +57,20 @@ const ResourceCard = ({ resource, onChange }: Props) => {
         </Select>
         <Input
           placeholder="SomePerson"
-          value={resource.name}
+          value={resource.name ?? ''}
           onChange={onNameChange}
         />
+        <DeleteWrapper>
+          <Button style={ButtonStyle.Icon} onClick={onDelete}>
+            <VisuallyHidden>Delete desired state entry</VisuallyHidden>
+            <DeleteIcon size={16} strokeWidth={3} />
+          </Button>
+        </DeleteWrapper>
       </Header>
 
-      {typeMap[resource.type]}
+      {resource.type ? typeMap[resource.type] : '(type not selected)'}
       <br />
-      {resource.name}
+      {resource.name ?? '(no name)'}
     </Card>
   );
 };
