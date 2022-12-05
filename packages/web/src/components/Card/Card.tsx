@@ -13,7 +13,7 @@ const CardBox = styled.div`
 `;
 
 interface Props {
-  children?: React.ReactChild | React.ReactChild[];
+  children?: React.ReactNode | React.ReactNode[];
 }
 
 const Card = ({ children }: Props) => {
