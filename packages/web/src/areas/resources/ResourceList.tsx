@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { createRef, useState } from 'react';
-import { unstable_batchedUpdates } from 'react-dom';
 import { PlusCircle } from 'react-feather';
 
 import styled from 'styled-components';
@@ -137,16 +136,16 @@ const ResourceList = () => {
               key={r.id}
               ref={r.nodeRef}
               initial={
-                enterAnimations
-                  ? { height: 0, overflowY: 'hidden', paddingBottom: 0 }
-                  : false
+                enterAnimations ? { height: '0px', overflowY: 'hidden' } : false
               }
               animate={{
                 height: 'unset',
                 overflowY: 'unset',
-                paddingBottom: 'var(--spacing-base)',
               }}
-              exit={{ height: 0, overflowY: 'hidden', paddingBottom: 0 }}
+              exit={{
+                height: '0px',
+                overflowY: 'hidden',
+              }}
             >
               <ResourceCard
                 resource={r}

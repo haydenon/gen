@@ -1,9 +1,7 @@
 import styled from 'styled-components';
 
 const Wrapper = styled.div`
-  &:not(:last-child) {
-    padding-bottom: var(--spacing-base);
-  }
+  padding-bottom: var(--spacing-base);
 `;
 
 const CardBox = styled.div`
