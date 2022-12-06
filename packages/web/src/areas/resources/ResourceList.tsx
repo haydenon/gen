@@ -1,38 +1,47 @@
+import { AnimatePresence, motion } from 'framer-motion';
 import { createRef, useState } from 'react';
+import { unstable_batchedUpdates } from 'react-dom';
 import { PlusCircle } from 'react-feather';
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import styled from 'styled-components';
 import Button from '../../components/Button';
 import ResourceCard from './ResourceCard';
 
 export interface Resource {
+  id: number;
   type?: string;
   name?: string;
   nodeRef: React.RefObject<any>;
 }
+let resourceId = 1;
+
 const resources: Resource[] = [
   {
+    id: resourceId++,
     type: 'product',
     name: 'SomeProduct',
     nodeRef: createRef(),
   },
   {
+    id: resourceId++,
     type: 'product',
     name: 'OtherProduct',
     nodeRef: createRef(),
   },
   {
+    id: resourceId++,
     type: 'service',
     name: 'SomeService',
     nodeRef: createRef(),
   },
   {
+    id: resourceId++,
     type: 'member',
     name: 'SomeMember',
     nodeRef: createRef(),
   },
   {
+    id: resourceId++,
     type: 'order',
     name: 'Order',
     nodeRef: createRef(),
@@ -58,10 +67,9 @@ interface AddProps {
   onAdd: () => void;
 }
 
-const ListItem = styled.li`
+const ListItem = styled(motion.li)`
   list-style: none;
   &:not(:last-child) {
-    padding-bottom: var(--spacing-base);
   }
 
   &.resource-list-enter {
@@ -102,6 +110,7 @@ const ResourceAdd = ({ onAdd }: AddProps) => {
 
 const ResourceList = () => {
   const [values, setValues] = useState<Resource[]>(resources);
+  const [enterAnimations, setEnterAnimations] = useState(false);
   const onChange = (idx: number) => (resource: Resource) => {
     setValues([...values.slice(0, idx), resource, ...values.slice(idx + 1)]);
   };
@@ -109,38 +118,50 @@ const ResourceList = () => {
     setValues([...values.slice(0, idx), ...values.slice(idx + 1)]);
   };
   const onAdd = () => {
-    setValues([...values, { nodeRef: createRef() }]);
+    setEnterAnimations(true);
+    setValues([
+      ...values,
+      {
+        id: resourceId++,
+        nodeRef: createRef(),
+      },
+    ]);
   };
 
   return (
-    <TransitionGroup component="ul">
-      {[
-        ...values.map((r, i) => (
-          <CSSTransition
-            key={i}
-            nodeRef={r.nodeRef}
-            timeout={280}
-            classNames="resource-list"
-          >
-            <ListItem ref={r.nodeRef}>
+    <ul>
+      <AnimatePresence>
+        {[
+          ...values.map((r, i) => (
+            <ListItem
+              key={r.id}
+              ref={r.nodeRef}
+              initial={
+                enterAnimations
+                  ? { height: 0, overflowY: 'hidden', paddingBottom: 0 }
+                  : false
+              }
+              animate={{
+                height: 'unset',
+                overflowY: 'unset',
+                paddingBottom: 'var(--spacing-base)',
+              }}
+              exit={{ height: 0, overflowY: 'hidden', paddingBottom: 0 }}
+            >
               <ResourceCard
-                key={i}
                 resource={r}
                 onChange={onChange(i)}
                 onDelete={onDelete(i)}
                 onMaximise={() => console.log(i)}
               ></ResourceCard>
             </ListItem>
-          </CSSTransition>
-        )),
-        // This won't animate, but causes errors without it
-        <CSSTransition key="add" timeout={280} classNames="resource-list">
-          <ListItem>
+          )),
+          <ListItem key="add">
             <ResourceAdd onAdd={onAdd} />
-          </ListItem>
-        </CSSTransition>,
-      ]}
-    </TransitionGroup>
+          </ListItem>,
+        ]}
+      </AnimatePresence>
+    </ul>
   );
 };
 
