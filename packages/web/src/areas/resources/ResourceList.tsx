@@ -136,10 +136,17 @@ const Overlay = () => (
     exit={{ opacity: 0, transition: { duration: 0.15 } }}
     transition={{ duration: 0.2, delay: 0.1 }}
     style={{ pointerEvents: 'auto' }}
-  >
-    {/* <Link to="/" /> */}
-  </OverlayDiv>
+  />
 );
+
+const CloseOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  cursor: pointer;
+`;
 
 const ResourceList = () => {
   const [values, setValues] = useState<Resource[]>(resources);
@@ -170,7 +177,6 @@ const ResourceList = () => {
 
   return (
     <ul>
-      {maximised !== undefined ? <Overlay /> : null}
       <AnimatePresence>
         {[
           ...values.map((r, i) => (
@@ -188,8 +194,12 @@ const ResourceList = () => {
                 transition: { duration: maximised === i ? 0 : 0.3 },
               }}
             >
+              {maximised === i ? <Overlay /> : null}
               <MaximiseWrapper open={i === maximised}>
                 <MaximisedCardWrapper open={i === maximised} layout>
+                  {maximised === i ? (
+                    <CloseOverlay onClick={() => setMaximised(undefined)} />
+                  ) : null}
                   <ResourceCard
                     resource={r}
                     onChange={onChange(i)}

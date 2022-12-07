@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Trash2, Maximize2 } from 'react-feather';
+import { Trash2, Maximize2, Minimize2 } from 'react-feather';
 
 import CardComp from '../../components/Card';
 import Input from '../../components/Input';
@@ -67,6 +67,8 @@ const ResourceCard = ({
 
   const onNameChange = (name: string) => onChange({ ...resource, name });
 
+  const Icon = maximised ? Minimize2 : Maximize2;
+
   return (
     <Card maximised={maximised ?? false}>
       <Header>
@@ -90,7 +92,7 @@ const ResourceCard = ({
         <ActionsWrapper layout="position">
           <Button style={ButtonStyle.Icon} onClick={onMaximise}>
             <VisuallyHidden>Maximise resource details</VisuallyHidden>
-            <Maximize2 size={16} strokeWidth={3} />
+            <Icon size={16} strokeWidth={3} />
           </Button>
           <Button style={ButtonStyle.Icon} onClick={onDelete}>
             <VisuallyHidden>Delete desired state entry</VisuallyHidden>
