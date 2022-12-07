@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { createRef, useState } from 'react';
 import { PlusCircle } from 'react-feather';
 
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import Button from '../../components/Button';
 import ResourceCard from './ResourceCard';
 
@@ -66,35 +66,40 @@ interface AddProps {
   onAdd: () => void;
 }
 
+interface MaximiseProps {
+  open: boolean;
+}
+
+const maximisedWrapper = css`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  padding: var(--spacing-base);
+  z-index: 2;
+`;
+
+const MaximiseWrapper = styled.div<MaximiseProps>`
+  ${(props) => (props.open ? maximisedWrapper : undefined)}
+`;
+
+const maximisedCard = css`
+  width: clamp(500px, 95%, 1000px);
+  max-width: 100%;
+  height: 100%;
+  margin: 0 auto;
+
+  position: relative;
+`;
+
+const MaximisedCardWrapper = styled(motion.div)<MaximiseProps>`
+  ${(props) => (props.open ? maximisedCard : undefined)}
+`;
+
 const ListItem = styled(motion.li)`
   list-style: none;
-  &:not(:last-child) {
-  }
-
-  &.resource-list-enter {
-    max-height: 0;
-    height: auto;
-    overflow-y: hidden;
-    transition: max-height 0.3s ease-out;
-  }
-  &.resource-list-enter-active {
-    overflow-y: hidden;
-    transition: max-height 0.3s ease-out;
-    height: auto;
-    max-height: 600px;
-  }
-  &.resource-list-exit {
-    overflow-y: hidden;
-    transition: max-height 0.3s ease-out;
-    height: auto;
-    max-height: 600px;
-  }
-  &.resource-list-exit-active {
-    max-height: 0;
-    height: auto;
-    overflow-y: hidden;
-    transition: max-height 0.3s ease-out;
-  }
 `;
 
 const ResourceAdd = ({ onAdd }: AddProps) => {
@@ -107,17 +112,46 @@ const ResourceAdd = ({ onAdd }: AddProps) => {
   );
 };
 
+const Hidden = styled.div`
+  visibility: hidden;
+`;
+
+const OverlayDiv = styled(motion.div)`
+  position: fixed;
+  background: rgba(0, 0, 0, 0.8);
+  will-change: opacity;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  opacity: 1;
+  z-index: 1;
+`;
+
+const Overlay = () => (
+  <OverlayDiv
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0, transition: { duration: 0.15 } }}
+    transition={{ duration: 0.2, delay: 0.1 }}
+    style={{ pointerEvents: 'auto' }}
+  >
+    {/* <Link to="/" /> */}
+  </OverlayDiv>
+);
+
 const ResourceList = () => {
   const [values, setValues] = useState<Resource[]>(resources);
-  const [enterAnimations, setEnterAnimations] = useState(false);
+  const [maximised, setMaximised] = useState<number | undefined>(undefined);
   const onChange = (idx: number) => (resource: Resource) => {
     setValues([...values.slice(0, idx), resource, ...values.slice(idx + 1)]);
   };
   const onDelete = (idx: number) => () => {
+    setMaximised(undefined);
     setValues([...values.slice(0, idx), ...values.slice(idx + 1)]);
   };
   const onAdd = () => {
-    setEnterAnimations(true);
     setValues([
       ...values,
       {
@@ -126,18 +160,24 @@ const ResourceList = () => {
       },
     ]);
   };
+  const onMaximise = (idx: number) => () => {
+    if (idx === maximised) {
+      setMaximised(undefined);
+    } else {
+      setMaximised(idx);
+    }
+  };
 
   return (
     <ul>
+      {maximised !== undefined ? <Overlay /> : null}
       <AnimatePresence>
         {[
           ...values.map((r, i) => (
             <ListItem
               key={r.id}
               ref={r.nodeRef}
-              initial={
-                enterAnimations ? { height: '0px', overflowY: 'hidden' } : false
-              }
+              initial={{ height: '0px', overflowY: 'hidden' }}
               animate={{
                 height: 'unset',
                 overflowY: 'unset',
@@ -145,14 +185,31 @@ const ResourceList = () => {
               exit={{
                 height: '0px',
                 overflowY: 'hidden',
+                transition: { duration: maximised === i ? 0 : 0.3 },
               }}
             >
-              <ResourceCard
-                resource={r}
-                onChange={onChange(i)}
-                onDelete={onDelete(i)}
-                onMaximise={() => console.log(i)}
-              ></ResourceCard>
+              <MaximiseWrapper open={i === maximised}>
+                <MaximisedCardWrapper open={i === maximised} layout>
+                  <ResourceCard
+                    resource={r}
+                    onChange={onChange(i)}
+                    onDelete={onDelete(i)}
+                    onMaximise={onMaximise(i)}
+                    maximised={i === maximised}
+                  ></ResourceCard>
+                </MaximisedCardWrapper>
+              </MaximiseWrapper>
+              {maximised === i ? (
+                <Hidden>
+                  {/* Used to preserve correct height for element */}
+                  <ResourceCard
+                    resource={r}
+                    onChange={() => {}}
+                    onDelete={() => {}}
+                    onMaximise={() => {}}
+                  ></ResourceCard>
+                </Hidden>
+              ) : null}
             </ListItem>
           )),
           <ListItem key="add">
