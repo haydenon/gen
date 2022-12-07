@@ -10,7 +10,10 @@ const CustomInput = styled.input`
   color: var(--colors-text);
   transition: color var(--transition-duration-font);
 
-  &:focus {
+  &:focus,
+  &:focus-visible {
+    outline: 2px solid #4374cb;
+    outline: 5px auto -webkit-focus-ring-color;
     background-color: var(--colors-contentBackground-light-focused);
   }
   &:hover {

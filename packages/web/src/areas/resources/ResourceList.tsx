@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PlusCircle } from 'react-feather';
 
 import styled, { css } from 'styled-components';
@@ -205,7 +205,7 @@ const ResourceList = () => {
                     resource={r}
                     onChange={onChange(i)}
                     onDelete={onDelete(i)}
-                    onMaximise={onMaximise(i)}
+                    onMaximiseToggle={onMaximise(i)}
                     maximised={i === maximised}
                   ></ResourceCard>
                 </MaximisedCardWrapper>
@@ -217,7 +217,7 @@ const ResourceList = () => {
                     resource={r}
                     onChange={() => {}}
                     onDelete={() => {}}
-                    onMaximise={() => {}}
+                    onMaximiseToggle={() => {}}
                   ></ResourceCard>
                 </Hidden>
               ) : null}

@@ -29,8 +29,10 @@ export const buttonCommonStyles = css`
   padding: var(--spacing-tiny) var(--spacing-base);
   border-radius: var(--borders-radius);
 
+  &:focus,
   &:focus-visible {
-    outline: 1px solid var(--focus-color);
+    outline: 2px solid #4374cb;
+    outline: 5px auto -webkit-focus-ring-color;
   }
 `;
 

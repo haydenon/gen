@@ -10,10 +10,19 @@ const CardBox = styled.div`
 interface Props {
   children?: React.ReactNode | React.ReactNode[];
   className?: string;
+  cardRef?:
+    | ((instance: HTMLDivElement | null) => void)
+    | React.RefObject<HTMLDivElement>
+    | null
+    | undefined;
 }
 
-const Card = ({ children, className }: Props) => {
-  return <CardBox className={className}>{children}</CardBox>;
+const Card = ({ children, className, cardRef }: Props) => {
+  return (
+    <CardBox ref={cardRef} className={className}>
+      {children}
+    </CardBox>
+  );
 };
 
 export default Card;

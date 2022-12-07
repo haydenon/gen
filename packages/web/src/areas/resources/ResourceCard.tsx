@@ -8,12 +8,13 @@ import { Resource } from './ResourceList';
 import Button, { ButtonStyle, ButtonColour } from '../../components/Button';
 import VisuallyHidden from '../../components/VisuallyHidden';
 import { motion } from 'framer-motion';
+import { useEffect, useRef } from 'react';
 
 interface Props {
   resource: Resource;
   onChange: (resource: Resource) => void;
   onDelete: () => void;
-  onMaximise: () => void;
+  onMaximiseToggle: () => void;
   maximised?: boolean;
 }
 
@@ -56,9 +57,24 @@ const ResourceCard = ({
   resource,
   onChange,
   onDelete,
-  onMaximise,
+  onMaximiseToggle,
   maximised,
 }: Props) => {
+  const maximisedRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (maximisedRef && maximisedRef.current && maximised) {
+      const current = maximisedRef.current;
+      const listener = (event: FocusEvent) => {
+        if (!current.matches(':focus-within')) {
+          onMaximiseToggle();
+        }
+      };
+      current.addEventListener('focusout', listener);
+
+      return () => current.removeEventListener('focusout', listener);
+    }
+  }, [maximisedRef, maximised, onMaximiseToggle]);
+
   const onTypeChange = (type: string) =>
     onChange({
       ...resource,
@@ -70,7 +86,7 @@ const ResourceCard = ({
   const Icon = maximised ? Minimize2 : Maximize2;
 
   return (
-    <Card maximised={maximised ?? false}>
+    <Card cardRef={maximisedRef} maximised={maximised ?? false}>
       <Header>
         <motion.div layout="position">
           <Select label="Type" value={resource.type} onChange={onTypeChange}>
@@ -90,7 +106,7 @@ const ResourceCard = ({
           />
         </motion.div>
         <ActionsWrapper layout="position">
-          <Button style={ButtonStyle.Icon} onClick={onMaximise}>
+          <Button style={ButtonStyle.Icon} onClick={onMaximiseToggle}>
             <VisuallyHidden>Maximise resource details</VisuallyHidden>
             <Icon size={16} strokeWidth={3} />
           </Button>
