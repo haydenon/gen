@@ -16,6 +16,11 @@ const lightTheme = css`
   --colors-contentBackground-light-focused: hsl(0deg 0% 82%);
   --colors-contentBackground-light-disabled: hsl(0deg 0% 60%);
 
+  --colors-contentBackground-danger: hsl(0deg 100% 79%);
+  --colors-contentBackground-danger-focusable: hsl(0deg 100% 75%);
+  --colors-contentBackground-danger-focused: hsl(0deg 100% 78%);
+  --colors-contentBackground-danger-disabled: hsl(0, 60%, 48%);
+
   --colors-text: hsla(0deg 0% 0% / 95%);
   --colors-text-danger: hsla(0deg 87% 38% / 97%);
 
@@ -39,6 +44,11 @@ const darkTheme = css`
   --colors-contentBackground-light-focusable: hsl(200deg 5% 32%);
   --colors-contentBackground-light-focused: hsl(200deg 5% 29%);
   --colors-contentBackground-light-disabled: hsl(200deg 5% 60%);
+
+  --colors-contentBackground-danger: hsl(0, 83%, 45%);
+  --colors-contentBackground-danger-focusable: hsl(0, 83%, 54%);
+  --colors-contentBackground-danger-focused: hsl(0deg 87% 50%);
+  --colors-contentBackground-danger-disabled: hsl(0deg 87% 70%);
 
   --colors-text: hsla(0deg 0% 100% / 95%);
   --colors-text-danger: hsla(0deg 100% 79% / 97%);

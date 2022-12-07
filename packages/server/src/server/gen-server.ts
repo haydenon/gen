@@ -19,6 +19,7 @@ import {
   mapDesiredStateToResponse,
   mapResourceInstanceToResponse,
 } from './models/state-responses';
+import { mapResourceToResponse } from './mapping/resource.mapper';
 
 interface ServerOptions {
   port?: number;
@@ -70,6 +71,13 @@ export class GenServer {
           wsServer.emit('connection', socket, request);
         });
       }
+    });
+
+    app.get('/v1/resource', (_, res) => {
+      const resourcesResponse = this.resources.map(mapResourceToResponse);
+      res.send({
+        resources: resourcesResponse,
+      });
     });
 
     app.post('/v1/state', async (req, res) => {

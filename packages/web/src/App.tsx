@@ -1,4 +1,6 @@
 import styled from 'styled-components';
+import { RecoilRoot } from 'recoil';
+
 import { GlobalStyle } from './styles/global';
 import { ThemeStyle } from './styles/theme';
 import FullWidthWrapper from './components/FullWidthWrapper';
@@ -26,7 +28,7 @@ const Main = styled.main`
 
 function App() {
   return (
-    <>
+    <RecoilRoot>
       <Wrapper>
         <HeaderWrapper>
           <Header />
@@ -39,7 +41,7 @@ function App() {
       </Wrapper>
       <GlobalStyle />
       <ThemeStyle />
-    </>
+    </RecoilRoot>
   );
 }
 

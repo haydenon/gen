@@ -1,14 +1,20 @@
 import styled, { css } from 'styled-components';
 
 export enum ButtonStyle {
-  Transparent,
-  Light,
-  Icon,
+  Transparent = 1,
+  Normal = 2,
+  Icon = 3,
+}
+
+export enum ButtonColour {
+  Normal = 1,
+  Danger = 2,
 }
 
 interface Props {
   className?: string;
   style?: ButtonStyle;
+  colour?: ButtonColour;
   children: React.ReactNode | React.ReactNode[];
   disabled?: boolean;
   onClick: () => void;
@@ -41,57 +47,100 @@ const TransparentButton = styled.button`
   }
 `;
 
-const LightButton = styled.button`
+interface ButtonProps {
+  colours: Colours;
+}
+
+const NormalButton = styled.button<ButtonProps>`
   ${buttonCommonStyles}
 
-  background-color: var(--colors-contentBackground-light);
+  background-color: ${(props) => props.colours.normal};
 
   &:hover {
-    background: var(--colors-contentBackground-light-focusable);
+    background: ${(props) => props.colours.hover};
   }
 
   &:active {
-    background: var(--colors-contentBackground-light-focused);
+    background: ${(props) => props.colours.focused};
   }
 
   &:disabled {
     cursor: not-allowed;
     color: var(--colors-text-disabled);
-    background: var(--colors-contentBackground-light-disabled);
+    background: ${(props) => props.colours.disabled};
   }
 `;
 
-const IconButton = styled(LightButton)`
+const IconButton = styled(NormalButton)`
   padding-left: var(--spacing-tiny);
   padding-right: var(--spacing-tiny);
 `;
 
-const Button = ({ className, style, disabled, children, onClick }: Props) => {
+interface Colours {
+  normal: string;
+  hover: string;
+  focused: string;
+  disabled: string;
+}
+
+const colours: { [colour: number]: Colours } = {
+  [ButtonColour.Normal]: {
+    normal: 'var(--colors-contentBackground-light)',
+    hover: 'var(--colors-contentBackground-light-focusable)',
+    focused: 'var(--colors-contentBackground-light-focused)',
+    disabled: 'var(--colors-contentBackground-light-disabled)',
+  },
+  [ButtonColour.Danger]: {
+    normal: 'var(--colors-contentBackground-danger)',
+    hover: 'var(--colors-contentBackground-danger-focusable)',
+    focused: 'var(--colors-contentBackground-danger-focused)',
+    disabled: 'var(--colors-contentBackground-danger-disabled)',
+  },
+};
+
+const Button = ({
+  className,
+  style,
+  colour,
+  disabled,
+  children,
+  onClick,
+}: Props) => {
   const click = () => {
     if (!disabled) {
       onClick();
     }
   };
-  const buttonStyle = style || ButtonStyle.Transparent;
+  const buttonStyle = style || ButtonStyle.Normal;
+  const buttonColours = colours[colour ?? ButtonColour.Normal];
   switch (buttonStyle) {
-    case ButtonStyle.Light:
-      return (
-        <LightButton className={className} disabled={disabled} onClick={click}>
-          {children}
-        </LightButton>
-      );
     case ButtonStyle.Icon:
       return (
-        <IconButton className={className} onClick={click}>
+        <IconButton
+          colours={buttonColours}
+          className={className}
+          onClick={click}
+        >
           {children}
         </IconButton>
       );
     case ButtonStyle.Transparent:
-    default:
       return (
         <TransparentButton className={className} onClick={click}>
           {children}
         </TransparentButton>
+      );
+    case ButtonStyle.Normal:
+    default:
+      return (
+        <NormalButton
+          colours={buttonColours}
+          className={className}
+          disabled={disabled}
+          onClick={click}
+        >
+          {children}
+        </NormalButton>
       );
   }
 };

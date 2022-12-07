@@ -1,17 +1,18 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { createRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PlusCircle } from 'react-feather';
 
 import styled, { css } from 'styled-components';
-import Button from '../../components/Button';
+import Button, { ButtonStyle } from '../../components/Button';
+import { useResources } from './resource.hook';
 import ResourceCard from './ResourceCard';
 
 export interface Resource {
   id: number;
   type?: string;
   name?: string;
-  nodeRef: React.RefObject<any>;
 }
+
 let resourceId = 1;
 
 const resources: Resource[] = [
@@ -19,31 +20,26 @@ const resources: Resource[] = [
     id: resourceId++,
     type: 'product',
     name: 'SomeProduct',
-    nodeRef: createRef(),
   },
   {
     id: resourceId++,
     type: 'product',
     name: 'OtherProduct',
-    nodeRef: createRef(),
   },
   {
     id: resourceId++,
     type: 'service',
     name: 'SomeService',
-    nodeRef: createRef(),
   },
   {
     id: resourceId++,
     type: 'member',
     name: 'SomeMember',
-    nodeRef: createRef(),
   },
   {
     id: resourceId++,
     type: 'order',
     name: 'Order',
-    nodeRef: createRef(),
   },
 ];
 
@@ -105,7 +101,7 @@ const ListItem = styled(motion.li)`
 const ResourceAdd = ({ onAdd }: AddProps) => {
   return (
     <AddWrapper>
-      <AddButton onClick={onAdd}>
+      <AddButton style={ButtonStyle.Transparent} onClick={onAdd}>
         Add resource <AddIcon size={18 * 1.2} />
       </AddButton>
     </AddWrapper>
@@ -151,6 +147,12 @@ const CloseOverlay = styled.div`
 const ResourceList = () => {
   const [values, setValues] = useState<Resource[]>(resources);
   const [maximised, setMaximised] = useState<number | undefined>(undefined);
+
+  const { loadResourceDefinitions } = useResources();
+  useEffect(() => {
+    loadResourceDefinitions();
+  }, [loadResourceDefinitions]);
+
   const onChange = (idx: number) => (resource: Resource) => {
     setValues([...values.slice(0, idx), resource, ...values.slice(idx + 1)]);
   };
@@ -163,7 +165,6 @@ const ResourceList = () => {
       ...values,
       {
         id: resourceId++,
-        nodeRef: createRef(),
       },
     ]);
   };
@@ -182,7 +183,7 @@ const ResourceList = () => {
           ...values.map((r, i) => (
             <ListItem
               key={r.id}
-              ref={r.nodeRef}
+              // ref={r.nodeRef}
               initial={{ height: '0px', overflowY: 'hidden' }}
               animate={{
                 height: 'unset',

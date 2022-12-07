@@ -1,1 +1,1 @@
-export { default, ButtonStyle } from './Button';
+export { default, ButtonStyle, ButtonColour } from './Button';

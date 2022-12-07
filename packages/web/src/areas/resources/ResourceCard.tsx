@@ -5,7 +5,7 @@ import CardComp from '../../components/Card';
 import Input from '../../components/Input';
 import Select from '../../components/Select';
 import { Resource } from './ResourceList';
-import Button, { ButtonStyle } from '../../components/Button';
+import Button, { ButtonStyle, ButtonColour } from '../../components/Button';
 import VisuallyHidden from '../../components/VisuallyHidden';
 import { motion } from 'framer-motion';
 
@@ -38,8 +38,8 @@ const ActionsWrapper = styled(motion.div)`
 `;
 
 const DeleteIcon = styled(Trash2)`
-  color: var(--colors-text-danger);
-  transition: color var(--transition-duration-font);
+  /* color: var(--colors-text-danger); */
+  /* transition: color var(--transition-duration-font); */
 `;
 
 interface CardProps {
@@ -94,7 +94,11 @@ const ResourceCard = ({
             <VisuallyHidden>Maximise resource details</VisuallyHidden>
             <Icon size={16} strokeWidth={3} />
           </Button>
-          <Button style={ButtonStyle.Icon} onClick={onDelete}>
+          <Button
+            style={ButtonStyle.Icon}
+            colour={ButtonColour.Danger}
+            onClick={onDelete}
+          >
             <VisuallyHidden>Delete desired state entry</VisuallyHidden>
             <DeleteIcon size={16} strokeWidth={3} />
           </Button>
