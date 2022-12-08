@@ -1,9 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PlusCircle } from 'react-feather';
 
 import styled, { css } from 'styled-components';
 import Button, { ButtonStyle } from '../../components/Button';
+import Card from '../../components/Card';
+import Placeholder from '../../components/Placeholder';
+import { ItemState } from '../../data';
 import { useResources } from './resource.hook';
 import ResourceCard from './ResourceCard';
 
@@ -15,30 +18,30 @@ export interface Resource {
 
 let resourceId = 1;
 
-const resources: Resource[] = [
+const resourceItems: Resource[] = [
   {
     id: resourceId++,
-    type: 'product',
+    type: 'Product',
     name: 'SomeProduct',
   },
   {
     id: resourceId++,
-    type: 'product',
+    type: 'Product',
     name: 'OtherProduct',
   },
   {
     id: resourceId++,
-    type: 'service',
+    type: 'Service',
     name: 'SomeService',
   },
   {
     id: resourceId++,
-    type: 'member',
+    type: 'Member',
     name: 'SomeMember',
   },
   {
     id: resourceId++,
-    type: 'order',
+    type: 'Order',
     name: 'Order',
   },
 ];
@@ -144,11 +147,26 @@ const CloseOverlay = styled.div`
   cursor: pointer;
 `;
 
+const PlaceholderResource = () => {
+  return (
+    <Card>
+      <Placeholder
+        placeholders={[
+          { heightRems: 1.5, widthPercentage: 60 },
+          { heightRems: 1.2, widthPercentage: 45 },
+          { heightRems: 1.2, widthPercentage: 40 },
+          { heightRems: 1.2, widthPercentage: 43 },
+        ]}
+      />
+    </Card>
+  );
+};
+
 const ResourceList = () => {
-  const [values, setValues] = useState<Resource[]>(resources);
+  const [values, setValues] = useState<Resource[]>(resourceItems);
   const [maximised, setMaximised] = useState<number | undefined>(undefined);
 
-  const { loadResourceDefinitions } = useResources();
+  const { loadResourceDefinitions, resources } = useResources();
   useEffect(() => {
     loadResourceDefinitions();
   }, [loadResourceDefinitions]);
@@ -175,6 +193,18 @@ const ResourceList = () => {
       setMaximised(idx);
     }
   };
+
+  if (resources.state !== ItemState.Completed) {
+    return (
+      <ul>
+        {[...new Array(5).keys()].map((i) => (
+          <ListItem key={i}>
+            <PlaceholderResource />
+          </ListItem>
+        ))}
+      </ul>
+    );
+  }
 
   return (
     <ul>

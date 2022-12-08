@@ -18,10 +18,10 @@ export const useResources = () => {
   const getResources = useCallback(() => {
     setResources(createLoading());
 
-    fetch<ResourceResponse[]>('/v1/resource', {
+    fetch<{ resources: ResourceResponse[] }>('/v1/resource', {
       method: 'GET',
     })
-      .then((resources) => setResources(createCompleted(resources)))
+      .then((resp) => setResources(createCompleted(resp.resources)))
       .catch((err) => createErrored(err));
   }, [fetch, setResources]);
 
@@ -34,5 +34,6 @@ export const useResources = () => {
   }, [isUninitialised, getResources]);
   return {
     loadResourceDefinitions,
+    resources,
   };
 };

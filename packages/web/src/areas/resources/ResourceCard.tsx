@@ -9,6 +9,8 @@ import Button, { ButtonStyle, ButtonColour } from '../../components/Button';
 import VisuallyHidden from '../../components/VisuallyHidden';
 import { motion } from 'framer-motion';
 import { useEffect, useRef } from 'react';
+import { useResources } from './resource.hook';
+import { ItemState } from '../../data';
 
 interface Props {
   resource: Resource;
@@ -17,13 +19,6 @@ interface Props {
   onMaximiseToggle: () => void;
   maximised?: boolean;
 }
-
-const typeMap: { [type: string]: string } = {
-  product: 'Product',
-  service: 'Service',
-  member: 'Member',
-  order: 'Order',
-};
 
 const Header = styled.div`
   display: flex;
@@ -36,11 +31,6 @@ const ActionsWrapper = styled(motion.div)`
   display: flex;
   gap: var(--spacing-tiny);
   margin-left: auto;
-`;
-
-const DeleteIcon = styled(Trash2)`
-  /* color: var(--colors-text-danger); */
-  /* transition: color var(--transition-duration-font); */
 `;
 
 interface CardProps {
@@ -60,6 +50,8 @@ const ResourceCard = ({
   onMaximiseToggle,
   maximised,
 }: Props) => {
+  const { resources } = useResources();
+
   const maximisedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (maximisedRef && maximisedRef.current && maximised) {
@@ -74,6 +66,12 @@ const ResourceCard = ({
       return () => current.removeEventListener('focusout', listener);
     }
   }, [maximisedRef, maximised, onMaximiseToggle]);
+
+  if (resources.state !== ItemState.Completed) {
+    return null;
+  }
+
+  const types = resources.value.map((r) => r.name);
 
   const onTypeChange = (type: string) =>
     onChange({
@@ -90,9 +88,9 @@ const ResourceCard = ({
       <Header>
         <motion.div layout="position">
           <Select label="Type" value={resource.type} onChange={onTypeChange}>
-            {Object.keys(typeMap).map((key, i) => (
+            {types.map((key) => (
               <option value={key} key={key}>
-                {typeMap[key]}
+                {key}
               </option>
             ))}
           </Select>
@@ -116,13 +114,13 @@ const ResourceCard = ({
             onClick={onDelete}
           >
             <VisuallyHidden>Delete desired state entry</VisuallyHidden>
-            <DeleteIcon size={16} strokeWidth={3} />
+            <Trash2 size={16} strokeWidth={3} />
           </Button>
         </ActionsWrapper>
       </Header>
 
       <motion.div layout="position">
-        {resource.type ? typeMap[resource.type] : '(type not selected)'}
+        {resource.type ?? '(type not selected)'}
         <br />
         {resource.name ?? '(no name)'}
       </motion.div>

@@ -20,6 +20,7 @@ const mapPropertyMap = (propertyMap: PropertyMap): PropertyMapResponse =>
 export const mapResourceToResponse = (
   resource: Resource<PropertyMap, PropertyMap>
 ): ResourceResponse => ({
+  name: resource.constructor.name,
   inputs: mapPropertyMap(resource.inputs),
   outputs: mapPropertyMap(resource.outputs),
 });

@@ -9,6 +9,7 @@ export interface PropertyMapResponse {
 }
 
 export interface ResourceResponse {
+  name: string;
   inputs: PropertyMapResponse;
   outputs: PropertyMapResponse;
 }
