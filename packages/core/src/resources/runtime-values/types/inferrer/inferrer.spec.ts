@@ -18,7 +18,7 @@ import {
   primative,
   Type,
   array,
-  complex,
+  complexObject,
   func,
   createUnion,
   anyType,
@@ -59,7 +59,7 @@ describe('Inferrer', () => {
         [new Variable(identifier(varName)), array(primative(Type.Boolean))],
         [
           new Variable(identifier(varName)),
-          complex({ test: primative(Type.Boolean) }),
+          complexObject({ test: primative(Type.Boolean) }),
         ],
       ];
 
@@ -92,7 +92,7 @@ describe('Inferrer', () => {
       const propName = 'prop';
       const propType = array(primative(Type.Date));
       const objVar = 'obj';
-      const objType = complex({ [propName]: propType });
+      const objType = complexObject({ [propName]: propType });
 
       // Act
       const type = inferType(
@@ -108,7 +108,7 @@ describe('Inferrer', () => {
       // Arrange
       const propName = 'nonExistent';
       const objVar = 'obj';
-      const objType = complex({ otherProp: array(primative(Type.Date)) });
+      const objType = complexObject({ otherProp: array(primative(Type.Date)) });
 
       // Act
       const type = inferType(
@@ -236,7 +236,7 @@ describe('Inferrer', () => {
           [Type.Boolean, Type.Number, Type.String, Type.Date] as PrimativeType[]
         ).map((t) => primative(t)),
         array(primative(Type.Boolean)),
-        complex({ field: primative(Type.String) }),
+        complexObject({ field: primative(Type.String) }),
         nullType,
         undefinedType,
       ];
@@ -257,7 +257,7 @@ describe('Inferrer', () => {
       // Arrange
       const funcVar = 'func';
       const objectWithStringOrNullName = 'stringOrUndefinedObj';
-      const objectWithStringOrNullProp = complex({
+      const objectWithStringOrNullProp = complexObject({
         field: createUnion(undefinedType, primative(Type.String)),
       });
 
@@ -340,7 +340,7 @@ describe('Inferrer', () => {
       // Arrange
       const signatures: Signature[] = [
         {
-          parameters: [complex({ test: undefinedType })],
+          parameters: [complexObject({ test: undefinedType })],
           returnType: array(primative(Type.Date)),
         },
         {
@@ -390,7 +390,7 @@ describe('Inferrer', () => {
             new ObjectConstructor([[identifier('test'), new Literal(8.1)]]),
             new ObjectConstructor([[identifier('test'), new Literal(2)]]),
           ],
-          complex({ test: primative(Type.Number) }),
+          complexObject({ test: primative(Type.Number) }),
         ],
       ];
 
@@ -490,7 +490,7 @@ describe('Inferrer', () => {
 
       // Assert
       expect(result).toEqual(
-        complex({
+        complexObject({
           string: primative(Type.String),
           number: primative(Type.Number),
           bool: primative(Type.Boolean),
@@ -498,7 +498,7 @@ describe('Inferrer', () => {
           undefined: undefinedType,
           null: nullType,
           array: array(primative(Type.Number)),
-          nestedObject: complex({ number: primative(Type.Number) }),
+          nestedObject: complexObject({ number: primative(Type.Number) }),
           variable: varType,
         })
       );

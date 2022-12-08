@@ -55,7 +55,10 @@ export abstract class Resource<
   Inputs extends PropertyMap,
   Outputs extends PropertyMap
 > {
-  constructor(public inputs: Inputs, public outputs: Outputs) {}
+  public name: string;
+  constructor(public inputs: Inputs, public outputs: Outputs, name?: string) {
+    this.name = name ?? this.constructor.name;
+  }
   abstract create(
     inputs: ResolvedValues<Inputs>
   ): Promise<OutputValues<Outputs>>;

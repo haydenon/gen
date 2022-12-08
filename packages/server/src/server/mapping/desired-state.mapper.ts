@@ -38,9 +38,7 @@ export const getContextForDesiredState = (
       return acc;
     }
 
-    const resource = resources.find(
-      (r) => r.constructor.name === stateItem._type
-    );
+    const resource = resources.find((r) => r.name === stateItem._type);
     const createError = () =>
       new Error(
         `Invalid state item: resource type '${stateItem._type}' does not exist.`
@@ -93,7 +91,7 @@ export function getMapper(
 ): DesiredStateMapper {
   return (state: StateItem, context: DesiredStateContext) => {
     const { _type, _name, ...userSuppliedInputs } = state;
-    const resource = resources.find((r) => r.constructor.name === state._type);
+    const resource = resources.find((r) => r.name === state._type);
     if (!resource) {
       return [
         new Error(

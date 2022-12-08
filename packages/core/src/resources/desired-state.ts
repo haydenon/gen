@@ -19,7 +19,7 @@ export function createDesiredState<
   inputs: Partial<InputValues<Res['inputs']>>,
   name?: string
 ): DesiredState<Res> {
-  const resourceType = resource.constructor.name;
+  const resourceType = resource.name;
   let stateName;
   if (name) {
     stateName = name;

@@ -80,7 +80,7 @@ export function mapDesiredStateToResponse(
 ): DesiredStateItem {
   return {
     _name: desired.name,
-    _type: desired.resource.constructor.name,
+    _type: desired.resource.name,
     ...removeSpecialFields(desired.inputs, desired.resource.inputs),
   };
 }
@@ -96,7 +96,7 @@ export function mapResourceInstanceToResponse(
 ): CreatedStateItem {
   return {
     _name: instance.desiredState.name,
-    _type: instance.desiredState.resource.constructor.name,
+    _type: instance.desiredState.resource.name,
     ...removeSpecialFields(instance.outputs),
   };
 }

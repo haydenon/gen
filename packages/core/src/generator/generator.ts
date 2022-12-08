@@ -198,7 +198,7 @@ export class Generator {
       const timerId = setTimeout(() => {
         rej(
           new Error(
-            `Creating desired state item '${state.name}' of resource '${state.resource.constructor.name}' timed out`
+            `Creating desired state item '${state.name}' of resource '${state.resource.name}' timed out`
           )
         );
       }, timeout);

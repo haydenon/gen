@@ -162,7 +162,7 @@ function fillInInput(
     // TODO: Make sure error is reported correctly
     if (currentInput === key) {
       throw new Error(
-        `Circular property generation from property '${currentInput}' on resource '${stateAndConstraints.state.resource.constructor.name}'`
+        `Circular property generation from property '${currentInput}' on resource '${stateAndConstraints.state.resource.name}'`
       );
     }
 
