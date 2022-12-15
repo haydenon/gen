@@ -1,9 +1,8 @@
-export { Resource, PropertiesBase } from './resource';
+export { Resource, PropertiesBase, ResourceGroup } from './resource';
 export type {
   PropertyValues,
   ResolvedValues,
   OutputValues,
-  ResourceGroup,
   PropertyMap,
 } from './resource';
 export {
@@ -19,6 +18,7 @@ export {
   array,
   complex,
   lookup,
+  Type,
 } from './properties/properties';
 export type { PropertyType, PropertyDefinition } from './properties/properties';
 export {
@@ -35,6 +35,7 @@ export {
   mapValues,
   mapPropTypeToExprType,
   complexObject,
+  outputExprType,
 } from './runtime-values';
 export type { ExprType } from './runtime-values';
 export {
@@ -43,3 +44,4 @@ export {
   generator,
   parentConstraint,
 } from './properties/constraints';
+export type { Constraint } from './properties/constraints';

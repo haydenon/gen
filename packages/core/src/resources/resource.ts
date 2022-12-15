@@ -45,6 +45,7 @@ export interface ResourceGroupItem<
   Inputs extends PropertyMap,
   Outputs extends PropertyMap
 > {
+  name: string;
   inputs: Inputs;
   outputs: Outputs;
 
@@ -65,15 +66,21 @@ export abstract class Resource<
   createTimeoutMillis?: number;
 }
 
-export type ResourceGroup<
+export abstract class ResourceGroup<
   In extends PropertyMap,
   Out extends PropertyMap
-> = ResourceGroupItem<In, Out>[];
+> {
+  public name: string;
+  constructor(public items: ResourceGroupItem<In, Out>[], name?: string) {
+    this.name = name ?? this.constructor.name;
+  }
+}
 
 export interface ResourceOrGroupItem<
   Inputs extends PropertyMap,
   Outputs extends PropertyMap
 > {
+  name: string;
   inputs: Inputs;
   outputs: Outputs;
 }

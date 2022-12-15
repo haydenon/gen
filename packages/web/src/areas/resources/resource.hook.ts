@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useRecoilState } from 'recoil';
 import {
   createCompleted,
@@ -32,8 +32,30 @@ export const useResources = () => {
 
     getResources();
   }, [isUninitialised, getResources]);
+
+  const getResource = useCallback(
+    (name: string) => {
+      if (resources.state !== ItemState.Completed) {
+        return undefined;
+      }
+
+      return resources.value.find((r) => r.name === name);
+    },
+    [resources]
+  );
+
+  const resourceNames = useMemo(() => {
+    if (resources.state !== ItemState.Completed) {
+      return [];
+    }
+
+    return resources.value.map((r) => r.name);
+  }, [resources]);
+
   return {
     loadResourceDefinitions,
     resources,
+    getResource,
+    resourceNames,
   };
 };

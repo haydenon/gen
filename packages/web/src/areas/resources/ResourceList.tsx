@@ -213,7 +213,6 @@ const ResourceList = () => {
           ...values.map((r, i) => (
             <ListItem
               key={r.id}
-              // ref={r.nodeRef}
               initial={{ height: '0px', overflowY: 'hidden' }}
               animate={{
                 height: 'unset',

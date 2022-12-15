@@ -11,6 +11,8 @@ export {
   array,
   complex,
   lookup,
+  Type,
 } from './properties';
 export { validateInputValue, validateInputValues } from './validation';
 export { dependentGenerator, generator, GenerationResult } from './constraints';
+export type { Constraint } from './constraints';

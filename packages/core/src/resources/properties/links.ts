@@ -147,7 +147,7 @@ export interface ParentCreationConstraint {
 type OutputsForResourceOrGroup<T> = T extends Resource<PropertyMap, PropertyMap>
   ? T['outputs']
   : T extends ResourceGroup<PropertyMap, PropertyMap>
-  ? T[0]['outputs']
+  ? T['items'][0]['outputs']
   : never;
 
 type BaseLinkType<Prop extends PropertyDefinition<any>> =
@@ -173,8 +173,8 @@ export function getLink<
 >(
   resources: ResGroup,
   accessor: (res: OutputsForResourceOrGroup<ResGroup>) => PropertyDefinition<T>,
-  constraint?: LinkConstraint<ResGroup[0]>
-): LinkOfType<ResGroup[0], BaseLinkType<Prop>, true>;
+  constraint?: LinkConstraint<ResGroup['items'][0]>
+): LinkOfType<ResGroup['items'][0], BaseLinkType<Prop>, true>;
 export function getLink<
   Res extends ResourceOrGroupItem<PropertyMap, PropertyMap>,
   T,
@@ -205,8 +205,8 @@ export function getOptionalLink<
   resources: ResGroup,
   accessor: (res: OutputsForResourceOrGroup<ResGroup>) => PropertyDefinition<T>,
   mode: ParentCreationMode,
-  constraint?: LinkConstraint<ResGroup[0]>
-): LinkOfType<ResGroup[0], BaseLinkType<Prop>, false>;
+  constraint?: LinkConstraint<ResGroup['items'][0]>
+): LinkOfType<ResGroup['items'][0], BaseLinkType<Prop>, false>;
 export function getOptionalLink<
   Res extends ResourceOrGroupItem<PropertyMap, PropertyMap>,
   T,
@@ -263,8 +263,8 @@ function getLinkBase<
   }
 
   const resourceOutputs =
-    resources instanceof Array
-      ? (resources as ResourceGroup<any, any>)[0].outputs
+    resources instanceof ResourceGroup
+      ? (resources as ResourceGroup<any, any>).items[0].outputs
       : resources.outputs;
   const outputProperty = accessor(resourceOutputs);
   const linkedProperty: Prop = outputProperty;

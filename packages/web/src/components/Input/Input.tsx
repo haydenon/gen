@@ -25,22 +25,55 @@ const CustomInput = styled.input`
   }
 `;
 
-interface Props {
-  placeholder?: string;
+export enum InputType {
+  String = 'String',
+  Number = 'Number',
+}
+
+interface BaseProps {
+  type?: InputType;
   label: string;
+  className?: string;
+}
+
+interface StringProps extends BaseProps {
+  type?: InputType.String;
+  placeholder?: string;
   value?: string;
   onChange: (value: string) => void;
 }
 
-const Input = ({ placeholder, label, value, onChange }: Props) => {
+interface NumberProps extends BaseProps {
+  type: InputType.Number;
+  placeholder?: number;
+  value?: number;
+  onChange: (value: number) => void;
+}
+
+type Props = StringProps | NumberProps;
+
+const Input = ({
+  className,
+  placeholder,
+  label,
+  value,
+  onChange,
+  type,
+}: Props) => {
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const newValue = event.target.value;
-    onChange(newValue);
+    if (type === InputType.Number) {
+      // TODO: Better number handling
+      onChange(parseInt(newValue));
+    } else {
+      onChange(newValue);
+    }
   };
   return (
     <Label label={label}>
       <CustomInput
-        placeholder={placeholder}
+        className={className}
+        placeholder={placeholder?.toString()}
         value={value}
         onChange={handleChange}
       />

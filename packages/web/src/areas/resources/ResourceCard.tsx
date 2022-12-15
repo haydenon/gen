@@ -7,10 +7,10 @@ import Select from '../../components/Select';
 import { Resource } from './ResourceList';
 import Button, { ButtonStyle, ButtonColour } from '../../components/Button';
 import VisuallyHidden from '../../components/VisuallyHidden';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 import { useResources } from './resource.hook';
-import { ItemState } from '../../data';
+import ResourceField from './fields/ResourceField';
 
 interface Props {
   resource: Resource;
@@ -25,6 +25,7 @@ const Header = styled.div`
   justify-content: flex-start;
   gap: var(--spacing-small);
   align-items: flex-end;
+  padding-bottom: var(--spacing-large);
 `;
 
 const ActionsWrapper = styled(motion.div)`
@@ -43,6 +44,17 @@ const Card = styled(CardComp)<CardProps>`
   position: ${(props) => (props.maximised ? 'relative' : 'unset')};
 `;
 
+const ListItem = styled.li`
+  list-style: none;
+  &:not(:last-child) {
+    padding-bottom: var(--spacing-small);
+  }
+`;
+
+const List = styled.ul`
+  padding-left: 0;
+`;
+
 const ResourceCard = ({
   resource,
   onChange,
@@ -50,7 +62,7 @@ const ResourceCard = ({
   onMaximiseToggle,
   maximised,
 }: Props) => {
-  const { resources } = useResources();
+  const { resourceNames, getResource } = useResources();
 
   const maximisedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -58,7 +70,7 @@ const ResourceCard = ({
       const current = maximisedRef.current;
       const listener = (event: FocusEvent) => {
         if (!current.matches(':focus-within')) {
-          onMaximiseToggle();
+          // onMaximiseToggle();
         }
       };
       current.addEventListener('focusout', listener);
@@ -67,11 +79,13 @@ const ResourceCard = ({
     }
   }, [maximisedRef, maximised, onMaximiseToggle]);
 
-  if (resources.state !== ItemState.Completed) {
-    return null;
-  }
+  const resourceDefinitionInputMap = resource.type
+    ? getResource(resource.type)?.inputs ?? {}
+    : {};
 
-  const types = resources.value.map((r) => r.name);
+  const resourceDefinitionInputs = Object.keys(resourceDefinitionInputMap).map(
+    (key) => resourceDefinitionInputMap[key]
+  );
 
   const onTypeChange = (type: string) =>
     onChange({
@@ -88,7 +102,7 @@ const ResourceCard = ({
       <Header>
         <motion.div layout="position">
           <Select label="Type" value={resource.type} onChange={onTypeChange}>
-            {types.map((key) => (
+            {resourceNames.map((key) => (
               <option value={key} key={key}>
                 {key}
               </option>
@@ -119,11 +133,38 @@ const ResourceCard = ({
         </ActionsWrapper>
       </Header>
 
-      <motion.div layout="position">
-        {resource.type ?? '(type not selected)'}
-        <br />
-        {resource.name ?? '(no name)'}
-      </motion.div>
+      {maximised ? null : (
+        <motion.div layout="position">
+          {resource.type ?? '(type not selected)'}
+          <br />
+          {resource.name ?? '(no name)'}
+        </motion.div>
+      )}
+      {maximised && resourceDefinitionInputs.length ? (
+        <motion.div
+          layout="position"
+          initial={{ height: '0px', overflowY: 'hidden' }}
+          animate={{
+            height: 'unset',
+            overflowY: 'unset',
+          }}
+          exit={{
+            height: '0px',
+            overflowY: 'hidden',
+            transition: { duration: 0.3 },
+          }}
+        >
+          <List>
+            <AnimatePresence>
+              {resourceDefinitionInputs.map((input) => (
+                <ListItem key={input.name}>
+                  <ResourceField value={''} fieldDefinition={input} />
+                </ListItem>
+              ))}
+            </AnimatePresence>
+          </List>
+        </motion.div>
+      ) : null}
     </Card>
   );
 };
