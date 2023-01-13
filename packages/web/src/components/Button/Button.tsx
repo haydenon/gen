@@ -9,6 +9,7 @@ export enum ButtonStyle {
 export enum ButtonColour {
   Normal = 1,
   Danger = 2,
+  Warn = 3,
 }
 
 interface Props {
@@ -97,6 +98,12 @@ const colours: { [colour: number]: Colours } = {
     hover: 'var(--colors-contentBackground-danger-focusable)',
     focused: 'var(--colors-contentBackground-danger-focused)',
     disabled: 'var(--colors-contentBackground-danger-disabled)',
+  },
+  [ButtonColour.Warn]: {
+    normal: 'var(--colors-contentBackground-warn)',
+    hover: 'var(--colors-contentBackground-warn-focusable)',
+    focused: 'var(--colors-contentBackground-warn-focused)',
+    disabled: 'var(--colors-contentBackground-warn-disabled)',
   },
 };
 

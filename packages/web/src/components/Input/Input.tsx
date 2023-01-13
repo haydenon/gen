@@ -2,6 +2,7 @@ import styled from 'styled-components';
 import Label from '../Label';
 
 const CustomInput = styled.input`
+  width: 100%; // Take up size of label
   font-size: 1rem;
   padding: var(--spacing-tiny) var(--spacing-small);
   border: none;
@@ -70,9 +71,8 @@ const Input = ({
     }
   };
   return (
-    <Label label={label}>
+    <Label className={className} label={label}>
       <CustomInput
-        className={className}
         placeholder={placeholder?.toString()}
         value={value}
         onChange={handleChange}

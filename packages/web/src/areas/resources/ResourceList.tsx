@@ -21,6 +21,11 @@ let resourceId = 1;
 const resourceItems: Resource[] = [
   {
     id: resourceId++,
+    type: 'Service',
+    name: 'SomeService',
+  },
+  {
+    id: resourceId++,
     type: 'Product',
     name: 'SomeProduct',
   },
@@ -28,11 +33,6 @@ const resourceItems: Resource[] = [
     id: resourceId++,
     type: 'Product',
     name: 'OtherProduct',
-  },
-  {
-    id: resourceId++,
-    type: 'Service',
-    name: 'SomeService',
   },
   {
     id: resourceId++,

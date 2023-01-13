@@ -5,8 +5,8 @@ import { InputType } from '../../../components/Input/Input';
 import FieldInput from './FieldInput';
 import { BaseInputProps } from './props';
 
-const NumInput = styled(FieldInput)`
-  width: clamp(200px, 80%, 300px);
+const Wrapper = styled.div`
+  flex: 0 1 300px;
 `;
 
 interface Props extends BaseInputProps {
@@ -17,12 +17,14 @@ interface Props extends BaseInputProps {
 
 const NumberInput = ({ type, value, name, onChange }: Props) => {
   return (
-    <NumInput
-      type={InputType.Number}
-      label={name}
-      value={value ?? 0}
-      onChange={onChange}
-    />
+    <Wrapper>
+      <FieldInput
+        type={InputType.Number}
+        label={name}
+        value={value ?? 0}
+        onChange={onChange}
+      />
+    </Wrapper>
   );
 };
 

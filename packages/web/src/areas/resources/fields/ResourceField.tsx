@@ -1,13 +1,17 @@
 import { Type } from '@haydenon/gen-core';
+import { Minus } from 'react-feather';
 import {
   PropertyDefinitionResponse,
   PropertyTypeResponse,
 } from '@haydenon/gen-server';
+import Button, { ButtonColour, ButtonStyle } from '../../../components/Button';
+import VisuallyHidden from '../../../components/VisuallyHidden';
 import ArrayInput from './ArrayInput';
 
 import NumberInput from './NumberInput';
 import { BaseInputProps } from './props';
 import StringInput from './StringInput';
+import styled from 'styled-components';
 
 const getDisplayName = (response: PropertyDefinitionResponse) => {
   const name = response.name;
@@ -80,16 +84,34 @@ interface RootProps {
   value: any;
 }
 
+const FieldActions = styled.div`
+  flex: 0 1 auto;
+  display: flex;
+  align-items: flex-end;
+`;
+
 const ResourceField = ({ fieldDefinition, value }: RootProps) => {
   const displayName = getDisplayName(fieldDefinition);
   return (
-    <InputForType
-      type={fieldDefinition.type}
-      name={displayName}
-      undefinable={false}
-      nullable={false}
-      value={value}
-    />
+    <>
+      <InputForType
+        type={fieldDefinition.type}
+        name={displayName}
+        undefinable={false}
+        nullable={false}
+        value={value}
+      />
+      <FieldActions>
+        <Button
+          style={ButtonStyle.Icon}
+          colour={ButtonColour.Warn}
+          onClick={console.log}
+        >
+          <VisuallyHidden>Remove specifed field</VisuallyHidden>
+          <Minus size={16} strokeWidth={3} />
+        </Button>
+      </FieldActions>
+    </>
   );
 };
 

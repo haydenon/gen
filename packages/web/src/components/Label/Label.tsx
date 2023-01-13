@@ -11,11 +11,12 @@ const LabelText = styled.div`
 interface Props {
   label: string;
   children: React.ReactNode | React.ReactNode[];
+  className?: string;
 }
 
-const Label = ({ label, children }: Props) => {
+const Label = ({ className, label, children }: Props) => {
   return (
-    <Wrapper>
+    <Wrapper className={className}>
       <LabelText>{label}</LabelText>
       {children}
     </Wrapper>

@@ -45,6 +45,9 @@ const Card = styled(CardComp)<CardProps>`
 `;
 
 const ListItem = styled.li`
+  display: flex;
+  gap: var(--spacing-small);
+
   list-style: none;
   &:not(:last-child) {
     padding-bottom: var(--spacing-small);
@@ -142,6 +145,7 @@ const ResourceCard = ({
       )}
       {maximised && resourceDefinitionInputs.length ? (
         <motion.div
+          key={resource.type}
           layout="position"
           initial={{ height: '0px', overflowY: 'hidden' }}
           animate={{
