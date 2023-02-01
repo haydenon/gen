@@ -47,7 +47,7 @@ const darkTheme = css`
   --colors-background: hsl(200deg 15% 10%);
   --colors-background-focusable: hsl(200deg 15% 18%);
   --colors-background-focused: hsl(200deg 15% 14%);
-  --colors-shadow: hsl(200deg 15% 9%);
+  --colors-shadow: hsl(200deg 15% 7%);
 
   /* Content background  */
   --colors-contentBackground: hsl(200deg 5% 20%);
