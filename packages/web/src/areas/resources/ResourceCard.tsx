@@ -13,6 +13,7 @@ import { useResources } from './resource.hook';
 import ResourceField from './fields/ResourceField';
 import { PropertyDefinitionResponse } from '@haydenon/gen-server';
 import { Menu, MenuButton, MenuItem, MenuList } from '@reach/menu-button';
+import { buttonCommonStyles } from '../../components/Button/Button';
 
 interface Props {
   resource: DesiredResource;
@@ -65,12 +66,6 @@ const AddIcon = styled(PlusCircle)`
   margin-left: var(--spacing-tiny);
 `;
 
-const AddButton = styled(Button)`
-  padding-left: var(--spacing-small);
-  padding-right: var(--spacing-small);
-  display: flex;
-`;
-
 interface FieldProps {
   resource: DesiredResource;
   field: PropertyDefinitionResponse;
@@ -117,6 +112,23 @@ const SelectMenuItem = styled(MenuItem)`
   }
 `;
 
+const SelectMenuButton = styled(MenuButton)`
+  ${buttonCommonStyles}
+  background-color: hsla(0deg 0% 0% / 0%);
+
+  &:hover {
+    background: var(--colors-button-transparent-hover);
+  }
+
+  &:active {
+    background: var(--colors-button-transparent-active);
+  }
+
+  padding-left: var(--spacing-small);
+  padding-right: var(--spacing-small);
+  display: flex;
+`;
+
 interface AddFieldProps {
   unspecifiedProperties: string[];
   onSpecifyField: (field: string) => void;
@@ -128,11 +140,11 @@ const AddSpecifiedField = ({
 }: AddFieldProps) => {
   return (
     <Menu>
-      <MenuButton as="div">
-        <AddButton buttonStyle={ButtonStyle.Transparent} onClick={() => {}}>
-          Specify property <AddIcon size={18} />
-        </AddButton>
-      </MenuButton>
+      <SelectMenuButton>
+        {/* <AddButton buttonStyle={ButtonStyle.Transparent} onClick={() => {}}> */}
+        Specify property <AddIcon size={18} />
+        {/* </AddButton> */}
+      </SelectMenuButton>
       <SelectMenu>
         {unspecifiedProperties.map((prop) => (
           <SelectMenuItem key={prop} onSelect={() => onSpecifyField(prop)}>
@@ -271,7 +283,7 @@ const ResourceCard = ({
                 ></ResourceFieldItem>
               ))}
               {unspecifiedProperties.length > 0 ? (
-                <ListItem>
+                <ListItem key="add-specified-field">
                   <AddSpecifiedField
                     unspecifiedProperties={unspecifiedProperties.map(
                       (p) => p.name
@@ -280,7 +292,7 @@ const ResourceCard = ({
                   />
                 </ListItem>
               ) : (
-                <ListItem>All properties specified </ListItem>
+                <ListItem key="all-added">All properties specified </ListItem>
               )}
             </AnimatePresence>
           </List>
