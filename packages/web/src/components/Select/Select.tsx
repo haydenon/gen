@@ -36,6 +36,7 @@ const CustomSelect = styled.div`
   color: var(--colors-text);
   transition: color var(--transition-duration-font);
   font-size: ${16 / 16}rem;
+  line-height: var(--typography-lineHeight);
   ${NativeSelect}:focus + & {
     outline: 2px solid #4374cb;
     outline: 5px auto -webkit-focus-ring-color;

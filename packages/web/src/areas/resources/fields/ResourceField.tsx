@@ -82,6 +82,7 @@ export const InputForType = ({ type, value, ...baseProps }: TypeProps) => {
 interface RootProps {
   fieldDefinition: PropertyDefinitionResponse;
   value: any;
+  onRemoveField: () => void;
 }
 
 const FieldActions = styled.div`
@@ -90,7 +91,11 @@ const FieldActions = styled.div`
   align-items: flex-end;
 `;
 
-const ResourceField = ({ fieldDefinition, value }: RootProps) => {
+const ResourceField = ({
+  fieldDefinition,
+  value,
+  onRemoveField,
+}: RootProps) => {
   const displayName = getDisplayName(fieldDefinition);
   return (
     <>
@@ -105,7 +110,7 @@ const ResourceField = ({ fieldDefinition, value }: RootProps) => {
         <Button
           style={ButtonStyle.Icon}
           colour={ButtonColour.Warn}
-          onClick={console.log}
+          onClick={onRemoveField}
         >
           <VisuallyHidden>Remove specifed field</VisuallyHidden>
           <Minus size={16} strokeWidth={3} />

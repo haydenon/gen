@@ -4,17 +4,18 @@ import { Trash2, Maximize2, Minimize2 } from 'react-feather';
 import CardComp from '../../components/Card';
 import Input from '../../components/Input';
 import Select from '../../components/Select';
-import { Resource } from './ResourceList';
+import { DesiredResource } from './ResourceList';
 import Button, { ButtonStyle, ButtonColour } from '../../components/Button';
 import VisuallyHidden from '../../components/VisuallyHidden';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 import { useResources } from './resource.hook';
 import ResourceField from './fields/ResourceField';
+import { PropertyDefinitionResponse } from '@haydenon/gen-server';
 
 interface Props {
-  resource: Resource;
-  onChange: (resource: Resource) => void;
+  resource: DesiredResource;
+  onChange: (resource: DesiredResource) => void;
   onDelete: () => void;
   onMaximiseToggle: () => void;
   maximised?: boolean;
@@ -58,6 +59,32 @@ const List = styled.ul`
   padding-left: 0;
 `;
 
+interface FieldProps {
+  resource: DesiredResource;
+  field: PropertyDefinitionResponse;
+  onRemoveSpecified: () => void;
+}
+
+const ResourceFieldItem = ({
+  resource,
+  field,
+  onRemoveSpecified,
+}: FieldProps) => {
+  if (!(field.name in resource.fieldData)) {
+    return null;
+  }
+
+  return (
+    <ListItem>
+      <ResourceField
+        value={resource.fieldData[field.name]}
+        fieldDefinition={field}
+        onRemoveField={onRemoveSpecified}
+      />
+    </ListItem>
+  );
+};
+
 const ResourceCard = ({
   resource,
   onChange,
@@ -73,6 +100,7 @@ const ResourceCard = ({
       const current = maximisedRef.current;
       const listener = (event: FocusEvent) => {
         if (!current.matches(':focus-within')) {
+          // TODO: Re-enable/tweak to capture focus inside
           // onMaximiseToggle();
         }
       };
@@ -99,6 +127,12 @@ const ResourceCard = ({
   const onNameChange = (name: string) => onChange({ ...resource, name });
 
   const Icon = maximised ? Minimize2 : Maximize2;
+
+  const onFieldRemoval = (field: string) => () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { [field]: _,  ...otherFields } = resource.fieldData;
+    onChange({ ...resource, fieldData: otherFields });
+  };
 
   return (
     <Card cardRef={maximisedRef} maximised={maximised ?? false}>
@@ -146,7 +180,6 @@ const ResourceCard = ({
       {maximised && resourceDefinitionInputs.length ? (
         <motion.div
           key={resource.type}
-          // layout="position"
           initial={{ height: '0px', overflowY: 'hidden' }}
           animate={{
             height: 'unset',
@@ -162,9 +195,12 @@ const ResourceCard = ({
           <List>
             <AnimatePresence>
               {resourceDefinitionInputs.map((input) => (
-                <ListItem key={input.name}>
-                  <ResourceField value={''} fieldDefinition={input} />
-                </ListItem>
+                <ResourceFieldItem
+                  key={input.name}
+                  resource={resource}
+                  field={input}
+                  onRemoveSpecified={onFieldRemoval(input.name)}
+                ></ResourceFieldItem>
               ))}
             </AnimatePresence>
           </List>

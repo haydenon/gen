@@ -7,44 +7,16 @@ import Button, { ButtonStyle } from '../../components/Button';
 import Card from '../../components/Card';
 import Placeholder from '../../components/Placeholder';
 import { ItemState } from '../../data';
+import { useDesiredResources } from './desired-resource.hook';
 import { useResources } from './resource.hook';
 import ResourceCard from './ResourceCard';
 
-export interface Resource {
+export interface DesiredResource {
   id: number;
   type?: string;
   name?: string;
+  fieldData: { [property: string]: any };
 }
-
-let resourceId = 1;
-
-const resourceItems: Resource[] = [
-  {
-    id: resourceId++,
-    type: 'Service',
-    name: 'SomeService',
-  },
-  {
-    id: resourceId++,
-    type: 'Product',
-    name: 'SomeProduct',
-  },
-  {
-    id: resourceId++,
-    type: 'Product',
-    name: 'OtherProduct',
-  },
-  {
-    id: resourceId++,
-    type: 'Member',
-    name: 'SomeMember',
-  },
-  {
-    id: resourceId++,
-    type: 'Order',
-    name: 'Order',
-  },
-];
 
 const AddWrapper = styled.div`
   display: flex;
@@ -163,7 +135,8 @@ const PlaceholderResource = () => {
 };
 
 const ResourceList = () => {
-  const [values, setValues] = useState<Resource[]>(resourceItems);
+  const { desiredResources, updateResource, deleteResource, addResource } =
+    useDesiredResources();
   const [maximised, setMaximised] = useState<number | undefined>(undefined);
 
   const { loadResourceDefinitions, resources } = useResources();
@@ -171,20 +144,15 @@ const ResourceList = () => {
     loadResourceDefinitions();
   }, [loadResourceDefinitions]);
 
-  const onChange = (idx: number) => (resource: Resource) => {
-    setValues([...values.slice(0, idx), resource, ...values.slice(idx + 1)]);
+  const onChange = (resource: DesiredResource) => {
+    updateResource(resource);
   };
-  const onDelete = (idx: number) => () => {
+  const onDelete = (id: number) => () => {
     setMaximised(undefined);
-    setValues([...values.slice(0, idx), ...values.slice(idx + 1)]);
+    deleteResource(id);
   };
   const onAdd = () => {
-    setValues([
-      ...values,
-      {
-        id: resourceId++,
-      },
-    ]);
+    addResource();
   };
   const onMaximise = (idx: number) => () => {
     if (idx === maximised) {
@@ -194,7 +162,10 @@ const ResourceList = () => {
     }
   };
 
-  if (resources.state !== ItemState.Completed) {
+  if (
+    resources.state !== ItemState.Completed ||
+    desiredResources.state !== ItemState.Completed
+  ) {
     return (
       <ul>
         {[...new Array(5).keys()].map((i) => (
@@ -210,7 +181,7 @@ const ResourceList = () => {
     <ul>
       <AnimatePresence>
         {[
-          ...values.map((r, i) => (
+          ...desiredResources.value.map((r, i) => (
             <ListItem
               key={r.id}
               initial={{ height: '0px', overflowY: 'hidden' }}
@@ -232,8 +203,8 @@ const ResourceList = () => {
                   ) : null}
                   <ResourceCard
                     resource={r}
-                    onChange={onChange(i)}
-                    onDelete={onDelete(i)}
+                    onChange={onChange}
+                    onDelete={onDelete(r.id)}
                     onMaximiseToggle={onMaximise(i)}
                     maximised={i === maximised}
                   ></ResourceCard>
@@ -241,7 +212,7 @@ const ResourceList = () => {
               </MaximiseWrapper>
               {maximised === i ? (
                 <Hidden>
-                  {/* Used to preserve correct height for element */}
+                  {/* Used to preserve correct height for element. TODO: Replace this with a better method */}
                   <ResourceCard
                     resource={r}
                     onChange={() => {}}
