@@ -5,12 +5,14 @@ import {
   StateNamespace,
   Item,
   createCompleted,
+  createUninitialised,
 } from '../../data';
 
 import { DesiredResource } from './ResourceList';
 
 export enum StateKey {
   DesiredResources = 'DesiredResources',
+  Creating = 'Creating',
 }
 
 const getKey = getKeyGenerator(StateNamespace.DesiredResource);
@@ -59,4 +61,9 @@ const TEST_RESOURCES: DesiredResource[] = [
 export const desiredResourceState = atom<Item<DesiredResource[]>>({
   key: getKey(StateKey.DesiredResources),
   default: createCompleted(TEST_RESOURCES),
+});
+
+export const creatingState = atom<Item<void>>({
+  key: getKey(StateKey.Creating),
+  default: createUninitialised(),
 });

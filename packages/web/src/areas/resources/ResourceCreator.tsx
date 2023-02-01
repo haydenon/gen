@@ -4,6 +4,7 @@ import Button, { ButtonColour } from '../../components/Button';
 import FullWidthWrapper from '../../components/FullWidthWrapper';
 import { useDesiredResources } from './desired-resource.hook';
 import ResourceList from './ResourceList';
+import { Loader } from 'react-feather';
 
 const Wrapper = styled.div``;
 
@@ -69,17 +70,42 @@ const HeaderContents = styled.div`
   justify-content: flex-end;
 `;
 
+const CreateButton = styled(Button)`
+  display: flex;
+  align-items: center;
+`;
+
+const Loading = styled(Loader)`
+  animation: spin 2s linear infinite;
+
+  width: 1rem;
+  height: 1rem;
+  margin-left: var(--spacing-tiny);
+  margin-right: calc(-1 * var(--spacing-tiny));
+  @keyframes spin {
+    100% {
+      -webkit-transform: rotate(360deg);
+      transform: rotate(360deg);
+    }
+  }
+`;
+
 const ResourceCreator = () => {
-  const { createDesiredState } = useDesiredResources();
+  const { createDesiredState, isCreating } = useDesiredResources();
 
   return (
     <Wrapper>
       <ActionHeader>
         <FullWidthWrapper>
           <HeaderContents>
-            <Button onClick={createDesiredState} colour={ButtonColour.Success}>
+            <CreateButton
+              onClick={createDesiredState}
+              colour={ButtonColour.Success}
+              disabled={isCreating}
+            >
               Create
-            </Button>
+              {isCreating ? <Loading /> : null}
+            </CreateButton>
           </HeaderContents>
         </FullWidthWrapper>
       </ActionHeader>

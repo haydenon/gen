@@ -3,7 +3,6 @@ import { RecoilRoot } from 'recoil';
 
 import { GlobalStyle } from './styles/global';
 import { ThemeStyle } from './styles/theme';
-import FullWidthWrapper from './components/FullWidthWrapper';
 import Header from './components/header/Header';
 import ResourceCreator from './areas/resources/ResourceCreator';
 

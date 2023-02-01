@@ -1,12 +1,23 @@
 import { useCallback } from 'react';
 import { useRecoilState } from 'recoil';
-import { createCompleted, ItemState, useFetch } from '../../data';
+import {
+  createCompleted,
+  createErrored,
+  createLoading,
+  ItemState,
+  useFetch,
+} from '../../data';
 
-import { desiredResourceState, nextResourceId } from './desired-resource.state';
+import {
+  creatingState,
+  desiredResourceState,
+  nextResourceId,
+} from './desired-resource.state';
 import { DesiredResource } from './ResourceList';
 
 export const useDesiredResources = () => {
   const [desiredResources, setResources] = useRecoilState(desiredResourceState);
+  const [createState, setCreatingState] = useRecoilState(creatingState);
   const { fetch } = useFetch();
 
   const getDesiredResource = useCallback(
@@ -77,9 +88,10 @@ export const useDesiredResources = () => {
   }, [desiredResources, setResources]);
 
   const resourceValues = desiredResources.value;
+  const isCreating = createState.state === ItemState.Loading;
 
   const createDesiredState = useCallback(() => {
-    if (!resourceValues) {
+    if (!resourceValues || isCreating) {
       return;
     }
 
@@ -90,11 +102,15 @@ export const useDesiredResources = () => {
         ...r.fieldData,
       })),
     };
+    setCreatingState(createLoading());
+
     fetch('/v1/state', {
       method: 'POST',
       body: JSON.stringify(stateBody),
-    }).then(console.log);
-  }, [fetch, resourceValues]);
+    })
+      .then(() => setCreatingState(createCompleted(undefined)))
+      .catch((error) => setCreatingState(createErrored(error)));
+  }, [fetch, resourceValues, isCreating, setCreatingState]);
 
   return {
     desiredResources,
@@ -103,5 +119,6 @@ export const useDesiredResources = () => {
     deleteResource,
     addResource,
     createDesiredState,
+    isCreating,
   };
 };
