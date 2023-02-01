@@ -108,7 +108,7 @@ const ResourceField = ({
       />
       <FieldActions>
         <Button
-          style={ButtonStyle.Icon}
+          buttonStyle={ButtonStyle.Icon}
           colour={ButtonColour.Warn}
           onClick={onRemoveField}
         >

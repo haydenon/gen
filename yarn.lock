@@ -2818,6 +2818,129 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@reach/auto-id@npm:0.18.0":
+  version: 0.18.0
+  resolution: "@reach/auto-id@npm:0.18.0"
+  dependencies:
+    "@reach/utils": 0.18.0
+  peerDependencies:
+    react: ^16.8.0 || 17.x
+    react-dom: ^16.8.0 || 17.x
+  checksum: 75a37a0a09c382dfc358d37f3212cffdea2b4c80c2f555b7fee857af59a46e959324234be8dbb51c476fba0874ed93694254079192b478ce3e9abba5ce63fdec
+  languageName: node
+  linkType: hard
+
+"@reach/descendants@npm:0.18.0":
+  version: 0.18.0
+  resolution: "@reach/descendants@npm:0.18.0"
+  dependencies:
+    "@reach/utils": 0.18.0
+  peerDependencies:
+    react: ^16.8.0 || 17.x
+    react-dom: ^16.8.0 || 17.x
+  checksum: 54e1e9302e1db4c924de62d53b6081a1c3c336325119352541c2f3a67ebfb88f282b36e564a87b6defd54ac55556f7237e2c50ab6439d86c8a85daf9877b0fb2
+  languageName: node
+  linkType: hard
+
+"@reach/dropdown@npm:0.18.0":
+  version: 0.18.0
+  resolution: "@reach/dropdown@npm:0.18.0"
+  dependencies:
+    "@reach/auto-id": 0.18.0
+    "@reach/descendants": 0.18.0
+    "@reach/polymorphic": 0.18.0
+    "@reach/popover": 0.18.0
+    "@reach/utils": 0.18.0
+  peerDependencies:
+    react: ^16.8.0 || 17.x
+    react-dom: ^16.8.0 || 17.x
+  checksum: 88b7eb064138ffd9b45a53ebbe9b2790fe01fe7c9606c3bbf09e9a237a028a9fd82b39ed086f2a7a79d6e3f83e7563b99a335644b475b85c484bb9e386f23c83
+  languageName: node
+  linkType: hard
+
+"@reach/menu-button@npm:^0.18.0":
+  version: 0.18.0
+  resolution: "@reach/menu-button@npm:0.18.0"
+  dependencies:
+    "@reach/dropdown": 0.18.0
+    "@reach/polymorphic": 0.18.0
+    "@reach/popover": 0.18.0
+    "@reach/utils": 0.18.0
+  peerDependencies:
+    react: ^16.8.0 || 17.x
+    react-dom: ^16.8.0 || 17.x
+    react-is: ^16.8.0 || 17.x
+  checksum: c3087f0dfe6f79c875f32b2ed4053485a044ef676a0804f4841cf6f8956aafffa5b4b2b46a08078926ea6d7dcd0c39cf087a3f18546d01d200a62af8d6b2723a
+  languageName: node
+  linkType: hard
+
+"@reach/observe-rect@npm:1.2.0":
+  version: 1.2.0
+  resolution: "@reach/observe-rect@npm:1.2.0"
+  checksum: 7dd903eeaad0e22c6d973bd26265d91eadba56ab5134701ceb3e85214db75339fae94aa7e8b88a65e8daa64bc7cf1b915d4ffcdfd324466b561dc6adc3c6e070
+  languageName: node
+  linkType: hard
+
+"@reach/polymorphic@npm:0.18.0":
+  version: 0.18.0
+  resolution: "@reach/polymorphic@npm:0.18.0"
+  peerDependencies:
+    react: ^16.8.0 || 17.x
+  checksum: 0d62260a55c71e0dc95f38867f24b3d699e0bb7ea2273c6fa5a1fa3d804269e2deb63a458f1f1eb7b74c32bc0add3ab31a1c2668c1dee6b2837187876d3c4cc2
+  languageName: node
+  linkType: hard
+
+"@reach/popover@npm:0.18.0":
+  version: 0.18.0
+  resolution: "@reach/popover@npm:0.18.0"
+  dependencies:
+    "@reach/polymorphic": 0.18.0
+    "@reach/portal": 0.18.0
+    "@reach/rect": 0.18.0
+    "@reach/utils": 0.18.0
+    tabbable: ^5.3.3
+  peerDependencies:
+    react: ^16.8.0 || 17.x
+    react-dom: ^16.8.0 || 17.x
+  checksum: b25a7310c95006bad1c85afb3668b09f369b95f733bbc3854f7d547aa7ccafcfb68836d2ef3f517abbce52657312c729b21c67be9aad834382af74bdfb8c2488
+  languageName: node
+  linkType: hard
+
+"@reach/portal@npm:0.18.0":
+  version: 0.18.0
+  resolution: "@reach/portal@npm:0.18.0"
+  dependencies:
+    "@reach/utils": 0.18.0
+  peerDependencies:
+    react: ^16.8.0 || 17.x
+    react-dom: ^16.8.0 || 17.x
+  checksum: bd54c694922ac8e8ae6ef515547214c1eb05fd7ce5514e1046fd3504e37aa440ba4fb62fdd8664fdcd47e9b865b3ee085b58942c0db667146da6eec2dc269fa3
+  languageName: node
+  linkType: hard
+
+"@reach/rect@npm:0.18.0":
+  version: 0.18.0
+  resolution: "@reach/rect@npm:0.18.0"
+  dependencies:
+    "@reach/observe-rect": 1.2.0
+    "@reach/utils": 0.18.0
+  peerDependencies:
+    react: ^16.8.0 || 17.x
+    react-dom: ^16.8.0 || 17.x
+  checksum: 5e9fbfb3b6bf62b4f7fd289cde8f22ab11ba3462112761144aad3fe0c4bd0c0bbb7d1489d436151ed964c65d2ff10a6eb3b5a861dd9b7d439f5c2099539e51fc
+  languageName: node
+  linkType: hard
+
+"@reach/utils@npm:0.18.0":
+  version: 0.18.0
+  resolution: "@reach/utils@npm:0.18.0"
+  peerDependencies:
+    react: ^16.8.0 || 17.x
+    react-dom: ^16.8.0 || 17.x
+  checksum: eeda20a74c1db71e95680c622371c6efc46e2c767b28902bc43b580654436a34ec7f8b5f63c51a7c4cc8fd48c94066e3215496ba5a053c96e65c7a9bdcdc2687
+  languageName: node
+  linkType: hard
+
 "@rollup/plugin-babel@npm:^5.1.0, @rollup/plugin-babel@npm:^5.2.0":
   version: 5.3.1
   resolution: "@rollup/plugin-babel@npm:5.3.1"
@@ -16737,6 +16860,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tabbable@npm:^5.3.3":
+  version: 5.3.3
+  resolution: "tabbable@npm:5.3.3"
+  checksum: 1aa56e1bb617cc10616c407f4e756f0607f3e2d30f9803664d70b85db037ca27e75918ed1c71443f3dc902e21dc9f991ce4b52d63a538c9b69b3218d3babcd70
+  languageName: node
+  linkType: hard
+
 "table@npm:^5.2.3":
   version: 5.4.6
   resolution: "table@npm:5.4.6"
@@ -17792,6 +17922,7 @@ __metadata:
   dependencies:
     "@haydenon/gen-core": "workspace:*"
     "@haydenon/gen-server": "workspace:*"
+    "@reach/menu-button": ^0.18.0
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^13.4.0
     "@testing-library/user-event": ^13.5.0

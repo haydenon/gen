@@ -76,7 +76,7 @@ const ListItem = styled(motion.li)`
 const ResourceAdd = ({ onAdd }: AddProps) => {
   return (
     <AddWrapper>
-      <AddButton style={ButtonStyle.Transparent} onClick={onAdd}>
+      <AddButton buttonStyle={ButtonStyle.Transparent} onClick={onAdd}>
         Add resource <AddIcon size={18 * 1.2} />
       </AddButton>
     </AddWrapper>

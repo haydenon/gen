@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Trash2, Maximize2, Minimize2 } from 'react-feather';
+import { Trash2, Maximize2, Minimize2, PlusCircle } from 'react-feather';
 
 import CardComp from '../../components/Card';
 import Input from '../../components/Input';
@@ -12,6 +12,7 @@ import { useEffect, useRef } from 'react';
 import { useResources } from './resource.hook';
 import ResourceField from './fields/ResourceField';
 import { PropertyDefinitionResponse } from '@haydenon/gen-server';
+import { Menu, MenuButton, MenuItem, MenuList } from '@reach/menu-button';
 
 interface Props {
   resource: DesiredResource;
@@ -59,6 +60,17 @@ const List = styled.ul`
   padding-left: 0;
 `;
 
+const AddIcon = styled(PlusCircle)`
+  height: calc(1rem * var(--typography-lineHeight));
+  margin-left: var(--spacing-tiny);
+`;
+
+const AddButton = styled(Button)`
+  padding-left: var(--spacing-small);
+  padding-right: var(--spacing-small);
+  display: flex;
+`;
+
 interface FieldProps {
   resource: DesiredResource;
   field: PropertyDefinitionResponse;
@@ -82,6 +94,53 @@ const ResourceFieldItem = ({
         onRemoveField={onRemoveSpecified}
       />
     </ListItem>
+  );
+};
+
+const SelectMenu = styled(MenuList)`
+  background-color: var(--colors-contentBackground);
+  box-shadow: 2px 2px 10px var(--colors-background);
+  padding: var(--spacing-small) var(--spacing-tiny);
+  border-radius: var(--borders-radius);
+`;
+
+const SelectMenuItem = styled(MenuItem)`
+  padding: var(--spacing-tiny) var(--spacing-small);
+  border-radius: var(--borders-radius);
+  &:hover {
+    background: var(--colors-button-transparent-hover);
+    cursor: pointer;
+  }
+
+  &:active {
+    background: var(--colors-button-transparent-active);
+  }
+`;
+
+interface AddFieldProps {
+  unspecifiedProperties: string[];
+  onSpecifyField: (field: string) => void;
+}
+
+const AddSpecifiedField = ({
+  unspecifiedProperties,
+  onSpecifyField,
+}: AddFieldProps) => {
+  return (
+    <Menu>
+      <MenuButton as="div">
+        <AddButton buttonStyle={ButtonStyle.Transparent} onClick={() => {}}>
+          Specify property <AddIcon size={18} />
+        </AddButton>
+      </MenuButton>
+      <SelectMenu>
+        {unspecifiedProperties.map((prop) => (
+          <SelectMenuItem key={prop} onSelect={() => onSpecifyField(prop)}>
+            {prop}
+          </SelectMenuItem>
+        ))}
+      </SelectMenu>
+    </Menu>
   );
 };
 
@@ -130,9 +189,18 @@ const ResourceCard = ({
 
   const onFieldRemoval = (field: string) => () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { [field]: _,  ...otherFields } = resource.fieldData;
+    const { [field]: _, ...otherFields } = resource.fieldData;
     onChange({ ...resource, fieldData: otherFields });
   };
+
+  const onSpecifyField = (field: string) => {
+    const fields = { [field]: undefined, ...resource.fieldData };
+    onChange({ ...resource, fieldData: fields });
+  };
+
+  const unspecifiedProperties = resourceDefinitionInputs.filter(
+    (i) => !(i.name in resource.fieldData)
+  );
 
   return (
     <Card cardRef={maximisedRef} maximised={maximised ?? false}>
@@ -155,12 +223,12 @@ const ResourceCard = ({
           />
         </motion.div>
         <ActionsWrapper layout="position">
-          <Button style={ButtonStyle.Icon} onClick={onMaximiseToggle}>
+          <Button buttonStyle={ButtonStyle.Icon} onClick={onMaximiseToggle}>
             <VisuallyHidden>Maximise resource details</VisuallyHidden>
             <Icon size={16} strokeWidth={3} />
           </Button>
           <Button
-            style={ButtonStyle.Icon}
+            buttonStyle={ButtonStyle.Icon}
             colour={ButtonColour.Danger}
             onClick={onDelete}
           >
@@ -202,6 +270,18 @@ const ResourceCard = ({
                   onRemoveSpecified={onFieldRemoval(input.name)}
                 ></ResourceFieldItem>
               ))}
+              {unspecifiedProperties.length > 0 ? (
+                <ListItem>
+                  <AddSpecifiedField
+                    unspecifiedProperties={unspecifiedProperties.map(
+                      (p) => p.name
+                    )}
+                    onSpecifyField={onSpecifyField}
+                  />
+                </ListItem>
+              ) : (
+                <ListItem>All properties specified </ListItem>
+              )}
             </AnimatePresence>
           </List>
         </motion.div>

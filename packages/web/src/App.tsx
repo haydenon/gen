@@ -24,6 +24,7 @@ const HeaderWrapper = styled.div`
 
 const Main = styled.main`
   grid-area: main;
+  isolation: isolate;
 `;
 
 function App() {

@@ -14,7 +14,7 @@ export enum ButtonColour {
 
 interface Props {
   className?: string;
-  style?: ButtonStyle;
+  buttonStyle?: ButtonStyle;
   colour?: ButtonColour;
   children: React.ReactNode | React.ReactNode[];
   disabled?: boolean;
@@ -23,6 +23,7 @@ interface Props {
 
 export const buttonCommonStyles = css`
   line-height: var(--typography-lineHeight);
+  height: calc(1rem * var(--typography-lineHeight) + (var(--spacing-tiny) * 2));
   cursor: pointer;
   outline: none;
   border: none;
@@ -110,7 +111,7 @@ const colours: { [colour: number]: Colours } = {
 
 const Button = ({
   className,
-  style,
+  buttonStyle: style,
   colour,
   disabled,
   children,
