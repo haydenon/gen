@@ -1,15 +1,13 @@
 import { useCallback } from 'react';
 import { useRecoilState } from 'recoil';
-import { createCompleted, ItemState } from '../../data';
+import { createCompleted, ItemState, useFetch } from '../../data';
 
-import {
-  desiredResourceState,
-  nextResourceId,
-} from './desired-resource.state';
+import { desiredResourceState, nextResourceId } from './desired-resource.state';
 import { DesiredResource } from './ResourceList';
 
 export const useDesiredResources = () => {
   const [desiredResources, setResources] = useRecoilState(desiredResourceState);
+  const { fetch } = useFetch();
 
   const getDesiredResource = useCallback(
     (id: number) => {
@@ -78,11 +76,32 @@ export const useDesiredResources = () => {
     );
   }, [desiredResources, setResources]);
 
+  const resourceValues = desiredResources.value;
+
+  const createDesiredState = useCallback(() => {
+    if (!resourceValues) {
+      return;
+    }
+
+    const stateBody = {
+      state: resourceValues.map((r) => ({
+        _type: r.type,
+        _name: r.name,
+        ...r.fieldData,
+      })),
+    };
+    fetch('/v1/state', {
+      method: 'POST',
+      body: JSON.stringify(stateBody),
+    }).then(console.log);
+  }, [fetch, resourceValues]);
+
   return {
     desiredResources,
     getDesiredResource,
     updateResource,
     deleteResource,
     addResource,
+    createDesiredState,
   };
 };

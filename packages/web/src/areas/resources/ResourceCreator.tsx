@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import Button, { ButtonColour } from '../../components/Button';
 import FullWidthWrapper from '../../components/FullWidthWrapper';
+import { useDesiredResources } from './desired-resource.hook';
 import ResourceList from './ResourceList';
 
 const Wrapper = styled.div``;
@@ -23,9 +24,7 @@ const ActionBar = styled.div<BarProps>`
   z-index: 1;
   padding: calc(var(--spacing-tiny) + 1px) 0 var(--spacing-tiny) 0;
   box-shadow: ${(props) =>
-    props.isSticky
-      ? '0px 2px 2px 0px var(--colors-background-shadow)'
-      : 'unset'};
+    props.isSticky ? '0px 2px 2px 0px var(--colors-shadow)' : 'unset'};
 `;
 
 interface HeaderProps {
@@ -71,12 +70,14 @@ const HeaderContents = styled.div`
 `;
 
 const ResourceCreator = () => {
+  const { createDesiredState } = useDesiredResources();
+
   return (
     <Wrapper>
       <ActionHeader>
         <FullWidthWrapper>
           <HeaderContents>
-            <Button onClick={console.log} colour={ButtonColour.Success}>
+            <Button onClick={createDesiredState} colour={ButtonColour.Success}>
               Create
             </Button>
           </HeaderContents>

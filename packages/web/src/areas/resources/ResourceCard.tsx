@@ -98,7 +98,7 @@ const ResourceFieldItem = ({
 
 const SelectMenu = styled(MenuList)`
   background-color: var(--colors-contentBackground);
-  box-shadow: 2px 2px 10px var(--colors-background);
+  box-shadow: 2px 2px 10px var(--colors-shadow);
   padding: var(--spacing-small) var(--spacing-tiny);
   border-radius: var(--borders-radius);
 `;

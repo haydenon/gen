@@ -30,30 +30,30 @@ const TEST_RESOURCES: DesiredResource[] = [
       price: 1.2,
     },
   },
-  {
-    id: resourceId++,
-    type: 'Product',
-    name: 'SomeProduct',
-    fieldData: {},
-  },
-  {
-    id: resourceId++,
-    type: 'Product',
-    name: 'OtherProduct',
-    fieldData: {},
-  },
-  {
-    id: resourceId++,
-    type: 'Member',
-    name: 'SomeMember',
-    fieldData: {},
-  },
-  {
-    id: resourceId++,
-    type: 'Order',
-    name: 'Order',
-    fieldData: {},
-  },
+  // {
+  //   id: resourceId++,
+  //   type: 'Product',
+  //   name: 'SomeProduct',
+  //   fieldData: {},
+  // },
+  // {
+  //   id: resourceId++,
+  //   type: 'Product',
+  //   name: 'OtherProduct',
+  //   fieldData: {},
+  // },
+  // {
+  //   id: resourceId++,
+  //   type: 'Member',
+  //   name: 'SomeMember',
+  //   fieldData: {},
+  // },
+  // {
+  //   id: resourceId++,
+  //   type: 'Order',
+  //   name: 'Order',
+  //   fieldData: {},
+  // },
 ];
 
 export const desiredResourceState = atom<Item<DesiredResource[]>>({

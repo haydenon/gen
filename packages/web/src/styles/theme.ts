@@ -5,7 +5,9 @@ const lightTheme = css`
   --colors-background: hsl(0deg 0% 100%);
   --colors-background-focusable: hsl(0deg 0% 92%);
   --colors-background-focused: hsl(0deg 0% 96%);
-  --colors-background-shadow: hsl(0deg 0% 90%);
+
+  /* Shadows */
+  --colors-shadow: hsl(0deg 0% 80%);
 
   /* Content background  */
   --colors-contentBackground: hsl(0deg 0% 90%);
@@ -45,7 +47,7 @@ const darkTheme = css`
   --colors-background: hsl(200deg 15% 10%);
   --colors-background-focusable: hsl(200deg 15% 18%);
   --colors-background-focused: hsl(200deg 15% 14%);
-  --colors-background-shadow: hsl(200deg 15% 9%);
+  --colors-shadow: hsl(200deg 15% 9%);
 
   /* Content background  */
   --colors-contentBackground: hsl(200deg 5% 20%);

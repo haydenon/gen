@@ -25,7 +25,15 @@ const handleErrors = (response: Response) => {
 
 export const useFetch = () => {
   const doFetch = useCallback(<T>(url: string, config: Config): Promise<T> => {
-    return fetch(url, config)
+    const predefinedHeaders: {[header: string]: string} =
+      config.body !== undefined
+        ? { 'Content-Type': 'application/json; charset=utf-8' }
+        : {};
+    const fetchConfig = {
+      ...config,
+      headers: { ...predefinedHeaders, ...(config.headers || {}) },
+    };
+    return fetch(url, fetchConfig)
       .then(handleErrors)
       .catch((err: HttpError) => {
         throw err;
