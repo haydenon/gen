@@ -10,6 +10,7 @@ export enum ButtonColour {
   Normal = 1,
   Danger = 2,
   Warn = 3,
+  Success = 4,
 }
 
 interface Props {
@@ -106,6 +107,12 @@ const colours: { [colour: number]: Colours } = {
     hover: 'var(--colors-contentBackground-warn-focusable)',
     focused: 'var(--colors-contentBackground-warn-focused)',
     disabled: 'var(--colors-contentBackground-warn-disabled)',
+  },
+  [ButtonColour.Success]: {
+    normal: 'var(--colors-contentBackground-success)',
+    hover: 'var(--colors-contentBackground-success-focusable)',
+    focused: 'var(--colors-contentBackground-success-focused)',
+    disabled: 'var(--colors-contentBackground-success-disabled)',
   },
 };
 

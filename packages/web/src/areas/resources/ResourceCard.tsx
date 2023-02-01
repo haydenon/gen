@@ -158,6 +158,10 @@ const AddSpecifiedField = ({
   );
 };
 
+const AllAddedMessage = styled.span`
+  font-size: var(--typography-size-small);
+`;
+
 const ResourceCard = ({
   resource,
   onChange,
@@ -300,7 +304,9 @@ const ResourceCard = ({
                   />
                 </ListItem>
               ) : (
-                <ListItem key="all-added">All properties specified </ListItem>
+                <ListItem key="all-added">
+                  <AllAddedMessage>All properties specified </AllAddedMessage>
+                </ListItem>
               )}
             </AnimatePresence>
           </List>

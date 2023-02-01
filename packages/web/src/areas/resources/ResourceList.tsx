@@ -119,6 +119,10 @@ const CloseOverlay = styled.div`
   cursor: pointer;
 `;
 
+const List = styled.ul`
+  padding-left: 0;
+`;
+
 const PlaceholderResource = () => {
   return (
     <Card>
@@ -167,18 +171,18 @@ const ResourceList = () => {
     desiredResources.state !== ItemState.Completed
   ) {
     return (
-      <ul>
+      <List>
         {[...new Array(5).keys()].map((i) => (
           <ListItem key={i}>
             <PlaceholderResource />
           </ListItem>
         ))}
-      </ul>
+      </List>
     );
   }
 
   return (
-    <ul>
+    <List>
       <AnimatePresence>
         {[
           ...desiredResources.value.map((r, i) => (
@@ -228,7 +232,7 @@ const ResourceList = () => {
           </ListItem>,
         ]}
       </AnimatePresence>
-    </ul>
+    </List>
   );
 };
 

@@ -35,9 +35,7 @@ function App() {
           <Header />
         </HeaderWrapper>
         <Main>
-          <FullWidthWrapper>
-            <ResourceCreator />
-          </FullWidthWrapper>
+          <ResourceCreator />
         </Main>
       </Wrapper>
       <GlobalStyle />

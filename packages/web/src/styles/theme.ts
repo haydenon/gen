@@ -5,6 +5,7 @@ const lightTheme = css`
   --colors-background: hsl(0deg 0% 100%);
   --colors-background-focusable: hsl(0deg 0% 92%);
   --colors-background-focused: hsl(0deg 0% 96%);
+  --colors-background-shadow: hsl(0deg 0% 90%);
 
   /* Content background  */
   --colors-contentBackground: hsl(0deg 0% 90%);
@@ -26,6 +27,11 @@ const lightTheme = css`
   --colors-contentBackground-warn-focused: hsl(40deg 100% 78%);
   --colors-contentBackground-warn-disabled: hsl(40, 100%, 40%);
 
+  --colors-contentBackground-success: hsl(144deg 89% 65%);
+  --colors-contentBackground-success-focusable: hsl(144deg 89% 55%);
+  --colors-contentBackground-success-focused: hsl(144deg 89% 60%);
+  --colors-contentBackground-success-disabled: hsl(144deg 89% 30%);
+
   --colors-text: hsla(0deg 0% 0% / 95%);
   --colors-text-danger: hsla(0deg 87% 38% / 97%);
 
@@ -39,6 +45,7 @@ const darkTheme = css`
   --colors-background: hsl(200deg 15% 10%);
   --colors-background-focusable: hsl(200deg 15% 18%);
   --colors-background-focused: hsl(200deg 15% 14%);
+  --colors-background-shadow: hsl(200deg 15% 9%);
 
   /* Content background  */
   --colors-contentBackground: hsl(200deg 5% 20%);
@@ -55,11 +62,15 @@ const darkTheme = css`
   --colors-contentBackground-danger-focused: hsl(0deg 87% 50%);
   --colors-contentBackground-danger-disabled: hsl(0deg 87% 70%);
 
-  // TODO
   --colors-contentBackground-warn: hsl(40deg, 80%, 34%);
   --colors-contentBackground-warn-focusable: hsl(40deg, 80%, 40%);
   --colors-contentBackground-warn-focused: hsl(40deg, 80%, 38%);
   --colors-contentBackground-warn-disabled: hsl(40, 61.3%, 63.5%);
+
+  --colors-contentBackground-success: hsl(144deg 89% 25%);
+  --colors-contentBackground-success-focusable: hsl(144deg 89% 31%);
+  --colors-contentBackground-success-focused: hsl(144deg 89% 29%);
+  --colors-contentBackground-success-disabled: hsl(144deg 89% 60%);
 
   --colors-text: hsla(0deg 0% 100% / 95%);
   --colors-text-danger: hsla(0deg 100% 79% / 97%);
