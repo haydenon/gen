@@ -12,19 +12,20 @@ import NumberInput from './NumberInput';
 import { BaseInputProps } from './props';
 import StringInput from './StringInput';
 import styled from 'styled-components';
-
-const getDisplayName = (response: PropertyDefinitionResponse) => {
-  const name = response.name;
-  const res = name.replace(/([A-Z]+)/g, ' $1').replace(/([A-Z][a-z])/g, ' $1');
-  return res[0].toLocaleUpperCase() + res.substring(1);
-};
+import { getFieldDisplayName } from './field.utils';
 
 interface TypeProps extends BaseInputProps {
   type: PropertyTypeResponse;
   value: any;
+  onChange: (value: any) => void;
 }
 
-export const InputForType = ({ type, value, ...baseProps }: TypeProps) => {
+export const InputForType = ({
+  type,
+  value,
+  onChange,
+  ...baseProps
+}: TypeProps) => {
   switch (type.type) {
     case Type.Int:
     case Type.Float:
@@ -33,7 +34,7 @@ export const InputForType = ({ type, value, ...baseProps }: TypeProps) => {
           {...baseProps}
           type={type}
           value={value}
-          onChange={console.log}
+          onChange={onChange}
         />
       );
     case Type.String:
@@ -42,7 +43,7 @@ export const InputForType = ({ type, value, ...baseProps }: TypeProps) => {
           {...baseProps}
           type={type}
           value={value}
-          onChange={console.log}
+          onChange={onChange}
         />
       );
     case Type.Array:
@@ -55,7 +56,14 @@ export const InputForType = ({ type, value, ...baseProps }: TypeProps) => {
         />
       );
     case Type.Link:
-      return <InputForType type={type.inner} {...baseProps} value={value} />;
+      return (
+        <InputForType
+          type={type.inner}
+          {...baseProps}
+          value={value}
+          onChange={onChange}
+        />
+      );
     case Type.Undefinable:
       return (
         <InputForType
@@ -63,6 +71,7 @@ export const InputForType = ({ type, value, ...baseProps }: TypeProps) => {
           type={type.inner}
           undefinable={true}
           value={value}
+          onChange={onChange}
         />
       );
     case Type.Nullable:
@@ -72,6 +81,7 @@ export const InputForType = ({ type, value, ...baseProps }: TypeProps) => {
           type={type.inner}
           nullable={true}
           value={value}
+          onChange={onChange}
         />
       );
     default:
@@ -83,6 +93,7 @@ interface RootProps {
   fieldDefinition: PropertyDefinitionResponse;
   value: any;
   onRemoveField: () => void;
+  onChange: (value: any) => void;
 }
 
 const FieldActions = styled.div`
@@ -95,8 +106,9 @@ const ResourceField = ({
   fieldDefinition,
   value,
   onRemoveField,
+  onChange,
 }: RootProps) => {
-  const displayName = getDisplayName(fieldDefinition);
+  const displayName = getFieldDisplayName(fieldDefinition.name);
   return (
     <>
       <InputForType
@@ -105,6 +117,7 @@ const ResourceField = ({
         undefinable={false}
         nullable={false}
         value={value}
+        onChange={onChange}
       />
       <FieldActions>
         <Button

@@ -50,6 +50,7 @@ const ArrayInput = ({ type, value, name, onChange }: Props) => {
               nullable={false}
               value={item}
               name={`[${i}]`}
+              onChange={() => {}} // TODO: On change for arrays
             />
           </ListItem>
         ))}

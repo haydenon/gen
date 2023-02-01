@@ -14,6 +14,7 @@ import ResourceField from './fields/ResourceField';
 import { PropertyDefinitionResponse } from '@haydenon/gen-server';
 import { Menu, MenuButton, MenuItem, MenuList } from '@reach/menu-button';
 import { buttonCommonStyles } from '../../components/Button/Button';
+import { getFieldDisplayName } from './fields/field.utils';
 
 interface Props {
   resource: DesiredResource;
@@ -70,12 +71,14 @@ interface FieldProps {
   resource: DesiredResource;
   field: PropertyDefinitionResponse;
   onRemoveSpecified: () => void;
+  onChange: (value: any) => void;
 }
 
 const ResourceFieldItem = ({
   resource,
   field,
   onRemoveSpecified,
+  onChange,
 }: FieldProps) => {
   if (!(field.name in resource.fieldData)) {
     return null;
@@ -87,6 +90,7 @@ const ResourceFieldItem = ({
         value={resource.fieldData[field.name]}
         fieldDefinition={field}
         onRemoveField={onRemoveSpecified}
+        onChange={onChange}
       />
     </ListItem>
   );
@@ -141,14 +145,12 @@ const AddSpecifiedField = ({
   return (
     <Menu>
       <SelectMenuButton>
-        {/* <AddButton buttonStyle={ButtonStyle.Transparent} onClick={() => {}}> */}
         Specify property <AddIcon size={18} />
-        {/* </AddButton> */}
       </SelectMenuButton>
       <SelectMenu>
         {unspecifiedProperties.map((prop) => (
           <SelectMenuItem key={prop} onSelect={() => onSpecifyField(prop)}>
-            {prop}
+            {getFieldDisplayName(prop)}
           </SelectMenuItem>
         ))}
       </SelectMenu>
@@ -207,6 +209,11 @@ const ResourceCard = ({
 
   const onSpecifyField = (field: string) => {
     const fields = { [field]: undefined, ...resource.fieldData };
+    onChange({ ...resource, fieldData: fields });
+  };
+
+  const onFieldValueChange = (field: string) => (value: any) => {
+    const fields = { ...resource.fieldData, [field]: value };
     onChange({ ...resource, fieldData: fields });
   };
 
@@ -280,6 +287,7 @@ const ResourceCard = ({
                   resource={resource}
                   field={input}
                   onRemoveSpecified={onFieldRemoval(input.name)}
+                  onChange={onFieldValueChange(input.name)}
                 ></ResourceFieldItem>
               ))}
               {unspecifiedProperties.length > 0 ? (
