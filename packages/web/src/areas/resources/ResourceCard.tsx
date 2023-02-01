@@ -146,11 +146,12 @@ const ResourceCard = ({
       {maximised && resourceDefinitionInputs.length ? (
         <motion.div
           key={resource.type}
-          layout="position"
+          // layout="position"
           initial={{ height: '0px', overflowY: 'hidden' }}
           animate={{
             height: 'unset',
             overflowY: 'unset',
+            transition: { delay: 0.1 },
           }}
           exit={{
             height: '0px',
