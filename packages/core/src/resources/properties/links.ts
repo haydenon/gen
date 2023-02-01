@@ -272,7 +272,10 @@ function getLinkBase<
     type: Type.Link,
     inner: linkedProperty.type as any,
     required,
-    resources: resources instanceof Array ? resources : [resources],
+    resources:
+      resources instanceof ResourceGroup
+        ? (resources.items as any)
+        : [resources],
     outputKey: paths[0].toString(),
     constraint,
     ...(mode ? { mode } : {}),
