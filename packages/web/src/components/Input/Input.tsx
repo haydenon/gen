@@ -4,6 +4,7 @@ import Label from '../Label';
 const CustomInput = styled.input`
   width: 100%; // Take up size of label
   font-size: 1rem;
+  line-height: var(--typography-lineHeight);
   padding: var(--spacing-tiny) var(--spacing-small);
   border: none;
   border-radius: var(--borders-radius);
