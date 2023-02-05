@@ -54,6 +54,11 @@ const SmallText = styled.span`
   font-size: var(--typography-size-small);
 `;
 
+const NoItems = styled(SmallText)`
+  margin: var(--spacing-tiny) var(--spacing-small);
+  padding-top: var(--spacing-tiny);
+`;
+
 const OtherResources = styled(SmallText)`
   display: block;
   margin: var(--spacing-tiny) var(--spacing-small);
@@ -80,6 +85,9 @@ const ResourceChooser = ({
   const unnamedResourceCount = otherResources.length - namedResources.length;
   return (
     <>
+      {namedResources.length === 0 ? (
+        <NoItems>No named resources</NoItems>
+      ) : null}
       {namedResources.map((r) => (
         <ResourceItem
           onClick={() => onResourceSelect(r.id)}
@@ -169,9 +177,16 @@ const FieldChooser = ({
           </ChosenResource>
         </BackButton>
       </FieldPickerControls>
-      <AssignableToText>
-        Fields assignable to <CodeText>{typeDisplay}</CodeText>
-      </AssignableToText>
+      {validFields.length === 0 ? (
+        <AssignableToText>
+          No fields are assignable to <CodeText>{typeDisplay}</CodeText>
+        </AssignableToText>
+      ) : (
+        <AssignableToText>
+          Fields assignable to <CodeText>{typeDisplay}</CodeText>
+        </AssignableToText>
+      )}
+
       {validFields.map((key) => (
         <MenuItem key={key} onSelect={() => onFieldSelect(key)}>
           <div>{getFieldDisplayName(key)}</div>
