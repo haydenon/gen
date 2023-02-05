@@ -13,6 +13,7 @@ import { BaseInputProps } from './props';
 import StringInput from './StringInput';
 import styled from 'styled-components';
 import { getFieldDisplayName } from './field.utils';
+import LinkInput from './LinkInput';
 
 interface TypeProps extends BaseInputProps {
   type: PropertyTypeResponse;
@@ -57,8 +58,8 @@ export const InputForType = ({
       );
     case Type.Link:
       return (
-        <InputForType
-          type={type.inner}
+        <LinkInput
+          type={type}
           {...baseProps}
           value={value}
           onChange={onChange}
@@ -90,6 +91,7 @@ export const InputForType = ({
 };
 
 interface RootProps {
+  desiredResourceId: number;
   fieldDefinition: PropertyDefinitionResponse;
   value: any;
   onRemoveField: () => void;
@@ -107,8 +109,13 @@ const ResourceField = ({
   value,
   onRemoveField,
   onChange,
+  desiredResourceId,
 }: RootProps) => {
   const displayName = getFieldDisplayName(fieldDefinition.name);
+  const context = {
+    rootInputName: fieldDefinition.name,
+    desiredResourceId,
+  };
   return (
     <>
       <InputForType
@@ -118,6 +125,7 @@ const ResourceField = ({
         nullable={false}
         value={value}
         onChange={onChange}
+        context={context}
       />
       <FieldActions>
         <Button

@@ -12,9 +12,10 @@ import { useEffect, useRef } from 'react';
 import { useResources } from './resource.hook';
 import ResourceField from './fields/ResourceField';
 import { PropertyDefinitionResponse } from '@haydenon/gen-server';
-import { Menu, MenuButton, MenuItem, MenuList } from '@reach/menu-button';
 import { buttonCommonStyles } from '../../components/Button/Button';
 import { getFieldDisplayName } from './fields/field.utils';
+import { Menu, MenuButton, MenuItem, MenuList } from '../../components/Menu';
+import { desiredResourceState } from './desired-resource.state';
 
 interface Props {
   resource: DesiredResource;
@@ -50,7 +51,7 @@ const Card = styled(CardComp)<CardProps>`
 
 const ListItem = styled.li`
   display: flex;
-  gap: var(--spacing-small);
+  gap: var(--spacing-tiny);
 
   list-style: none;
   &:not(:last-child) {
@@ -72,6 +73,7 @@ interface FieldProps {
   field: PropertyDefinitionResponse;
   onRemoveSpecified: () => void;
   onChange: (value: any) => void;
+  desiredResourceId: number;
 }
 
 const ResourceFieldItem = ({
@@ -79,6 +81,7 @@ const ResourceFieldItem = ({
   field,
   onRemoveSpecified,
   onChange,
+  desiredResourceId,
 }: FieldProps) => {
   if (!(field.name in resource.fieldData)) {
     return null;
@@ -91,43 +94,13 @@ const ResourceFieldItem = ({
         fieldDefinition={field}
         onRemoveField={onRemoveSpecified}
         onChange={onChange}
+        desiredResourceId={desiredResourceId}
       />
     </ListItem>
   );
 };
 
-const SelectMenu = styled(MenuList)`
-  background-color: var(--colors-contentBackground);
-  box-shadow: 2px 2px 10px var(--colors-shadow);
-  padding: var(--spacing-small) var(--spacing-tiny);
-  border-radius: var(--borders-radius);
-`;
-
-const SelectMenuItem = styled(MenuItem)`
-  padding: var(--spacing-tiny) var(--spacing-small);
-  border-radius: var(--borders-radius);
-  &:hover {
-    background: var(--colors-button-transparent-hover);
-    cursor: pointer;
-  }
-
-  &:active {
-    background: var(--colors-button-transparent-active);
-  }
-`;
-
-const SelectMenuButton = styled(MenuButton)`
-  ${buttonCommonStyles}
-  background-color: hsla(0deg 0% 0% / 0%);
-
-  &:hover {
-    background: var(--colors-button-transparent-hover);
-  }
-
-  &:active {
-    background: var(--colors-button-transparent-active);
-  }
-
+const FieldMenuButton = styled(MenuButton)`
   padding-left: var(--spacing-small);
   padding-right: var(--spacing-small);
   display: flex;
@@ -144,16 +117,16 @@ const AddSpecifiedField = ({
 }: AddFieldProps) => {
   return (
     <Menu>
-      <SelectMenuButton>
+      <FieldMenuButton>
         Specify property <AddIcon size={18} />
-      </SelectMenuButton>
-      <SelectMenu>
+      </FieldMenuButton>
+      <MenuList>
         {unspecifiedProperties.map((prop) => (
-          <SelectMenuItem key={prop} onSelect={() => onSpecifyField(prop)}>
+          <MenuItem key={prop} onSelect={() => onSpecifyField(prop)}>
             {getFieldDisplayName(prop)}
-          </SelectMenuItem>
+          </MenuItem>
         ))}
-      </SelectMenu>
+      </MenuList>
     </Menu>
   );
 };
@@ -292,6 +265,7 @@ const ResourceCard = ({
                   field={input}
                   onRemoveSpecified={onFieldRemoval(input.name)}
                   onChange={onFieldValueChange(input.name)}
+                  desiredResourceId={resource.id}
                 ></ResourceFieldItem>
               ))}
               {unspecifiedProperties.length > 0 ? (

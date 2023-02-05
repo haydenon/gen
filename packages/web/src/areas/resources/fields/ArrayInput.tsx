@@ -34,7 +34,7 @@ const ListItem = styled.li`
   }
 `;
 
-const ArrayInput = ({ type, value, name, onChange }: Props) => {
+const ArrayInput = ({ type, value, name, context, onChange }: Props) => {
   if (!(value instanceof Array)) {
     // return <p>No array items</p>
     value = [182, 789];
@@ -51,6 +51,7 @@ const ArrayInput = ({ type, value, name, onChange }: Props) => {
               value={item}
               name={`[${i}]`}
               onChange={() => {}} // TODO: On change for arrays
+              context={context}
             />
           </ListItem>
         ))}

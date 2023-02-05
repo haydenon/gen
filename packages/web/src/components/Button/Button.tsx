@@ -1,7 +1,6 @@
 import styled, { css } from 'styled-components';
 
 export enum ButtonStyle {
-  Transparent = 1,
   Normal = 2,
   Icon = 3,
 }
@@ -11,6 +10,7 @@ export enum ButtonColour {
   Danger = 2,
   Warn = 3,
   Success = 4,
+  Transparent = 5,
 }
 
 interface Props {
@@ -37,19 +37,6 @@ export const buttonCommonStyles = css`
   &:focus-visible {
     outline: 2px solid #4374cb;
     outline: 5px auto -webkit-focus-ring-color;
-  }
-`;
-
-const TransparentButton = styled.button`
-  ${buttonCommonStyles}
-  background-color: hsla(0deg 0% 0% / 0%);
-
-  &:hover {
-    background: var(--colors-button-transparent-hover);
-  }
-
-  &:active {
-    background: var(--colors-button-transparent-active);
   }
 `;
 
@@ -114,6 +101,12 @@ const colours: { [colour: number]: Colours } = {
     focused: 'var(--colors-contentBackground-success-focused)',
     disabled: 'var(--colors-contentBackground-success-disabled)',
   },
+  [ButtonColour.Transparent]: {
+    normal: 'hsla(0deg 0% 0% / 0%)',
+    hover: 'var(--colors-button-transparent-hover)',
+    focused: 'var(--colors-button-transparent-active)',
+    disabled: 'var(--colors-contentBackground-light-disabled)',
+  },
 };
 
 const Button = ({
@@ -141,12 +134,6 @@ const Button = ({
         >
           {children}
         </IconButton>
-      );
-    case ButtonStyle.Transparent:
-      return (
-        <TransparentButton className={className} onClick={click}>
-          {children}
-        </TransparentButton>
       );
     case ButtonStyle.Normal:
     default:

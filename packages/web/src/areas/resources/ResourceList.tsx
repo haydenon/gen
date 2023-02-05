@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { PlusCircle } from 'react-feather';
 
 import styled, { css } from 'styled-components';
-import Button, { ButtonStyle } from '../../components/Button';
+import Button, { ButtonColour } from '../../components/Button';
 import Card from '../../components/Card';
 import Placeholder from '../../components/Placeholder';
 import { ItemState } from '../../data';
@@ -76,7 +76,7 @@ const ListItem = styled(motion.li)`
 const ResourceAdd = ({ onAdd }: AddProps) => {
   return (
     <AddWrapper>
-      <AddButton buttonStyle={ButtonStyle.Transparent} onClick={onAdd}>
+      <AddButton colour={ButtonColour.Transparent} onClick={onAdd}>
         Add resource <AddIcon size={18 * 1.2} />
       </AddButton>
     </AddWrapper>

@@ -36,6 +36,8 @@ export {
   mapPropTypeToExprType,
   complexObject,
   outputExprType,
+  expressionTypeHelpers,
+  containsType,
 } from './runtime-values';
 export type { ExprType } from './runtime-values';
 export {

@@ -13,6 +13,7 @@ const lightTheme = css`
   --colors-contentBackground: hsl(0deg 0% 90%);
   --colors-contentBackground-focusable: hsl(0deg 0% 82%);
   --colors-contentBackground-focused: hsl(0deg 0% 86%);
+  --colors-contentBackground-dark: hsl(0deg 0% 78%);
 
   --colors-contentBackground-light: hsl(0deg 0% 84%);
   --colors-contentBackground-light-focusable: hsl(0deg 0% 80%);
@@ -53,6 +54,7 @@ const darkTheme = css`
   --colors-contentBackground: hsl(200deg 5% 20%);
   --colors-contentBackground-focusable: hsl(200deg 5% 28%);
   --colors-contentBackground-focused: hsl(200deg 5% 24%);
+  --colors-contentBackground-dark: hsl(200deg 5% 16%);
 
   --colors-contentBackground-light: hsl(200deg 5% 26%);
   --colors-contentBackground-light-focusable: hsl(200deg 5% 32%);

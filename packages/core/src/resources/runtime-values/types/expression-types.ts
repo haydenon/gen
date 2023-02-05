@@ -151,3 +151,12 @@ export type ExprType =
   | Array
   | Complex
   | Func;
+
+export const expressionTypeHelpers = {
+  array,
+  createUnion,
+  nullType,
+  primative,
+  undefinedType,
+  Type,
+};
