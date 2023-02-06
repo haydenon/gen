@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useRecoilState } from 'recoil';
+import { v4 as uuid } from 'uuid';
 import {
   createCompleted,
   createErrored,
@@ -8,11 +9,7 @@ import {
   useFetch,
 } from '../../data';
 
-import {
-  creatingState,
-  desiredResourceState,
-  nextResourceId,
-} from './desired-resource.state';
+import { creatingState, desiredResourceState } from './desired-resource.state';
 import { DesiredResource } from './ResourceList';
 
 export const useDesiredResources = () => {
@@ -21,7 +18,7 @@ export const useDesiredResources = () => {
   const { fetch } = useFetch();
 
   const getDesiredResource = useCallback(
-    (id: number) => {
+    (id: string) => {
       if (desiredResources.state !== ItemState.Completed) {
         return undefined;
       }
@@ -52,7 +49,7 @@ export const useDesiredResources = () => {
   );
 
   const deleteResource = useCallback(
-    (id: number) => {
+    (id: string) => {
       if (desiredResources.state !== ItemState.Completed) {
         return;
       }
@@ -80,7 +77,7 @@ export const useDesiredResources = () => {
       createCompleted([
         ...resources,
         {
-          id: nextResourceId(),
+          id: uuid(),
           fieldData: {},
         },
       ])

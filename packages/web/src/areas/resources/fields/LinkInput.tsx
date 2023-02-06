@@ -1,16 +1,26 @@
-import { containsType, ExprType, outputExprType } from '@haydenon/gen-core';
+import {
+  containsType,
+  ExprType,
+  GetProp,
+  identifier,
+  outputExprType,
+  Variable,
+} from '@haydenon/gen-core';
 import { LinkTypeResponse, PropertyTypeResponse } from '@haydenon/gen-server';
 import { useState } from 'react';
-import { ChevronLeft, Link } from 'react-feather';
+import { ArrowRight, ChevronLeft, Link } from 'react-feather';
 import styled from 'styled-components';
 import Button, { ButtonColour } from '../../../components/Button';
 import CodeText from '../../../components/CodeText';
+import { baseInputStyles } from '../../../components/Input/Input';
+import Label from '../../../components/Label';
 import { Menu, MenuButton, MenuItem, MenuList } from '../../../components/Menu';
 import { menuItemStyles } from '../../../components/Menu/Menu';
 import { mapPropTypeRespToExprType } from '../../../utilities/property-type-expr-type.mappers';
 import { useDesiredResources } from '../desired-resource.hook';
 import { useResources } from '../resource.hook';
 import { DesiredResource } from '../ResourceList';
+import { FormRuntimeValue } from '../runtime-value';
 import { getFieldDisplayName } from './field.utils';
 
 import { BaseInputProps } from './props';
@@ -18,8 +28,10 @@ import { InputForType } from './ResourceField';
 
 interface Props extends BaseInputProps {
   type: LinkTypeResponse;
-  value: string | number | undefined | null;
-  onChange: (value: string | number | undefined | null) => void;
+  value: FormRuntimeValue | string | number | undefined | null;
+  onChange: (
+    value: FormRuntimeValue | string | number | undefined | null
+  ) => void;
 }
 
 const LinkButton = styled(MenuButton)`
@@ -68,9 +80,9 @@ const OtherResources = styled(SmallText)`
 `;
 
 interface ResourceChooserProps {
-  currentResourceId: number;
+  currentResourceId: string;
   resources: DesiredResource[];
-  onResourceSelect: (id: number) => void;
+  onResourceSelect: (id: string) => void;
 }
 
 const ResourceChooser = ({
@@ -179,11 +191,11 @@ const FieldChooser = ({
       </FieldPickerControls>
       {validFields.length === 0 ? (
         <AssignableToText>
-          No fields are assignable to <CodeText>{typeDisplay}</CodeText>
+          No properties are assignable to <CodeText>{typeDisplay}</CodeText>
         </AssignableToText>
       ) : (
         <AssignableToText>
-          Fields assignable to <CodeText>{typeDisplay}</CodeText>
+          Properties assignable to <CodeText>{typeDisplay}</CodeText>
         </AssignableToText>
       )}
 
@@ -200,9 +212,9 @@ const FieldChooser = ({
 };
 
 interface ChooserProps {
-  currentResourceId: number;
+  currentResourceId: string;
   fieldType: PropertyTypeResponse;
-  onFieldSelect: (desiredResourceId: number, field: string) => void;
+  onFieldSelect: (desiredResourceId: string, field: string) => void;
 }
 
 const LinkValueChooser = ({
@@ -210,7 +222,7 @@ const LinkValueChooser = ({
   fieldType,
   onFieldSelect,
 }: ChooserProps) => {
-  const [resource, setResource] = useState<number | null>(null);
+  const [resource, setResource] = useState<string | null>(null);
   const { desiredResources } = useDesiredResources();
   const resources = desiredResources.value;
   if (!resources) {
@@ -244,20 +256,82 @@ const LinkValueChooser = ({
   );
 };
 
+interface RuntimeValueProps {
+  name: string;
+  runtimeValue: FormRuntimeValue;
+}
+
+const ReadOnlyDisplay = styled.div`
+  ${baseInputStyles}
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-tiny);
+`;
+
+const LinkedRuntimeValueDisplay = ({
+  name,
+  runtimeValue,
+}: RuntimeValueProps) => {
+  const { desiredResources } = useDesiredResources();
+  if (
+    !(runtimeValue.expression instanceof GetProp) ||
+    desiredResources.value === undefined
+  ) {
+    return null;
+  }
+
+  const resources = desiredResources.value;
+  const obj = runtimeValue.expression.obj;
+  const indexer = runtimeValue.expression.indexer;
+  if (!(obj instanceof Variable && indexer instanceof Variable)) {
+    return null;
+  }
+
+  const resource = resources.find((r) => r.id === obj.name.lexeme);
+  if (!resource) {
+    return null;
+  }
+
+  return (
+    <Label label={name}>
+      <ReadOnlyDisplay>
+        <CodeText>{resource.name || '<no name>'}</CodeText>
+        <ArrowRight size={18} />
+        <CodeText>{indexer.name.lexeme}</CodeText>
+      </ReadOnlyDisplay>
+    </Label>
+  );
+};
+
 const LinkInput = ({ type, value, onChange, context, ...baseProps }: Props) => {
+  const onFieldChoose = (desiredResourceId: string, fieldName: string) => {
+    onChange(
+      new FormRuntimeValue(
+        undefined,
+        new GetProp(
+          new Variable(identifier(desiredResourceId)),
+          new Variable(identifier(fieldName))
+        )
+      )
+    );
+  };
   return (
     <>
-      <InputForType
-        type={type.inner}
-        value={value}
-        onChange={onChange}
-        context={context}
-        {...baseProps}
-      />
+      {value instanceof FormRuntimeValue && value.textInput === undefined ? (
+        <LinkedRuntimeValueDisplay name={baseProps.name} runtimeValue={value} />
+      ) : (
+        <InputForType
+          type={type.inner}
+          value={value}
+          onChange={onChange}
+          context={context}
+          {...baseProps}
+        />
+      )}
       <LinkValueChooser
         fieldType={type.inner}
         currentResourceId={context.desiredResourceId}
-        onFieldSelect={console.log}
+        onFieldSelect={onFieldChoose}
       />
     </>
   );

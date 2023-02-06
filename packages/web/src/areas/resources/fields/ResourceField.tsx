@@ -91,7 +91,7 @@ export const InputForType = ({
 };
 
 interface RootProps {
-  desiredResourceId: number;
+  desiredResourceId: string;
   fieldDefinition: PropertyDefinitionResponse;
   value: any;
   onRemoveField: () => void;

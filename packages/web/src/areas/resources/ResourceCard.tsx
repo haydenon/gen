@@ -12,10 +12,8 @@ import { useEffect, useRef } from 'react';
 import { useResources } from './resource.hook';
 import ResourceField from './fields/ResourceField';
 import { PropertyDefinitionResponse } from '@haydenon/gen-server';
-import { buttonCommonStyles } from '../../components/Button/Button';
 import { getFieldDisplayName } from './fields/field.utils';
 import { Menu, MenuButton, MenuItem, MenuList } from '../../components/Menu';
-import { desiredResourceState } from './desired-resource.state';
 
 interface Props {
   resource: DesiredResource;
@@ -73,7 +71,7 @@ interface FieldProps {
   field: PropertyDefinitionResponse;
   onRemoveSpecified: () => void;
   onChange: (value: any) => void;
-  desiredResourceId: number;
+  desiredResourceId: string;
 }
 
 const ResourceFieldItem = ({

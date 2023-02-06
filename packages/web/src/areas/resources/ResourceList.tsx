@@ -12,7 +12,7 @@ import { useResources } from './resource.hook';
 import ResourceCard from './ResourceCard';
 
 export interface DesiredResource {
-  id: number;
+  id: string;
   type?: string;
   name?: string;
   fieldData: { [property: string]: any };
@@ -151,7 +151,7 @@ const ResourceList = () => {
   const onChange = (resource: DesiredResource) => {
     updateResource(resource);
   };
-  const onDelete = (id: number) => () => {
+  const onDelete = (id: string) => () => {
     setMaximised(undefined);
     deleteResource(id);
   };

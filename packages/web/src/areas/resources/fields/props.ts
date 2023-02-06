@@ -1,6 +1,6 @@
 interface InputContext {
   rootInputName: string;
-  desiredResourceId: number;
+  desiredResourceId: string;
 }
 
 export interface BaseInputProps {

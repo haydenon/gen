@@ -38,6 +38,10 @@ export {
   outputExprType,
   expressionTypeHelpers,
   containsType,
+  Expr,
+  GetProp,
+  Variable,
+  identifier,
 } from './runtime-values';
 export type { ExprType } from './runtime-values';
 export {

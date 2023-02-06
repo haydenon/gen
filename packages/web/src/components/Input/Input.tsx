@@ -1,7 +1,7 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import Label from '../Label';
 
-const CustomInput = styled.input`
+export const baseInputStyles = css`
   width: 100%; // Take up size of label
   font-size: 1rem;
   line-height: var(--typography-lineHeight);
@@ -11,6 +11,10 @@ const CustomInput = styled.input`
   background-color: var(--colors-contentBackground-light);
   color: var(--colors-text);
   transition: color var(--transition-duration-font);
+`;
+
+const CustomInput = styled.input`
+  ${baseInputStyles}
 
   &:focus,
   &:focus-visible {

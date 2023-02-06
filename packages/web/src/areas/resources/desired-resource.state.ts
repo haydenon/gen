@@ -1,4 +1,5 @@
 import { atom } from 'recoil';
+import { v4 as uuid } from 'uuid';
 
 import {
   getKeyGenerator,
@@ -17,13 +18,9 @@ export enum StateKey {
 
 const getKey = getKeyGenerator(StateNamespace.DesiredResource);
 
-let resourceId = 1;
-
-export const nextResourceId = () => resourceId++;
-
 const TEST_RESOURCES: DesiredResource[] = [
   {
-    id: resourceId++,
+    id: uuid(),
     type: 'Service',
     name: 'SomeService',
     fieldData: {
