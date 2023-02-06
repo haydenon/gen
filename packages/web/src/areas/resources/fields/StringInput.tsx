@@ -12,6 +12,7 @@ interface Props extends BaseInputProps {
 
 const Wrapper = styled.div`
   flex: 0 1 800px;
+  margin-top: calc(-1 * var(--labelOffset));
 `;
 
 const StringInput = ({ type, value, name, onChange }: Props) => {

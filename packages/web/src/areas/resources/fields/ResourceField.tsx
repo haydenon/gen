@@ -101,7 +101,6 @@ interface RootProps {
 const FieldActions = styled.div`
   flex: 0 1 auto;
   display: flex;
-  align-items: flex-end;
 `;
 
 const ResourceField = ({

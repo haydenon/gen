@@ -7,6 +7,7 @@ import { BaseInputProps } from './props';
 
 const Wrapper = styled.div`
   flex: 0 1 300px;
+  margin-top: calc(-1 * var(--labelOffset));
 `;
 
 interface Props extends BaseInputProps {

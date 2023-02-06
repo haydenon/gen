@@ -55,6 +55,14 @@ const ListItem = styled.li`
   &:not(:last-child) {
     padding-bottom: var(--spacing-small);
   }
+
+  --labelOffset: calc(
+    var(--typography-size-small) * var(--typography-lineHeight) + 6px
+  );
+`;
+
+const ResourceListItem = styled(ListItem)`
+  padding-top: var(--labelOffset);
 `;
 
 const List = styled.ul`
@@ -86,7 +94,7 @@ const ResourceFieldItem = ({
   }
 
   return (
-    <ListItem>
+    <ResourceListItem>
       <ResourceField
         value={resource.fieldData[field.name]}
         fieldDefinition={field}
@@ -94,7 +102,7 @@ const ResourceFieldItem = ({
         onChange={onChange}
         desiredResourceId={desiredResourceId}
       />
-    </ListItem>
+    </ResourceListItem>
   );
 };
 

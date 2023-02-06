@@ -2,6 +2,7 @@ import styled from 'styled-components';
 
 const Wrapper = styled.label`
   font-size: var(--typography-size-small);
+  line-height: var(--typography-lineHeight);
 `;
 
 const LabelText = styled.div`

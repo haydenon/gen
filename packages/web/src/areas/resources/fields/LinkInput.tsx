@@ -8,9 +8,9 @@ import {
 } from '@haydenon/gen-core';
 import { LinkTypeResponse, PropertyTypeResponse } from '@haydenon/gen-server';
 import { useState } from 'react';
-import { ArrowRight, ChevronLeft, Link } from 'react-feather';
+import { ArrowRight, ChevronLeft, Edit, Link } from 'react-feather';
 import styled from 'styled-components';
-import Button, { ButtonColour } from '../../../components/Button';
+import Button, { ButtonColour, ButtonStyle } from '../../../components/Button';
 import CodeText from '../../../components/CodeText';
 import { baseInputStyles } from '../../../components/Input/Input';
 import Label from '../../../components/Label';
@@ -35,7 +35,6 @@ interface Props extends BaseInputProps {
 }
 
 const LinkButton = styled(MenuButton)`
-  align-self: flex-end;
   padding-left: var(--spacing-tiny);
   padding-right: var(--spacing-tiny);
   background: var(--colors-contentBackground-light);
@@ -268,6 +267,10 @@ const ReadOnlyDisplay = styled.div`
   gap: var(--spacing-tiny);
 `;
 
+const DisplayLabel = styled(Label)`
+  margin-top: calc(-1 * var(--labelOffset));
+`;
+
 const LinkedRuntimeValueDisplay = ({
   name,
   runtimeValue,
@@ -293,13 +296,13 @@ const LinkedRuntimeValueDisplay = ({
   }
 
   return (
-    <Label label={name}>
+    <DisplayLabel label={name}>
       <ReadOnlyDisplay>
         <CodeText>{resource.name || '<no name>'}</CodeText>
         <ArrowRight size={18} />
         <CodeText>{indexer.name.lexeme}</CodeText>
       </ReadOnlyDisplay>
-    </Label>
+    </DisplayLabel>
   );
 };
 
@@ -318,7 +321,16 @@ const LinkInput = ({ type, value, onChange, context, ...baseProps }: Props) => {
   return (
     <>
       {value instanceof FormRuntimeValue && value.textInput === undefined ? (
-        <LinkedRuntimeValueDisplay name={baseProps.name} runtimeValue={value} />
+        <>
+          <LinkedRuntimeValueDisplay
+            name={baseProps.name}
+            runtimeValue={value}
+          />
+          <Button buttonStyle={ButtonStyle.Icon} onClick={() => onChange(0)}>
+            {/* TODO: Better defaults */}
+            <Edit size={18} />
+          </Button>
+        </>
       ) : (
         <InputForType
           type={type.inner}
