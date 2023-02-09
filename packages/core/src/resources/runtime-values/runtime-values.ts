@@ -29,14 +29,19 @@ export class RuntimeValue<T> {
 export function isRuntimeValue<T>(
   value: T | RuntimeValue<T>
 ): value is RuntimeValue<T> {
-  return value instanceof RuntimeValue;
+  const val = value as any;
+  return (
+    val &&
+    val.depdendentStateNames instanceof Array &&
+    val.expression !== undefined
+  );
 }
 
 export function mapValue<T, R>(
   value: Value<T>,
   mapper: (value: T) => R
 ): Value<R> {
-  if (value instanceof RuntimeValue) {
+  if (isRuntimeValue(value)) {
     return new RuntimeValue<R>(
       value.depdendentStateNames,
       new Call(new FunctionValue(mapper), [value.expression])
@@ -50,16 +55,14 @@ export function mapValues<T extends any[], R>(
   values: { [I in keyof T]: Value<T[I]> },
   mapper: (...values: { [I in keyof T]: T[I] }) => R
 ): Value<R> {
-  if (values.some((v) => v instanceof RuntimeValue)) {
+  if (values.some((v) => isRuntimeValue(v))) {
     const resourceOutputValues = Array.from(
       new Set(
-        values.flatMap((v) =>
-          v instanceof RuntimeValue ? v.depdendentStateNames : []
-        )
+        values.flatMap((v) => (isRuntimeValue(v) ? v.depdendentStateNames : []))
       )
     );
     const inputValues: Expr[] = values.map((val) => {
-      if (!(val instanceof RuntimeValue)) {
+      if (!isRuntimeValue(val)) {
         return getValueExpr(val);
       }
 

@@ -16,5 +16,19 @@ export {
 export type { ExprType } from './types';
 export { parse } from './ast/parser';
 
-export { Expr, GetProp, Variable } from './ast/expressions';
+export {
+  Expr,
+  GetProp,
+  Variable,
+  Call,
+  ObjectConstructor,
+  ArrayConstructor,
+  FunctionValue,
+  FormatString,
+  Literal,
+} from './ast/expressions';
+export type { Visitor } from './ast/expressions';
+
 export { identifier } from './ast/tokens/token';
+
+export { outputExpression } from './outputer/outputer';

@@ -7,9 +7,8 @@ import {
   Item,
   createCompleted,
   createUninitialised,
-} from '../../data';
-
-import { DesiredResource } from './ResourceList';
+} from '../../../data';
+import { DesiredResource } from './desired-resource';
 
 export enum StateKey {
   DesiredResources = 'DesiredResources',

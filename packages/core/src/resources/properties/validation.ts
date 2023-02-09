@@ -1,5 +1,5 @@
 import { InputValues, PropertyMap, PropertyValues } from '../resource';
-import { RuntimeValue } from '../runtime-values';
+import { isRuntimeValue, RuntimeValue } from '../runtime-values';
 import { BaseConstraint, Constraint } from './constraints';
 import {
   ArrayType,
@@ -86,7 +86,7 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
     valueType: string | Function,
     length?: (value: any) => number
   ): any {
-    if (value instanceof RuntimeValue) {
+    if (isRuntimeValue(value)) {
       const runtimeResult = this.validateRuntimeValue(propType, value);
       if (runtimeResult instanceof Error) {
         throw new Error(
@@ -103,6 +103,7 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
 
     const typeString =
       typeof valueType === 'string' ? valueType : valueType.name;
+
     if (!isValidType) {
       throw new Error(`${this.getBaseError()} is not of type '${typeString}'`);
     }
@@ -196,7 +197,7 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
   };
 
   checkArrayValue = (type: ArrayType, value: any): [true, any] | [false] => {
-    if (value instanceof RuntimeValue) {
+    if (isRuntimeValue(value)) {
       return [true, value];
     }
 
@@ -209,7 +210,7 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
   mapUndefinedValue = () => undefined;
 
   checkComplexValue = (_: ComplexType, value: any): [true, any] | [false] =>
-    value instanceof RuntimeValue ? [true, value] : [false];
+    isRuntimeValue(value) ? [true, value] : [false];
   mapComplexValue = (_: ComplexType, value: { [key: string]: any }) => value;
 
   protected onEnteringArrayValue = (type: any, value: any, index: number) =>

@@ -49,7 +49,7 @@ class RuntimeOutputVisitor implements Visitor<string> {
   visitGetExpr(expr: GetProp): string {
     const prop = expr.indexer.accept(this);
     if (prop.startsWith('"') && prop.endsWith('"')) {
-      return `${expr.obj.accept(this)}.${prop.substring(1, prop.length - 1)}`;
+      return `${expr.obj.accept(this)}.${prop}`;
     } else {
       return `${expr.obj.accept(this)}[${prop}]`;
     }

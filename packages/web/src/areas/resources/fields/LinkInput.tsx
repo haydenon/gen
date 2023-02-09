@@ -3,6 +3,7 @@ import {
   ExprType,
   GetProp,
   identifier,
+  Literal,
   outputExprType,
   Variable,
 } from '@haydenon/gen-core';
@@ -17,9 +18,9 @@ import Label from '../../../components/Label';
 import { Menu, MenuButton, MenuItem, MenuList } from '../../../components/Menu';
 import { menuItemStyles } from '../../../components/Menu/Menu';
 import { mapPropTypeRespToExprType } from '../../../utilities/property-type-expr-type.mappers';
-import { useDesiredResources } from '../desired-resource.hook';
+import { useDesiredResources } from '../desired-resources/desired-resource.hook';
 import { useResources } from '../resource.hook';
-import { DesiredResource } from '../ResourceList';
+import { DesiredResource } from '../desired-resources/desired-resource';
 import { FormRuntimeValue } from '../runtime-value';
 import { getFieldDisplayName } from './field.utils';
 
@@ -286,7 +287,7 @@ const LinkedRuntimeValueDisplay = ({
   const resources = desiredResources.value;
   const obj = runtimeValue.expression.obj;
   const indexer = runtimeValue.expression.indexer;
-  if (!(obj instanceof Variable && indexer instanceof Variable)) {
+  if (!(obj instanceof Variable && indexer instanceof Literal)) {
     return null;
   }
 
@@ -300,7 +301,7 @@ const LinkedRuntimeValueDisplay = ({
       <ReadOnlyDisplay>
         <CodeText>{resource.name || '<no name>'}</CodeText>
         <ArrowRight size={18} />
-        <CodeText>{indexer.name.lexeme}</CodeText>
+        <CodeText>{indexer.value}</CodeText>
       </ReadOnlyDisplay>
     </DisplayLabel>
   );
@@ -313,7 +314,7 @@ const LinkInput = ({ type, value, onChange, context, ...baseProps }: Props) => {
         undefined,
         new GetProp(
           new Variable(identifier(desiredResourceId)),
-          new Variable(identifier(fieldName))
+          new Literal(fieldName)
         )
       )
     );

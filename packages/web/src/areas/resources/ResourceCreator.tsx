@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import Button, { ButtonColour } from '../../components/Button';
 import FullWidthWrapper from '../../components/FullWidthWrapper';
-import { useDesiredResources } from './desired-resource.hook';
+import { useDesiredResources } from './desired-resources/desired-resource.hook';
 import ResourceList from './ResourceList';
 import { Loader } from 'react-feather';
 

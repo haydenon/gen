@@ -7,16 +7,10 @@ import Button, { ButtonColour } from '../../components/Button';
 import Card from '../../components/Card';
 import Placeholder from '../../components/Placeholder';
 import { ItemState } from '../../data';
-import { useDesiredResources } from './desired-resource.hook';
+import { DesiredResource } from './desired-resources/desired-resource';
+import { useDesiredResources } from './desired-resources/desired-resource.hook';
 import { useResources } from './resource.hook';
 import ResourceCard from './ResourceCard';
-
-export interface DesiredResource {
-  id: string;
-  type?: string;
-  name?: string;
-  fieldData: { [property: string]: any };
-}
 
 const AddWrapper = styled.div`
   display: flex;

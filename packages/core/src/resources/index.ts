@@ -41,9 +41,16 @@ export {
   Expr,
   GetProp,
   Variable,
+  Call,
+  ObjectConstructor,
+  ArrayConstructor,
+  FunctionValue,
+  FormatString,
+  Literal,
+  outputExpression,
   identifier,
 } from './runtime-values';
-export type { ExprType } from './runtime-values';
+export type { ExprType, Visitor } from './runtime-values';
 export {
   GenerationResult,
   dependentGenerator,

@@ -4,7 +4,7 @@ import { Trash2, Maximize2, Minimize2, PlusCircle } from 'react-feather';
 import CardComp from '../../components/Card';
 import Input from '../../components/Input';
 import Select from '../../components/Select';
-import { DesiredResource } from './ResourceList';
+import { DesiredResource } from './desired-resources/desired-resource';
 import Button, { ButtonStyle, ButtonColour } from '../../components/Button';
 import VisuallyHidden from '../../components/VisuallyHidden';
 import { AnimatePresence, motion } from 'framer-motion';

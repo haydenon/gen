@@ -7,10 +7,11 @@ import {
   createLoading,
   ItemState,
   useFetch,
-} from '../../data';
+} from '../../../data';
 
 import { creatingState, desiredResourceState } from './desired-resource.state';
-import { DesiredResource } from './ResourceList';
+import { DesiredResource } from './desired-resource';
+import { transformFormValues } from './desired-state.utilities';
 
 export const useDesiredResources = () => {
   const [desiredResources, setResources] = useRecoilState(desiredResourceState);
@@ -96,7 +97,9 @@ export const useDesiredResources = () => {
       state: resourceValues.map((r) => ({
         _type: r.type,
         _name: r.name,
-        ...r.fieldData,
+        ...transformFormValues(r.fieldData, {
+          desiredResources: resourceValues,
+        }),
       })),
     };
     setCreatingState(createLoading());
