@@ -160,6 +160,61 @@ const ResourceList = () => {
     }
   };
 
+  // Remove scrolling on background when modal is open
+  useEffect(() => {
+    // TODO: This is pretty dirty at the moment, need to find a cleaner way to do this
+    const body = document.body;
+    const controlBar = document.getElementById('control-bar');
+
+    const styles = {
+      overflowY: 'hidden',
+      position: 'fixed',
+      width: '100%',
+    };
+
+    const remove = () => {
+      const top = document.body.style.top;
+
+      for (const style in styles) {
+        body.style[style as any] = '';
+      }
+
+      let offset = 0;
+      if (controlBar?.style?.position === 'fixed') {
+        controlBar.style.position = 'sticky';
+        const controlBarBounds = controlBar.getBoundingClientRect();
+        offset = controlBarBounds.height;
+      }
+
+      if (top) {
+        const value = /(-?\d*\.?\d+)px/.exec(top);
+        if (value?.length) {
+          document.body.style.top = '';
+          window.scrollTo(0, parseInt(value[1] || '0') * -1 + offset);
+        }
+      }
+    };
+
+    if (maximised !== undefined) {
+      const controlBarBounds = controlBar?.getBoundingClientRect();
+      if (controlBar && controlBarBounds && controlBarBounds.top < 0) {
+        controlBar.style.position = 'fixed';
+      }
+      let offset = window.scrollY;
+      if (controlBarBounds && controlBarBounds.top < 0) {
+        offset -= controlBarBounds.top;
+      }
+      body.style.top = `-${offset}px`;
+      for (const style in styles) {
+        body.style[style as any] = (styles as any)[style as any];
+      }
+    } else {
+      remove();
+    }
+
+    return remove;
+  }, [maximised]);
+
   if (
     resources.state !== ItemState.Completed ||
     desiredResources.state !== ItemState.Completed

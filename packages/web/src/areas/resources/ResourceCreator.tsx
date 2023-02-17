@@ -19,13 +19,15 @@ interface BarProps {
 }
 
 const ActionBar = styled.div<BarProps>`
-  position: sticky;
   top: -1px;
   background-color: var(--colors-background);
   z-index: 1;
   padding: calc(var(--spacing-tiny) + 1px) 0 var(--spacing-tiny) 0;
+  width: 100%;
   box-shadow: ${(props) =>
     props.isSticky ? '0px 2px 2px 0px var(--colors-shadow)' : 'unset'};
+
+  position: ${(props) => (props.isSticky ? 'sticky' : 'unset')};
 `;
 
 interface HeaderProps {
@@ -59,7 +61,7 @@ const ActionHeader = ({ children }: HeaderProps) => {
   }, []);
 
   return (
-    <ActionBar isSticky={isSticky} ref={ref}>
+    <ActionBar id="control-bar" isSticky={isSticky} ref={ref}>
       {children}
     </ActionBar>
   );
