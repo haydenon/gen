@@ -16,7 +16,14 @@ const Contents = styled.div`
 
 interface BarProps {
   isSticky: boolean;
+  isModalMaximised: boolean;
 }
+
+const ActionBarPlaceholder = styled.div`
+  height: calc(
+    1rem * var(--typography-lineHeight) + (var(--spacing-large) * 2)
+  );
+`;
 
 const ActionBar = styled.div<BarProps>`
   top: -1px;
@@ -27,24 +34,28 @@ const ActionBar = styled.div<BarProps>`
   box-shadow: ${(props) =>
     props.isSticky ? '0px 2px 2px 0px var(--colors-shadow)' : 'unset'};
 
-  position: ${(props) => (props.isSticky ? 'sticky' : 'unset')};
+  position: ${(props) =>
+    props.isSticky ? (props.isModalMaximised ? 'fixed' : 'sticky') : 'unset'};
 `;
 
 interface HeaderProps {
   children: React.ReactNode | React.ReactNode[];
+  isModalMaximised: boolean;
 }
 
-const ActionHeader = ({ children }: HeaderProps) => {
+const ActionHeader = ({ children, isModalMaximised }: HeaderProps) => {
   const [isSticky, setIsSticky] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
+  const currentRef = ref?.current;
+
   // mount
   useEffect(() => {
-    if (!ref.current) {
+    if (!currentRef) {
       return;
     }
 
-    const cachedRef = ref.current,
+    const cachedRef = currentRef,
       observer = new IntersectionObserver(
         ([e]) => setIsSticky(e.intersectionRatio < 1),
         {
@@ -58,12 +69,21 @@ const ActionHeader = ({ children }: HeaderProps) => {
     return function () {
       observer.unobserve(cachedRef);
     };
-  }, []);
+  }, [currentRef]);
 
   return (
-    <ActionBar id="control-bar" isSticky={isSticky} ref={ref}>
-      {children}
-    </ActionBar>
+    <>
+      {isSticky && isModalMaximised ? (
+        <ActionBarPlaceholder></ActionBarPlaceholder>
+      ) : null}
+      <ActionBar
+        isModalMaximised={isModalMaximised}
+        isSticky={isSticky}
+        ref={ref}
+      >
+        {children}
+      </ActionBar>
+    </>
   );
 };
 
@@ -94,10 +114,11 @@ const Loading = styled(Loader)`
 
 const ResourceCreator = () => {
   const { createDesiredState, isCreating } = useDesiredResources();
+  const [maximised, setMaximised] = useState(false);
 
   return (
     <Wrapper>
-      <ActionHeader>
+      <ActionHeader isModalMaximised={maximised}>
         <FullWidthWrapper>
           <HeaderContents>
             <CreateButton
@@ -113,7 +134,7 @@ const ResourceCreator = () => {
       </ActionHeader>
       <FullWidthWrapper>
         <Contents>
-          <ResourceList />
+          <ResourceList onMaximise={setMaximised} />
         </Contents>
       </FullWidthWrapper>
     </Wrapper>

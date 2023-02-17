@@ -132,7 +132,11 @@ const PlaceholderResource = () => {
   );
 };
 
-const ResourceList = () => {
+interface Props {
+  onMaximise: (isMaximised: boolean) => void;
+}
+
+const ResourceList = ({ onMaximise }: Props) => {
   const { desiredResources, updateResource, deleteResource, addResource } =
     useDesiredResources();
   const [maximised, setMaximised] = useState<number | undefined>(undefined);
@@ -145,17 +149,27 @@ const ResourceList = () => {
   const onChange = (resource: DesiredResource) => {
     updateResource(resource);
   };
-  const onDelete = (id: string) => () => {
+
+  const closeMaximised = () => {
+    onMaximise(false);
     setMaximised(undefined);
+  };
+
+  const onDelete = (id: string) => () => {
+    closeMaximised();
     deleteResource(id);
   };
   const onAdd = () => {
     addResource();
   };
-  const onMaximise = (idx: number) => () => {
+
+  const onMaximiseChange = (idx: number) => () => {
     if (idx === maximised) {
-      setMaximised(undefined);
+      closeMaximised();
     } else {
+      if (maximised === undefined) {
+        onMaximise(true);
+      }
       setMaximised(idx);
     }
   };
@@ -164,7 +178,6 @@ const ResourceList = () => {
   useEffect(() => {
     // TODO: This is pretty dirty at the moment, need to find a cleaner way to do this
     const body = document.body;
-    const controlBar = document.getElementById('control-bar');
 
     const styles = {
       overflowY: 'hidden',
@@ -179,32 +192,17 @@ const ResourceList = () => {
         body.style[style as any] = '';
       }
 
-      let offset = 0;
-      if (controlBar?.style?.position === 'fixed') {
-        controlBar.style.position = 'sticky';
-        const controlBarBounds = controlBar.getBoundingClientRect();
-        offset = controlBarBounds.height;
-      }
-
       if (top) {
         const value = /(-?\d*\.?\d+)px/.exec(top);
         if (value?.length) {
           document.body.style.top = '';
-          window.scrollTo(0, parseInt(value[1] || '0') * -1 + offset);
+          window.scrollTo(0, parseInt(value[1] || '0') * -1);
         }
       }
     };
 
     if (maximised !== undefined) {
-      const controlBarBounds = controlBar?.getBoundingClientRect();
-      if (controlBar && controlBarBounds && controlBarBounds.top < 0) {
-        controlBar.style.position = 'fixed';
-      }
-      let offset = window.scrollY;
-      if (controlBarBounds && controlBarBounds.top < 0) {
-        offset -= controlBarBounds.height;
-      }
-      body.style.top = `-${offset}px`;
+      body.style.top = `-${window.scrollY}px`;
       for (const style in styles) {
         body.style[style as any] = (styles as any)[style as any];
       }
@@ -252,13 +250,13 @@ const ResourceList = () => {
               <MaximiseWrapper open={i === maximised}>
                 <MaximisedCardWrapper open={i === maximised} layout>
                   {maximised === i ? (
-                    <CloseOverlay onClick={() => setMaximised(undefined)} />
+                    <CloseOverlay onClick={closeMaximised} />
                   ) : null}
                   <ResourceCard
                     resource={r}
                     onChange={onChange}
                     onDelete={onDelete(r.id)}
-                    onMaximiseToggle={onMaximise(i)}
+                    onMaximiseToggle={onMaximiseChange(i)}
                     maximised={i === maximised}
                   ></ResourceCard>
                 </MaximisedCardWrapper>
