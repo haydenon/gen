@@ -202,7 +202,7 @@ const ResourceList = () => {
       }
       let offset = window.scrollY;
       if (controlBarBounds && controlBarBounds.top < 0) {
-        offset -= controlBarBounds.top;
+        offset -= controlBarBounds.height;
       }
       body.style.top = `-${offset}px`;
       for (const style in styles) {
