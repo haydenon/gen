@@ -176,7 +176,6 @@ const ResourceList = ({ onMaximise }: Props) => {
 
   // Remove scrolling on background when modal is open
   useEffect(() => {
-    // TODO: This is pretty dirty at the moment, need to find a cleaner way to do this
     const body = document.body;
 
     const styles = {
