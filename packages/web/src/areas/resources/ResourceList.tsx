@@ -242,9 +242,11 @@ const ResourceList = ({ onMaximise }: Props) => {
                 },
                 maximised: {
                   position: 'relative',
+                  zIndex: 1,
                 },
                 minimised: {
                   position: 'unset',
+                  zIndex: 'unset',
                   transition: {
                     delay: 0.3,
                   },
