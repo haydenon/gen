@@ -235,10 +235,25 @@ const ResourceList = ({ onMaximise }: Props) => {
             <ListItem
               key={r.id}
               initial={{ height: '0px', overflowY: 'hidden' }}
-              animate={{
-                height: 'unset',
-                overflowY: 'unset',
+              variants={{
+                added: {
+                  height: 'unset',
+                  overflowY: 'unset',
+                },
+                maximised: {
+                  position: 'relative',
+                },
+                minimised: {
+                  position: 'unset',
+                  transition: {
+                    delay: 0.3,
+                  },
+                },
               }}
+              animate={[
+                'added',
+                ...(maximised === i ? ['maximised'] : ['minimised']),
+              ]}
               exit={{
                 height: '0px',
                 overflowY: 'hidden',
