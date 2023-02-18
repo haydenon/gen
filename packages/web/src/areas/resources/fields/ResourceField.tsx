@@ -14,6 +14,7 @@ import StringInput from './StringInput';
 import styled from 'styled-components';
 import { getFieldDisplayName } from './field.utils';
 import LinkInput from './LinkInput';
+import BooleanInput from './BooleanInput';
 
 interface TypeProps extends BaseInputProps {
   type: PropertyTypeResponse;
@@ -41,6 +42,15 @@ export const InputForType = ({
     case Type.String:
       return (
         <StringInput
+          {...baseProps}
+          type={type}
+          value={value}
+          onChange={onChange}
+        />
+      );
+    case Type.Boolean:
+      return (
+        <BooleanInput
           {...baseProps}
           type={type}
           value={value}

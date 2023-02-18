@@ -20,6 +20,11 @@ const lightTheme = css`
   --colors-contentBackground-light-focused: hsl(0deg 0% 82%);
   --colors-contentBackground-light-disabled: hsl(0deg 0% 60%);
 
+  --colors-contentBackground-checkbox: hsl(202deg 83% 45%);
+  --colors-contentBackground-checkbox-focusable: hsl(202deg 83% 52%);
+  --colors-contentBackground-checkbox-focused: hsl(202deg 83% 48%);
+  --colors-contentBackground-checkbox-disabled: hsl(202deg 83% 74%);
+
   --colors-contentBackground-danger: hsl(0deg 100% 79%);
   --colors-contentBackground-danger-focusable: hsl(0deg 100% 75%);
   --colors-contentBackground-danger-focused: hsl(0deg 100% 78%);
@@ -37,6 +42,11 @@ const lightTheme = css`
 
   --colors-text: hsla(0deg 0% 0% / 95%);
   --colors-text-danger: hsla(0deg 87% 38% / 97%);
+
+  --colors-checkbox: hsla(0deg 0% 100% / 95%);
+  --colors-checkbox-focusable: hsla(0deg 0% 96% / 95%);
+  --colors-checkbox-focused: hsla(0deg 0% 98% / 95%);
+  --colors-checkbox-disabled: hsla(0deg 0% 85% / 95%);
 
   /* Buttons */
   --colors-button-transparent-hover: hsl(0deg 0% 0% / 10%);
@@ -61,6 +71,11 @@ const darkTheme = css`
   --colors-contentBackground-light-focused: hsl(200deg 5% 29%);
   --colors-contentBackground-light-disabled: hsl(200deg 5% 60%);
 
+  --colors-contentBackground-checkbox: hsl(202deg 83% 45%);
+  --colors-contentBackground-checkbox-focusable: hsl(202deg 83% 52%);
+  --colors-contentBackground-checkbox-focused: hsl(202deg 83% 48%);
+  --colors-contentBackground-checkbox-disabled: hsl(202deg 83% 74%);
+
   --colors-contentBackground-danger: hsl(0, 83%, 45%);
   --colors-contentBackground-danger-focusable: hsl(0, 83%, 54%);
   --colors-contentBackground-danger-focused: hsl(0deg 87% 50%);
@@ -78,6 +93,11 @@ const darkTheme = css`
 
   --colors-text: hsla(0deg 0% 100% / 95%);
   --colors-text-danger: hsla(0deg 100% 79% / 97%);
+
+  --colors-checkbox: hsla(0deg 0% 100% / 95%);
+  --colors-checkbox-focusable: hsla(0deg 0% 94% / 95%);
+  --colors-checkbox-focused: hsla(0deg 0% 97% / 95%);
+  --colors-checkbox-disabled: hsla(0deg 0% 70% / 95%);
 
   /* Buttons */
   --colors-button-transparent-hover: hsl(0deg 0% 100% / 10%);
