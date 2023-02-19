@@ -15,11 +15,15 @@ const Wrapper = styled.div`
 `;
 
 const Checkbox = styled.input`
-  --size: calc(1rem * var(--typography-lineHeight) + (var(--spacing-tiny) * 2));
+  --inputSize: calc(
+    1rem * var(--typography-lineHeight) + (var(--spacing-tiny) * 2)
+  );
+  --size: var(--spacing-base);
+  --margin: calc((var(--inputSize) - var(--size)) / 2);
   transition: background 0.3s;
   background: var(--colors-checkbox);
   color: var(--colors-checkbox);
-  margin: 0;
+  margin: var(--margin);
   width: var(--size);
   height: var(--size);
   border-radius: var(--borders-radius);
@@ -28,7 +32,7 @@ const Checkbox = styled.input`
   appearance: none;
   -webkit-appearance: none;
 
-  font-size: 1.6rem;
+  font-size: 1rem;
   font-weight: bold;
 
   position: relative;
@@ -60,8 +64,8 @@ const Checkbox = styled.input`
   &:checked::after {
     content: '✓️';
     position: absolute;
-    top: 0px;
-    left: 6px;
+    top: -1px;
+    left: 3px;
   }
 `;
 

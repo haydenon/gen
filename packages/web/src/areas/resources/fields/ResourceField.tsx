@@ -15,6 +15,7 @@ import styled from 'styled-components';
 import { getFieldDisplayName } from './field.utils';
 import LinkInput from './LinkInput';
 import BooleanInput from './BooleanInput';
+import UndefinableNullableField from './UndefinableNullableField';
 
 interface TypeProps extends BaseInputProps {
   type: PropertyTypeResponse;
@@ -75,22 +76,13 @@ export const InputForType = ({
           onChange={onChange}
         />
       );
+
     case Type.Undefinable:
-      return (
-        <InputForType
-          {...baseProps}
-          type={type.inner}
-          undefinable={true}
-          value={value}
-          onChange={onChange}
-        />
-      );
     case Type.Nullable:
       return (
-        <InputForType
+        <UndefinableNullableField
           {...baseProps}
-          type={type.inner}
-          nullable={true}
+          type={type}
           value={value}
           onChange={onChange}
         />
@@ -130,8 +122,6 @@ const ResourceField = ({
       <InputForType
         type={fieldDefinition.type}
         name={displayName}
-        undefinable={false}
-        nullable={false}
         value={value}
         onChange={onChange}
         context={context}

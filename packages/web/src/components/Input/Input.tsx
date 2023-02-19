@@ -86,4 +86,29 @@ const Input = ({
   );
 };
 
+const ReadOnlyInputBox = styled.div`
+  ${baseInputStyles}
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-tiny);
+`;
+
+interface ReadOnlyProps {
+  children: React.ReactNode | React.ReactNode[];
+  label: string;
+  className?: string;
+}
+
+export const ReadOnlyInput = ({
+  className,
+  label,
+  children,
+}: ReadOnlyProps) => {
+  return (
+    <Label className={className} label={label}>
+      <ReadOnlyInputBox>{children}</ReadOnlyInputBox>
+    </Label>
+  );
+};
+
 export default Input;

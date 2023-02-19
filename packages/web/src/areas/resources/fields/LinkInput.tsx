@@ -13,7 +13,10 @@ import { ArrowRight, ChevronLeft, Edit, Link } from 'react-feather';
 import styled from 'styled-components';
 import Button, { ButtonColour, ButtonStyle } from '../../../components/Button';
 import CodeText from '../../../components/CodeText';
-import { baseInputStyles } from '../../../components/Input/Input';
+import {
+  baseInputStyles,
+  ReadOnlyInput,
+} from '../../../components/Input/Input';
 import Label from '../../../components/Label';
 import { Menu, MenuButton, MenuItem, MenuList } from '../../../components/Menu';
 import { menuItemStyles } from '../../../components/Menu/Menu';
@@ -261,14 +264,7 @@ interface RuntimeValueProps {
   runtimeValue: FormRuntimeValue;
 }
 
-const ReadOnlyDisplay = styled.div`
-  ${baseInputStyles}
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-tiny);
-`;
-
-const DisplayLabel = styled(Label)`
+const ReadOnlyDisplay = styled(ReadOnlyInput)`
   margin-top: calc(-1 * var(--labelOffset));
 `;
 
@@ -297,13 +293,11 @@ const LinkedRuntimeValueDisplay = ({
   }
 
   return (
-    <DisplayLabel label={name}>
-      <ReadOnlyDisplay>
-        <CodeText>{resource.name || '<no name>'}</CodeText>
-        <ArrowRight size={18} />
-        <CodeText>{indexer.value}</CodeText>
-      </ReadOnlyDisplay>
-    </DisplayLabel>
+    <ReadOnlyDisplay label={name}>
+      <CodeText>{resource.name || '<no name>'}</CodeText>
+      <ArrowRight size={18} />
+      <CodeText>{indexer.value}</CodeText>
+    </ReadOnlyDisplay>
   );
 };
 

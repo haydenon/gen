@@ -46,8 +46,6 @@ const ArrayInput = ({ type, value, name, context, onChange }: Props) => {
           <ListItem key={i}>
             <InputForType
               type={type.inner}
-              undefinable={false}
-              nullable={false}
               value={item}
               name={`[${i}]`}
               onChange={() => {}} // TODO: On change for arrays

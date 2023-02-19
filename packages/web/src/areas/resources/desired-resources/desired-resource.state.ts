@@ -20,12 +20,10 @@ const getKey = getKeyGenerator(StateNamespace.DesiredResource);
 const TEST_RESOURCES: DesiredResource[] = [
   {
     id: uuid(),
-    type: 'Service',
-    name: 'SomeService',
+    type: 'Product',
+    name: 'SomeProduct',
     fieldData: {
-      fulfiller: 'Window Washers United',
-      name: 'Window Washing',
-      price: 1.2,
+      memberDiscount: 1,
     },
   },
   // {
