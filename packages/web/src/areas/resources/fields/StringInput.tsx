@@ -15,11 +15,14 @@ const Wrapper = styled.div`
   margin-top: calc(-1 * var(--labelOffset));
 `;
 
-const StringInput = ({ type, value, name, onChange }: Props) => {
+const StringInput = ({ type, value, name, onChange, parentActions }: Props) => {
   return (
-    <Wrapper>
-      <FieldInput label={name} value={value ?? ''} onChange={onChange} />
-    </Wrapper>
+    <>
+      <Wrapper>
+        <FieldInput label={name} value={value ?? ''} onChange={onChange} />
+      </Wrapper>
+      {parentActions}
+    </>
   );
 };
 

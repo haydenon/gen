@@ -16,16 +16,19 @@ interface Props extends BaseInputProps {
   onChange: (value: number | undefined | null) => void;
 }
 
-const NumberInput = ({ type, value, name, onChange }: Props) => {
+const NumberInput = ({ type, value, name, onChange, parentActions }: Props) => {
   return (
-    <Wrapper>
-      <FieldInput
-        type={InputType.Number}
-        label={name}
-        value={value ?? 0}
-        onChange={onChange}
-      />
-    </Wrapper>
+    <>
+      <Wrapper>
+        <FieldInput
+          type={InputType.Number}
+          label={name}
+          value={value ?? 0}
+          onChange={onChange}
+        />
+      </Wrapper>
+      {parentActions}
+    </>
   );
 };
 

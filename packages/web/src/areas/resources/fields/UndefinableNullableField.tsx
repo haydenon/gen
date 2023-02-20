@@ -4,7 +4,7 @@ import {
   PropertyTypeResponse,
   UndefinableTypeResponse,
 } from '@haydenon/gen-server';
-import { Code, Edit } from 'react-feather';
+import { Edit } from 'react-feather';
 import styled from 'styled-components';
 import Button, { ButtonStyle } from '../../../components/Button';
 import CodeText from '../../../components/CodeText';

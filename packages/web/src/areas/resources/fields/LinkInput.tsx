@@ -301,7 +301,14 @@ const LinkedRuntimeValueDisplay = ({
   );
 };
 
-const LinkInput = ({ type, value, onChange, context, ...baseProps }: Props) => {
+const LinkInput = ({
+  type,
+  value,
+  onChange,
+  context,
+  parentActions,
+  ...baseProps
+}: Props) => {
   const onFieldChoose = (desiredResourceId: string, fieldName: string) => {
     onChange(
       new FormRuntimeValue(
@@ -332,6 +339,7 @@ const LinkInput = ({ type, value, onChange, context, ...baseProps }: Props) => {
           value={value}
           onChange={onChange}
           context={context}
+          parentActions={null}
           {...baseProps}
         />
       )}
@@ -340,6 +348,7 @@ const LinkInput = ({ type, value, onChange, context, ...baseProps }: Props) => {
         currentResourceId={context.desiredResourceId}
         onFieldSelect={onFieldChoose}
       />
+      {parentActions}
     </>
   );
 };

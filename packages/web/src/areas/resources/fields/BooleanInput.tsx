@@ -69,16 +69,25 @@ const Checkbox = styled.input`
   }
 `;
 
-const BooleanInput = ({ type, value, name, onChange }: Props) => {
+const BooleanInput = ({
+  type,
+  value,
+  name,
+  onChange,
+  parentActions,
+}: Props) => {
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = () => {
     onChange(!value);
   };
   return (
-    <Wrapper>
-      <Label label={name}>
-        <Checkbox type="checkbox" checked={!!value} onChange={handleChange} />
-      </Label>
-    </Wrapper>
+    <>
+      <Wrapper>
+        <Label label={name}>
+          <Checkbox type="checkbox" checked={!!value} onChange={handleChange} />
+        </Label>
+      </Wrapper>
+      {parentActions}
+    </>
   );
 };
 

@@ -16,11 +16,13 @@ import { getFieldDisplayName } from './field.utils';
 import LinkInput from './LinkInput';
 import BooleanInput from './BooleanInput';
 import UndefinableNullableField from './UndefinableNullableField';
+import ComplexField from './ComplexField';
 
 interface TypeProps extends BaseInputProps {
   type: PropertyTypeResponse;
   value: any;
   onChange: (value: any) => void;
+  parentActions: React.ReactNode | React.ReactNode[];
 }
 
 export const InputForType = ({
@@ -87,6 +89,15 @@ export const InputForType = ({
           onChange={onChange}
         />
       );
+    case Type.Complex:
+      return (
+        <ComplexField
+          {...baseProps}
+          type={type}
+          value={value}
+          onChange={onChange}
+        />
+      );
     default:
       return <>Field</>;
   }
@@ -105,6 +116,10 @@ const FieldActions = styled.div`
   display: flex;
 `;
 
+const InputRoot = styled(InputForType)`
+  --indent-size: var(--spacing-base);
+`;
+
 const ResourceField = ({
   fieldDefinition,
   value,
@@ -118,25 +133,25 @@ const ResourceField = ({
     desiredResourceId,
   };
   return (
-    <>
-      <InputForType
-        type={fieldDefinition.type}
-        name={displayName}
-        value={value}
-        onChange={onChange}
-        context={context}
-      />
-      <FieldActions>
-        <Button
-          buttonStyle={ButtonStyle.Icon}
-          colour={ButtonColour.Warn}
-          onClick={onRemoveField}
-        >
-          <VisuallyHidden>Remove specifed field</VisuallyHidden>
-          <Minus size={16} strokeWidth={3} />
-        </Button>
-      </FieldActions>
-    </>
+    <InputRoot
+      type={fieldDefinition.type}
+      name={displayName}
+      value={value}
+      onChange={onChange}
+      context={context}
+      parentActions={
+        <FieldActions>
+          <Button
+            buttonStyle={ButtonStyle.Icon}
+            colour={ButtonColour.Warn}
+            onClick={onRemoveField}
+          >
+            <VisuallyHidden>Remove specifed field</VisuallyHidden>
+            <Minus size={16} strokeWidth={3} />
+          </Button>
+        </FieldActions>
+      }
+    />
   );
 };
 

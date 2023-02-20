@@ -34,13 +34,29 @@ const ListItem = styled.li`
   }
 `;
 
-const ArrayInput = ({ type, value, name, context, onChange }: Props) => {
+const FieldLabel = styled(Label)`
+  margin-top: calc(-1 * var(--labelOffset));
+`;
+
+const ListText = styled.div`
+  font-size: var(--typography-size-paragraph);
+`;
+
+const ArrayInput = ({
+  type,
+  value,
+  name,
+  context,
+  onChange,
+  parentActions,
+}: Props) => {
   if (!(value instanceof Array)) {
     // return <p>No array items</p>
     value = [182, 789];
   }
   return (
-    <Label label={name}>
+    <FieldLabel label={name}>
+      {parentActions}
       <List>
         {value.map((item, i) => (
           <ListItem key={i}>
@@ -50,11 +66,12 @@ const ArrayInput = ({ type, value, name, context, onChange }: Props) => {
               name={`[${i}]`}
               onChange={() => {}} // TODO: On change for arrays
               context={context}
+              parentActions={null}
             />
           </ListItem>
         ))}
       </List>
-    </Label>
+    </FieldLabel>
   );
 };
 
