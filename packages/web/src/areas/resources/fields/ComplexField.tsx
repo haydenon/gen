@@ -1,6 +1,6 @@
 import { ComplexTypeResponse } from '@haydenon/gen-server';
 import styled from 'styled-components';
-import Label from '../../../components/Label';
+import Label, { NonFormLabel } from '../../../components/Label';
 import { getFieldDisplayName } from './field.utils';
 import { BaseInputProps } from './props';
 import { InputForType } from './ResourceField';
@@ -11,7 +11,7 @@ interface Props extends BaseInputProps {
   onChange: (value: { [field: string]: any }) => void;
 }
 
-const FieldLabel = styled(Label)`
+const FieldLabel = styled(NonFormLabel)`
   margin-top: calc(-1 * var(--labelOffset));
 `;
 
@@ -19,6 +19,9 @@ const InputWrapper = styled.div`
   padding-top: var(--labelOffset);
   display: flex;
   gap: var(--spacing-tiny);
+  &:not(:last-child) {
+    padding-bottom: var(--spacing-small);
+  }
 `;
 
 const InputsWrapper = styled.div`
@@ -28,7 +31,19 @@ const InputsWrapper = styled.div`
   padding-left: var(--spacing-small);
 `;
 
-const ComplexField = ({ name, type, parentActions, ...baseProps }: Props) => {
+const ComplexField = ({
+  name,
+  type,
+  parentActions,
+  value,
+  onChange,
+  ...baseProps
+}: Props) => {
+  const handleChange = (field: string) => (fieldValue: any) => {
+    const newValue = { ...value, [field]: fieldValue };
+    onChange(newValue);
+  };
+
   return (
     <FieldLabel label={name}>
       {parentActions}
@@ -39,8 +54,8 @@ const ComplexField = ({ name, type, parentActions, ...baseProps }: Props) => {
               name={getFieldDisplayName(field)}
               type={type.fields[field]}
               parentActions={null}
-              value={baseProps.value[field]}
-              onChange={console.log}
+              value={value[field]}
+              onChange={handleChange(field)}
               context={baseProps.context}
             />
           </InputWrapper>

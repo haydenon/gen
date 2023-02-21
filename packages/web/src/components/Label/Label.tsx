@@ -5,6 +5,11 @@ const Wrapper = styled.label`
   line-height: var(--typography-lineHeight);
 `;
 
+const NonFormWrapper = styled.div`
+  font-size: var(--typography-size-small);
+  line-height: var(--typography-lineHeight);
+`;
+
 const LabelText = styled.div`
   padding-bottom: 6px;
 `;
@@ -21,6 +26,15 @@ const Label = ({ className, label, children }: Props) => {
       <LabelText>{label}</LabelText>
       {children}
     </Wrapper>
+  );
+};
+
+export const NonFormLabel = ({ className, label, children }: Props) => {
+  return (
+    <NonFormWrapper className={className}>
+      <LabelText>{label}</LabelText>
+      {children}
+    </NonFormWrapper>
   );
 };
 
