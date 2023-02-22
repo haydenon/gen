@@ -12,6 +12,7 @@ import {
   PropertyType,
   StringType,
   Type,
+  Undefinable,
 } from './properties';
 import {
   ValueAndPropertyVisitor,

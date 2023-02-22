@@ -53,7 +53,7 @@ class RuntimeOutputVisitor extends ValueAndPropertyVisitor<any> {
   protected visitStrValue = this.replaceRuntimeValue;
   protected visitDateValue = this.replaceRuntimeValue;
   protected mapNullValue = () => null;
-  protected mapUndefinedValue = () => undefined;
+  protected mapUndefinedValue = () => '${undefined}';
   protected checkArrayValue = (_: any, value: any): [true, any] | [false] =>
     isRuntimeValue(value)
       ? [true, `$\{${outputRuntimeValue(value)}}`]

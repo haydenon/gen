@@ -1,4 +1,4 @@
-import { Type } from '@haydenon/gen-core';
+import { identifier, Type, Variable } from '@haydenon/gen-core';
 import {
   NullableTypeResponse,
   PropertyTypeResponse,
@@ -9,6 +9,7 @@ import styled from 'styled-components';
 import Button, { ButtonStyle } from '../../../components/Button';
 import CodeText from '../../../components/CodeText';
 import { ReadOnlyInput } from '../../../components/Input';
+import { FormRuntimeValue } from '../runtime-value';
 import { BaseInputProps } from './props';
 import { InputForType } from './ResourceField';
 
@@ -17,6 +18,11 @@ interface Props extends BaseInputProps {
   value: any;
   onChange: (value: any) => void;
 }
+
+const undefinedValue = new FormRuntimeValue(
+  undefined,
+  new Variable(identifier('undefined'))
+);
 
 const IconButton = styled(Button)`
   font-size: var(--typography-size-small);
@@ -32,7 +38,7 @@ interface ValueProps extends BaseInputProps {
   onChange: (value: any) => void;
 }
 const Value = ({ type, value, onChange, ...baseProps }: ValueProps) => {
-  if (value !== undefined && value !== null) {
+  if (value !== undefinedValue && value !== null) {
     return (
       <InputForType
         {...baseProps}
@@ -56,7 +62,7 @@ const Value = ({ type, value, onChange, ...baseProps }: ValueProps) => {
   );
 };
 
-const UndefinableNullableField = ({ ...baseProps }: Props) => {
+const UndefinableNullableField = ({ parentActions, ...baseProps }: Props) => {
   const { type, onChange, value } = baseProps;
   let nullable =
     type.type === Type.Nullable || type.inner.type === Type.Nullable;
@@ -68,7 +74,7 @@ const UndefinableNullableField = ({ ...baseProps }: Props) => {
       : type.inner;
   return (
     <>
-      <Value {...baseProps} type={inner} />
+      <Value parentActions={null} {...baseProps} type={inner} />
       {nullable && value !== null ? (
         <IconButton
           buttonStyle={ButtonStyle.Icon}
@@ -77,14 +83,15 @@ const UndefinableNullableField = ({ ...baseProps }: Props) => {
           <CodeText>null</CodeText>
         </IconButton>
       ) : null}
-      {undefinable && value !== undefined ? (
+      {undefinable && value !== undefinedValue ? (
         <IconButton
           buttonStyle={ButtonStyle.Icon}
-          onClick={() => onChange(undefined)}
+          onClick={() => onChange(undefinedValue)}
         >
           <CodeText>undef</CodeText>
         </IconButton>
       ) : null}
+      {parentActions}
     </>
   );
 };

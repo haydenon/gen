@@ -49,8 +49,9 @@ export {
   Literal,
   outputExpression,
   identifier,
+  BASE_CONTEXT_TYPES,
 } from './runtime-values';
-export type { ExprType, Visitor } from './runtime-values';
+export type { ExprType, Visitor, Context } from './runtime-values';
 export {
   GenerationResult,
   dependentGenerator,

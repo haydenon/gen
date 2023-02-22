@@ -1,3 +1,10 @@
+import { BASE_CONTEXT_TYPES, Context, isRuntimeValue } from '../runtime-values';
+import {
+  nullType,
+  undefinedType,
+  unknownType,
+} from '../runtime-values/types/expression-types';
+import { inferType } from '../runtime-values/types/inferrer/inferrer';
 import {
   PropertyType,
   isComplex,
@@ -95,14 +102,47 @@ export abstract class ValueAndPropertyVisitor<T>
     this.value = arr;
     return this.mapArrayValue(type, result);
   };
-  visitNull = (type: Nullable): T =>
-    this.value === null
+  visitNull = (type: Nullable): T => {
+    if (isRuntimeValue(this.value)) {
+      const unknownContext = this.value.depdendentStateNames.reduce(
+        (ctx, name) => {
+          ctx[name] = unknownType;
+          return ctx;
+        },
+        {} as Context
+      );
+      const context = { ...unknownContext, ...BASE_CONTEXT_TYPES };
+      const runtimeType = inferType(this.value.expression, context);
+      if (runtimeType === nullType) {
+        return this.mapNullValue(type);
+      }
+    }
+
+    return this.value === null
       ? this.mapNullValue(type)
       : acceptPropertyType<T>(this, type.inner);
-  visitUndefined = (type: Undefinable): T =>
-    this.value === undefined
+  };
+  visitUndefined = (type: Undefinable): T => {
+    if (isRuntimeValue(this.value)) {
+      const unknownContext = this.value.depdendentStateNames.reduce(
+        (ctx, name) => {
+          ctx[name] = unknownType;
+          return ctx;
+        },
+        {} as Context
+      );
+      const context = { ...unknownContext, ...BASE_CONTEXT_TYPES };
+      const runtimeType = inferType(this.value.expression, context);
+      if (runtimeType === undefinedType) {
+        return this.mapUndefinedValue(type);
+      }
+    }
+
+    return this.value === undefined
       ? this.mapUndefinedValue(type)
       : acceptPropertyType<T>(this, type.inner);
+  };
+
   visitComplex = (type: ComplexType): T => {
     if (this.checkComplexValue) {
       const [processed, value] = this.checkComplexValue(type, this.value);

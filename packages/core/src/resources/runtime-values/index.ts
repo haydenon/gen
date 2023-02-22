@@ -32,3 +32,6 @@ export type { Visitor } from './ast/expressions';
 export { identifier } from './ast/tokens/token';
 
 export { outputExpression } from './outputer/outputer';
+
+export { BASE_CONTEXT_TYPES } from './context';
+export type { Context } from './context';

@@ -8,6 +8,7 @@ import {
   PropertyMap,
   PropertyType,
   RuntimeValue,
+  BASE_CONTEXT_TYPES,
 } from '@haydenon/gen-core';
 import { validateInputValues } from '@haydenon/gen-core/src/resources/properties';
 import {
@@ -70,7 +71,12 @@ const createValidator = (context: DesiredStateContext) => {
         acc[item] = context[item];
         return acc;
       }, {} as { [name: string]: ExprType });
-    const actualType = inferType(value.expression, requiredContext);
+    const typeContext = {
+      ...requiredContext,
+      ...BASE_CONTEXT_TYPES,
+    };
+
+    const actualType = inferType(value.expression, typeContext);
     if (actualType instanceof Error) {
       return actualType;
     }
