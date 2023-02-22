@@ -11,9 +11,11 @@ import {
   Variable,
   Visitor,
 } from '../ast/expressions';
+import { Context } from '../context';
+import { BASE_CONTEXT } from '../context/base-context';
 
 class EvalutorVisitor implements Visitor<any> {
-  constructor(private createdState: CreatedState) {}
+  constructor(private createdState: CreatedState, private context: Context) {}
 
   visitLiteralExpr(expr: Literal) {
     return expr.value;
@@ -35,6 +37,10 @@ class EvalutorVisitor implements Visitor<any> {
   }
 
   visitVariableExpr(expr: Variable): any {
+    if (expr.name.lexeme in this.context) {
+      return this.context[expr.name.lexeme];
+    }
+
     return this.createdState[expr.name.lexeme].createdState;
   }
 
@@ -61,6 +67,6 @@ class EvalutorVisitor implements Visitor<any> {
 }
 
 export function evaluate<T>(expression: Expr, createdState: CreatedState): T {
-  const visitor = new EvalutorVisitor(createdState);
+  const visitor = new EvalutorVisitor(createdState, BASE_CONTEXT);
   return expression.accept(visitor);
 }

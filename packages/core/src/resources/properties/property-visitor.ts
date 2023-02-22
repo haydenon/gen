@@ -1,4 +1,8 @@
-import { BASE_CONTEXT_TYPES, Context, isRuntimeValue } from '../runtime-values';
+import {
+  BASE_CONTEXT_TYPES,
+  ContextTypes,
+  isRuntimeValue,
+} from '../runtime-values';
 import {
   nullType,
   undefinedType,
@@ -109,7 +113,7 @@ export abstract class ValueAndPropertyVisitor<T>
           ctx[name] = unknownType;
           return ctx;
         },
-        {} as Context
+        {} as ContextTypes
       );
       const context = { ...unknownContext, ...BASE_CONTEXT_TYPES };
       const runtimeType = inferType(this.value.expression, context);
@@ -129,7 +133,7 @@ export abstract class ValueAndPropertyVisitor<T>
           ctx[name] = unknownType;
           return ctx;
         },
-        {} as Context
+        {} as ContextTypes
       );
       const context = { ...unknownContext, ...BASE_CONTEXT_TYPES };
       const runtimeType = inferType(this.value.expression, context);
