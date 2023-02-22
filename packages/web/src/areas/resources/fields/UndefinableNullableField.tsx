@@ -1,4 +1,4 @@
-import { identifier, Type, Variable } from '@haydenon/gen-core';
+import { Type } from '@haydenon/gen-core';
 import {
   NullableTypeResponse,
   PropertyTypeResponse,
@@ -9,7 +9,8 @@ import styled from 'styled-components';
 import Button, { ButtonStyle } from '../../../components/Button';
 import CodeText from '../../../components/CodeText';
 import { ReadOnlyInput } from '../../../components/Input';
-import { FormRuntimeValue } from '../runtime-value';
+import { generateDefaultValue } from '../../../utilities/default-value.generator';
+import { WELL_KNOWN_RUNTIME_VALUES } from '../runtime-value';
 import { BaseInputProps } from './props';
 import { InputForType } from './ResourceField';
 
@@ -18,12 +19,6 @@ interface Props extends BaseInputProps {
   value: any;
   onChange: (value: any) => void;
 }
-
-const undefinedValue = new FormRuntimeValue(
-  undefined,
-  new Variable(identifier('undefined'))
-);
-
 const IconButton = styled(Button)`
   font-size: var(--typography-size-small);
 `;
@@ -38,7 +33,7 @@ interface ValueProps extends BaseInputProps {
   onChange: (value: any) => void;
 }
 const Value = ({ type, value, onChange, ...baseProps }: ValueProps) => {
-  if (value !== undefinedValue && value !== null) {
+  if (value !== WELL_KNOWN_RUNTIME_VALUES.undefined && value !== null) {
     return (
       <InputForType
         {...baseProps}
@@ -54,8 +49,10 @@ const Value = ({ type, value, onChange, ...baseProps }: ValueProps) => {
       <ReadOnlyDisplay label={baseProps.name}>
         <CodeText>{value === null ? 'null' : 'undefined'}</CodeText>
       </ReadOnlyDisplay>
-      <Button buttonStyle={ButtonStyle.Icon} onClick={() => onChange(0)}>
-        {/* TODO: Better defaults */}
+      <Button
+        buttonStyle={ButtonStyle.Icon}
+        onClick={() => onChange(generateDefaultValue(type))}
+      >
         <Edit size={18} />
       </Button>
     </>
@@ -83,10 +80,10 @@ const UndefinableNullableField = ({ parentActions, ...baseProps }: Props) => {
           <CodeText>null</CodeText>
         </IconButton>
       ) : null}
-      {undefinable && value !== undefinedValue ? (
+      {undefinable && value !== WELL_KNOWN_RUNTIME_VALUES.undefined ? (
         <IconButton
           buttonStyle={ButtonStyle.Icon}
-          onClick={() => onChange(undefinedValue)}
+          onClick={() => onChange(WELL_KNOWN_RUNTIME_VALUES.undefined)}
         >
           <CodeText>undef</CodeText>
         </IconButton>

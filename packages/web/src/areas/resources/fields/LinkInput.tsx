@@ -29,6 +29,7 @@ import { getFieldDisplayName } from './field.utils';
 
 import { BaseInputProps } from './props';
 import { InputForType } from './ResourceField';
+import { generateDefaultValue } from '../../../utilities/default-value.generator';
 
 interface Props extends BaseInputProps {
   type: LinkTypeResponse;
@@ -328,8 +329,10 @@ const LinkInput = ({
             name={baseProps.name}
             runtimeValue={value}
           />
-          <Button buttonStyle={ButtonStyle.Icon} onClick={() => onChange(0)}>
-            {/* TODO: Better defaults */}
+          <Button
+            buttonStyle={ButtonStyle.Icon}
+            onClick={() => onChange(generateDefaultValue(type))}
+          >
             <Edit size={18} />
           </Button>
         </>

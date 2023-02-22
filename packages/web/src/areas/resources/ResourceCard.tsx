@@ -14,6 +14,7 @@ import ResourceField from './fields/ResourceField';
 import { PropertyDefinitionResponse } from '@haydenon/gen-server';
 import { getFieldDisplayName } from './fields/field.utils';
 import { Menu, MenuButton, MenuItem, MenuList } from '../../components/Menu';
+import { generateDefaultValue } from '../../utilities/default-value.generator';
 
 interface Props {
   resource: DesiredResource;
@@ -193,7 +194,10 @@ const ResourceCard = ({
   };
 
   const onSpecifyField = (field: string) => {
-    const fields = { [field]: undefined, ...resource.fieldData };
+    const fields = {
+      [field]: generateDefaultValue(resourceDefinitionInputMap[field].type),
+      ...resource.fieldData,
+    };
     onChange({ ...resource, fieldData: fields });
   };
 
