@@ -43,8 +43,7 @@ interface CardProps {
 }
 
 const Card = styled(CardComp)<CardProps>`
-  max-height: ${(props) => (props.maximised ? '100%' : undefined)};
-  min-height: ${(props) => (props.maximised ? '250px' : undefined)};
+  height: ${(props) => (props.maximised ? '100%' : undefined)};
   overflow-y: ${(props) => (props.maximised ? 'auto' : undefined)};
   z-index: ${(props) => (props.maximised ? 2 : 'unset')};
   position: ${(props) => (props.maximised ? 'relative' : 'unset')};
