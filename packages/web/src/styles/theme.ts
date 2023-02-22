@@ -132,6 +132,9 @@ export const ThemeStyle = createGlobalStyle`
 
   --transition-duration-background: 0.3s;
   --transition-duration-font: 0.5s;
+
+  --content-padding: var(--spacing-tiny);
+  --content-height: calc(1rem * var(--typography-lineHeight) + (var(--content-padding) * 2));
 }
 
 @media (prefers-color-scheme: dark) {

@@ -20,10 +20,19 @@ const getKey = getKeyGenerator(StateNamespace.DesiredResource);
 const TEST_RESOURCES: DesiredResource[] = [
   {
     id: uuid(),
-    type: 'Product',
-    name: 'SomeProduct',
+    type: 'Photo',
+    name: 'SomePhoto',
     fieldData: {
-      memberDiscount: 4,
+      numberArray: [],
+    },
+  },
+  {
+    id: uuid(),
+    type: 'Order',
+    name: 'SomeOrder',
+    fieldData: {
+      orderItems: [{ id: 1, quantity: 1, note: '' }],
+      // memberDiscount: 4,
       // shippingInformation: {
       //   price: 12.3,
       //   minDays: 1,
@@ -32,6 +41,7 @@ const TEST_RESOURCES: DesiredResource[] = [
       // },
     },
   },
+
   // {
   //   id: resourceId++,
   //   type: 'Product',

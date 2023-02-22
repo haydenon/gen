@@ -64,9 +64,9 @@ export const InputForType = ({
       return (
         <ArrayInput
           {...baseProps}
-          value={undefined}
+          value={value}
           type={type}
-          onChange={console.log}
+          onChange={onChange}
         />
       );
     case Type.Link:

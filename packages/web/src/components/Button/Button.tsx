@@ -24,7 +24,7 @@ interface Props {
 
 export const buttonCommonStyles = css`
   line-height: var(--typography-lineHeight);
-  height: calc(1rem * var(--typography-lineHeight) + (var(--spacing-tiny) * 2));
+  height: var(--content-height);
   cursor: pointer;
   outline: none;
   border: none;

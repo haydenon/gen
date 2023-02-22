@@ -1,45 +1,60 @@
 import { ArrayTypeResponse } from '@haydenon/gen-server';
+import { Plus, Trash2 } from 'react-feather';
 import styled from 'styled-components';
-import Label from '../../../components/Label';
+import Button, { ButtonColour, ButtonStyle } from '../../../components/Button';
+import { NonFormLabel } from '../../../components/Label';
+import VisuallyHidden from '../../../components/VisuallyHidden';
+import { generateDefaultValue } from '../../../utilities/default-value.generator';
 import { BaseInputProps } from './props';
 import { InputForType } from './ResourceField';
 
 interface Props extends BaseInputProps {
   type: ArrayTypeResponse;
-  value: any[] | undefined | null;
-  onChange: (value: any[] | undefined | null) => void;
+  value: any[];
+  onChange: (value: any[]) => void;
 }
 
 const List = styled.ol`
   padding-top: var(--spacing-tiny);
-  padding-left: var(--spacing-large);
+  padding-left: var(--spacing-extraLarge);
 `;
 
-const ListItem = styled.li`
+interface ListItemProps {
+  index: number;
+}
+
+const ListItem = styled.li<ListItemProps>`
   list-style: none;
   position: relative;
   padding-bottom: var(--spacing-small);
+  padding-top: var(--labelOffset);
+
+  display: flex;
+  gap: var(--spacing-tiny);
 
   &::before {
-    content: '';
-    display: inline-block;
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background: var(--colors-text);
-    margin-right: 0.4rem;
+    content: '[${(props) => props.index}]';
     position: absolute;
-    left: -1.2rem;
-    top: 2rem;
+    left: calc(-1 * var(--spacing-extraLarge));
+    top: calc(var(--labelOffset) + var(--content-padding));
+    font-family: monospace;
+    font-weight: 500;
+    font-size: 1rem;
   }
 `;
 
-const FieldLabel = styled(Label)`
+const FieldLabel = styled(NonFormLabel)`
   margin-top: calc(-1 * var(--labelOffset));
 `;
 
-const ListText = styled.div`
-  font-size: var(--typography-size-paragraph);
+const Actions = styled.div`
+  display: flex;
+  gap: var(--spacing-tiny);
+`;
+
+const SmallText = styled.div`
+  padding-top: var(--spacing-small);
+  font-size: var(--typography-size-small);
 `;
 
 const ArrayInput = ({
@@ -50,27 +65,49 @@ const ArrayInput = ({
   onChange,
   parentActions,
 }: Props) => {
-  if (!(value instanceof Array)) {
-    // return <p>No array items</p>
-    value = [182, 789];
-  }
   return (
     <FieldLabel label={name}>
-      {parentActions}
+      <Actions>
+        <Button
+          buttonStyle={ButtonStyle.Icon}
+          colour={ButtonColour.Success}
+          onClick={() => onChange([...value, generateDefaultValue(type.inner)])}
+        >
+          <VisuallyHidden>Add array item</VisuallyHidden>
+          <Plus size={16} strokeWidth={3} />
+        </Button>
+        {parentActions}
+      </Actions>
       <List>
         {value.map((item, i) => (
-          <ListItem key={i}>
+          <ListItem index={i} key={i}>
             <InputForType
               type={type.inner}
               value={item}
-              name={`[${i}]`}
-              onChange={() => {}} // TODO: On change for arrays
+              name={`Item ${i}`}
+              onChange={(childValue) =>
+                onChange([
+                  ...value.slice(0, i),
+                  childValue,
+                  ...value.slice(i + 1),
+                ])
+              }
               context={context}
-              parentActions={null}
+              parentActions={
+                <Button
+                  buttonStyle={ButtonStyle.Icon}
+                  colour={ButtonColour.Danger}
+                  onClick={() => onChange(value.filter((_, idx) => idx !== i))}
+                >
+                  <VisuallyHidden>Remove array item</VisuallyHidden>
+                  <Trash2 size={16} strokeWidth={3} />
+                </Button>
+              }
             />
           </ListItem>
         ))}
       </List>
+      {value.length < 1 ? <SmallText>No array items</SmallText> : null}
     </FieldLabel>
   );
 };
