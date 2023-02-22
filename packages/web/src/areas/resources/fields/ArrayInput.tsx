@@ -45,6 +45,9 @@ const ListItem = styled.li<ListItemProps>`
 
 const FieldLabel = styled(NonFormLabel)`
   margin-top: calc(-1 * var(--labelOffset));
+  border-left: 4px solid white;
+  padding-left: 16px;
+  margin-left: -20px;
 `;
 
 const Actions = styled.div`

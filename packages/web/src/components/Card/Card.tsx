@@ -3,7 +3,7 @@ import styled from 'styled-components';
 const CardBox = styled.div`
   background-color: var(--colors-contentBackground);
   border-radius: var(--borders-radius);
-  padding: var(--spacing-small);
+  padding: var(--spacing-base) var(--spacing-large);
   margin-bottom: var(--spacing-base);
 `;
 
