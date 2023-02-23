@@ -25,11 +25,12 @@ const InputWrapper = styled.div`
 `;
 
 const InputsWrapper = styled.div`
-  margin: var(--spacing-small) 0 var(--spacing-small)
-    calc(var(--spacing-large) - 4px);
-  border-left: 4px solid var(--colors-text);
   padding-left: var(--spacing-small);
+  border-left: 4px solid var(--colors-text);
+  margin: var(--spacing-tiny) 0;
 `;
+
+const Wrapper = styled.div``;
 
 const ComplexField = ({
   name,
@@ -46,21 +47,23 @@ const ComplexField = ({
 
   return (
     <FieldLabel label={name}>
-      {parentActions}
-      <InputsWrapper>
-        {Object.keys(type.fields).map((field) => (
-          <InputWrapper key={field}>
-            <InputForType
-              name={getFieldDisplayName(field)}
-              type={type.fields[field]}
-              parentActions={null}
-              value={value[field]}
-              onChange={handleChange(field)}
-              context={baseProps.context}
-            />
-          </InputWrapper>
-        ))}
-      </InputsWrapper>
+      <Wrapper>
+        {parentActions}
+        <InputsWrapper>
+          {Object.keys(type.fields).map((field) => (
+            <InputWrapper key={field}>
+              <InputForType
+                name={getFieldDisplayName(field)}
+                type={type.fields[field]}
+                parentActions={null}
+                value={value[field]}
+                onChange={handleChange(field)}
+                context={baseProps.context}
+              />
+            </InputWrapper>
+          ))}
+        </InputsWrapper>
+      </Wrapper>
     </FieldLabel>
   );
 };

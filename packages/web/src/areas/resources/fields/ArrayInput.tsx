@@ -15,8 +15,10 @@ interface Props extends BaseInputProps {
 }
 
 const List = styled.ol`
-  padding-top: var(--spacing-tiny);
-  padding-left: var(--spacing-extraLarge);
+  /* padding-left: var(--spacing-extraLarge); */
+  margin-top: var(--spacing-tiny);
+  border-left: 4px solid var(--colors-text);
+  padding-left: 16px;
 `;
 
 interface ListItemProps {
@@ -35,19 +37,20 @@ const ListItem = styled.li<ListItemProps>`
   &::before {
     content: '[${(props) => props.index}]';
     position: absolute;
-    left: calc(-1 * var(--spacing-extraLarge));
+    left: calc(-1 * var(--spacing-large));
     top: calc(var(--labelOffset) + var(--content-padding));
     font-family: monospace;
     font-weight: 500;
-    font-size: 1rem;
+    font-size: 0.75rem;
+    background: var(--colors-contentBackground);
   }
 `;
 
 const FieldLabel = styled(NonFormLabel)`
   margin-top: calc(-1 * var(--labelOffset));
-  border-left: 4px solid white;
-  padding-left: 16px;
-  margin-left: -20px;
+  /* border-left: 4px solid var(--colors-text); */
+  /* padding-left: 16px; */
+  /* margin-left: -20px; */
 `;
 
 const Actions = styled.div`
