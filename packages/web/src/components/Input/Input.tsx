@@ -107,7 +107,10 @@ const Input = ({
   let displayValue: number | string | undefined;
   if (type === InputType.DateTime) {
     if (value) {
-      displayValue = value.toISOString();
+      const timeZoneDiff = value.getTimezoneOffset() * 60 * 1000;
+      const localMillis = value.getTime() - timeZoneDiff;
+      const local = new Date(localMillis);
+      displayValue = local.toISOString();
       displayValue = displayValue.substring(0, displayValue.length - 1);
     } else {
       displayValue = undefined;

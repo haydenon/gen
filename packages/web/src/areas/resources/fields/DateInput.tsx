@@ -37,12 +37,12 @@ const DateInput = ({ type, value, name, onChange, parentActions }: Props) => {
           label={name ?? ''}
           value={dateValue}
           onChange={(date) => {
-            const year = date.getFullYear();
-            const month = date.getMonth();
-            const day = date.getDate();
-            const hour = date.getHours();
-            const minutes = date.getMinutes();
-            const seconds = date.getSeconds();
+            const year = date.getUTCFullYear();
+            const month = date.getUTCMonth() + 1;
+            const day = date.getUTCDate();
+            const hour = date.getUTCHours();
+            const minutes = date.getUTCMinutes();
+            const seconds = date.getUTCSeconds();
             const args = [year, month, day, hour, minutes, seconds];
             onChange(
               new FormRuntimeValue(

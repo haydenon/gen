@@ -51,11 +51,13 @@ const dateFunc = (...args: number[]) => {
   if (args.length < 1) {
     return new Date();
   } else if (args.length === 3) {
-    return new Date(args[0], args[2], args[2]);
+    return new Date(Date.UTC(args[0], args[1] - 1, args[2]));
   } else if (args.length === 5) {
-    return new Date(args[0], args[2], args[2], args[3], args[4]);
+    return new Date(Date.UTC(args[0], args[1] - 1, args[2], args[3], args[4]));
   } else if (args.length === 6) {
-    return new Date(args[0], args[2], args[2], args[3], args[4], args[5]);
+    return new Date(
+      Date.UTC(args[0], args[1] - 1, args[2], args[3], args[4], args[5])
+    );
   } else {
     throw new Error('Invalid date call');
   }
