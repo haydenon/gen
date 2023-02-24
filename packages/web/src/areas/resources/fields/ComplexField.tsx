@@ -26,7 +26,7 @@ const InputWrapper = styled.div`
 `;
 
 const InputsWrapper = styled.div`
-  padding-left: var(--spacing-small);
+  padding-left: var(--spacing-base);
   border-left: 4px solid var(--colors-contentBackground-light-disabled);
   margin: var(--spacing-tiny) 0;
 `;

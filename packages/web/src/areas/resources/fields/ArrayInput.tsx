@@ -17,7 +17,7 @@ interface Props extends BaseInputProps {
 const List = styled.ol`
   margin-top: var(--spacing-tiny);
   border-left: 4px solid var(--colors-contentBackground-light-disabled);
-  padding-left: 16px;
+  padding-left: var(--spacing-base);
 `;
 
 interface ListItemProps {
@@ -45,7 +45,7 @@ const ListItem = styled.li<ListItemProps>`
     content: '[${(props) => props.index}]';
     position: absolute;
     left: calc(
-      -1 * var(--spacing-large) ${(props) => (props.index < 10 ? '+ 3px' : '- 1px')}
+      -1 * (var(--spacing-large) ${(props) => (props.index < 10 ? '+ 5px' : '+ 9px')})
     );
     top: calc(3px + var(--content-padding) + var(--li-spacing));
     font-family: monospace;
