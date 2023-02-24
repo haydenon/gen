@@ -17,6 +17,8 @@ export const baseInputStyles = css`
 const CustomInput = styled.input`
   ${baseInputStyles}
 
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+
   &:focus,
   &:focus-visible {
     outline: 2px solid #4374cb;
