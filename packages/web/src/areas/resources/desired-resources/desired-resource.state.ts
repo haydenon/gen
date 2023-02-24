@@ -8,6 +8,7 @@ import {
   createCompleted,
   createUninitialised,
 } from '../../../data';
+import { WELL_KNOWN_RUNTIME_VALUES } from '../runtime-value';
 import { DesiredResource } from './desired-resource';
 
 export enum StateKey {
@@ -23,6 +24,7 @@ const TEST_RESOURCES: DesiredResource[] = [
     type: 'Photo',
     name: 'SomePhoto',
     fieldData: {
+      date: WELL_KNOWN_RUNTIME_VALUES.minDate,
       numberArray: [],
     },
   },

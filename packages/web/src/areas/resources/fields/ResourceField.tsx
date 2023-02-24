@@ -17,6 +17,7 @@ import LinkInput from './LinkInput';
 import BooleanInput from './BooleanInput';
 import UndefinableNullableField from './UndefinableNullableField';
 import ComplexField from './ComplexField';
+import DateInput from './DateInput';
 
 interface TypeProps extends BaseInputProps {
   type: PropertyTypeResponse;
@@ -92,6 +93,15 @@ export const InputForType = ({
     case Type.Complex:
       return (
         <ComplexField
+          {...baseProps}
+          type={type}
+          value={value}
+          onChange={onChange}
+        />
+      );
+    case Type.Date:
+      return (
+        <DateInput
           {...baseProps}
           type={type}
           value={value}

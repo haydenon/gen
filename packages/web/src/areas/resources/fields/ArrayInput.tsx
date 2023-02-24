@@ -45,12 +45,13 @@ const ListItem = styled.li<ListItemProps>`
     content: '[${(props) => props.index}]';
     position: absolute;
     left: calc(
-      -1 * (var(--spacing-large) ${(props) => (props.index < 10 ? '+ 5px' : '+ 9px')})
+      -1 * (var(--spacing-large)
+            ${(props) => (props.index < 10 ? '+ 5px' : '+ 9px')})
     );
     top: calc(3px + var(--content-padding) + var(--li-spacing));
     font-family: monospace;
     font-weight: 500;
-    font-size: 0.75rem;
+    font-size: var(--typography-size-small);
     background: var(--colors-contentBackground);
   }
 `;

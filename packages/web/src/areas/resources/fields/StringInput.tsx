@@ -1,7 +1,7 @@
 import { BasicTypeResponse } from '@haydenon/gen-server';
 import styled from 'styled-components';
 
-import FieldInput from './FieldInput';
+import FieldInput, { OffsetWrapper } from './FieldInput';
 import { BaseInputProps } from './props';
 
 interface Props extends BaseInputProps {
@@ -10,10 +10,8 @@ interface Props extends BaseInputProps {
   onChange: (value: string | undefined | null) => void;
 }
 
-const Wrapper = styled.div<{ offset: boolean }>`
+const Wrapper = styled(OffsetWrapper)`
   flex: 0 1 800px;
-  margin-top: ${(props) =>
-    props.offset ? 'calc(-1 * var(--labelOffset))' : 'unset'};
 `;
 
 const StringInput = ({ type, value, name, onChange, parentActions }: Props) => {

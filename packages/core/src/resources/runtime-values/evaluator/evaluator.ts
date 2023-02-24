@@ -38,7 +38,7 @@ class EvalutorVisitor implements Visitor<any> {
 
   visitVariableExpr(expr: Variable): any {
     if (expr.name.lexeme in this.context) {
-      return this.context[expr.name.lexeme];
+      return this.context[expr.name.lexeme].accept(this);
     }
 
     return this.createdState[expr.name.lexeme].createdState;

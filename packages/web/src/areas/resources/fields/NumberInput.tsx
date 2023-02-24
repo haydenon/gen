@@ -2,13 +2,11 @@ import styled from 'styled-components';
 import { BasicTypeResponse } from '@haydenon/gen-server';
 import { InputType } from '../../../components/Input/Input';
 
-import FieldInput from './FieldInput';
+import FieldInput, { OffsetWrapper } from './FieldInput';
 import { BaseInputProps } from './props';
 
-const Wrapper = styled.div<{ offset: boolean }>`
+const Wrapper = styled(OffsetWrapper)`
   flex: 0 1 300px;
-  margin-top: ${(props) =>
-    props.offset ? 'calc(-1 * var(--labelOffset))' : 'unset'};
 `;
 
 interface Props extends BaseInputProps {

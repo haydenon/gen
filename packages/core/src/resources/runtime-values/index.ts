@@ -35,3 +35,5 @@ export { outputExpression } from './outputer/outputer';
 
 export { BASE_CONTEXT_TYPES } from './context';
 export type { Context, ContextTypes } from './context';
+
+export { evaluate } from './evaluator/evaluator';

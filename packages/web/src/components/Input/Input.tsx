@@ -11,6 +11,7 @@ export const baseInputStyles = css`
   background-color: var(--colors-contentBackground-light);
   color: var(--colors-text);
   transition: color var(--transition-duration-font);
+  height: var(--content-height);
 `;
 
 const CustomInput = styled.input`
@@ -34,6 +35,7 @@ const CustomInput = styled.input`
 export enum InputType {
   String = 'String',
   Number = 'Number',
+  DateTime = 'DateTime',
 }
 
 interface BaseProps {
@@ -56,7 +58,29 @@ interface NumberProps extends BaseProps {
   onChange: (value: number) => void;
 }
 
-type Props = StringProps | NumberProps;
+interface DateTimeProps extends BaseProps {
+  type: InputType.DateTime;
+  placeholder?: Date;
+  value?: Date;
+  onChange: (value: Date) => void;
+}
+
+type Props = StringProps | NumberProps | DateTimeProps;
+
+const getInputType = (type?: InputType) => {
+  if (!type) {
+    return 'text';
+  }
+
+  switch (type) {
+    case InputType.DateTime:
+      return 'datetime-local';
+    case InputType.Number:
+      return 'number';
+    case InputType.String:
+      return 'text';
+  }
+};
 
 const Input = ({
   className,
@@ -70,16 +94,32 @@ const Input = ({
     const newValue = event.target.value;
     if (type === InputType.Number) {
       // TODO: Better number handling
-      onChange(parseInt(newValue));
+      onChange(parseFloat(newValue));
+    } else if (type === InputType.DateTime) {
+      onChange(new Date(newValue));
     } else {
       onChange(newValue);
     }
   };
+
+  let displayValue: number | string | undefined;
+  if (type === InputType.DateTime) {
+    if (value) {
+      displayValue = value.toISOString();
+      displayValue = displayValue.substring(0, displayValue.length - 1);
+    } else {
+      displayValue = undefined;
+    }
+  } else {
+    displayValue = value;
+  }
+
   return (
     <Label className={className} label={label}>
       <CustomInput
+        type={getInputType(type)}
         placeholder={placeholder?.toString()}
-        value={value}
+        value={displayValue}
         onChange={handleChange}
       />
     </Label>

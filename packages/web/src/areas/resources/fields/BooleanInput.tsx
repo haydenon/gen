@@ -1,6 +1,7 @@
 import { BasicTypeResponse } from '@haydenon/gen-server';
 import styled from 'styled-components';
 import Label from '../../../components/Label';
+import { OffsetWrapper } from './FieldInput';
 
 import { BaseInputProps } from './props';
 
@@ -9,11 +10,6 @@ interface Props extends BaseInputProps {
   value: boolean | undefined | null;
   onChange: (value: boolean | undefined | null) => void;
 }
-
-const Wrapper = styled.div<{ offset: boolean }>`
-  margin-top: ${(props) =>
-    props.offset ? 'calc(-1 * var(--labelOffset))' : 'unset'};
-`;
 
 const Checkbox = styled.input`
   --inputSize: calc(
@@ -33,17 +29,22 @@ const Checkbox = styled.input`
   appearance: none;
   -webkit-appearance: none;
 
-  font-size: 1rem;
+  font-size: var(--typography-size-small);
   font-weight: bold;
 
   position: relative;
 
+  &:focus,
+  &:focus-visible {
+    outline: 1px auto -webkit-focus-ring-color;
+  }
   &:hover {
     background: var(--colors-checkbox-focusable);
   }
   &:active {
     background: var(--colors-checkbox-focused);
   }
+
   &:disabled {
     cursor: not-allowed;
     background: var(--colors-checkbox-disabled);
@@ -65,8 +66,8 @@ const Checkbox = styled.input`
   &:checked::after {
     content: '✓️';
     position: absolute;
-    top: -1px;
-    left: 3px;
+    top: 1px;
+    left: 7px;
   }
 `;
 
@@ -82,11 +83,11 @@ const BooleanInput = ({
   };
   return (
     <>
-      <Wrapper offset={name !== null}>
+      <OffsetWrapper offset={name !== null}>
         <Label label={name || ''}>
           <Checkbox type="checkbox" checked={!!value} onChange={handleChange} />
         </Label>
-      </Wrapper>
+      </OffsetWrapper>
       {parentActions}
     </>
   );

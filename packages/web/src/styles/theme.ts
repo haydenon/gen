@@ -141,21 +141,25 @@ export const ThemeStyle = createGlobalStyle`
 
 @media (prefers-color-scheme: dark) {
   :root {
+    color-scheme: dark;
     ${darkTheme}
   }
 }
 
 @media (prefers-color-scheme: light) {
   :root {
+  color-scheme: light;
     ${lightTheme}
   }
 }
 
 body.dark-theme  {
+  color-scheme: dark;
   ${darkTheme}
 }
 
 body.light-theme  {
+  color-scheme: light;
   ${lightTheme}
 }
 `;

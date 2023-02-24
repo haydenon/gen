@@ -50,6 +50,7 @@ export {
   outputExpression,
   identifier,
   BASE_CONTEXT_TYPES,
+  evaluate,
 } from './runtime-values';
 export type {
   ExprType,
