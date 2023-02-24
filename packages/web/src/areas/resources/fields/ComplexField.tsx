@@ -21,7 +21,7 @@ const InputWrapper = styled.div`
   display: flex;
   gap: var(--spacing-tiny);
   &:not(:last-child) {
-    padding-bottom: var(--spacing-small);
+    padding-bottom: var(--spacing-tiny);
   }
 `;
 

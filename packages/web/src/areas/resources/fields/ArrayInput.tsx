@@ -123,11 +123,7 @@ const ArrayInput = ({
       {value.length < 1 ? <SmallText>No array items</SmallText> : null}
     </>
   );
-  return name !== null ? (
-    <FieldLabel label={name}>{children}</FieldLabel>
-  ) : (
-    children
-  );
+  return <FieldLabel label={name ?? ''}>{children}</FieldLabel>;
 };
 
 export default ArrayInput;
