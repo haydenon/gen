@@ -66,8 +66,10 @@ const Actions = styled.div`
 `;
 
 const SmallText = styled.div`
-  padding-top: var(--spacing-small);
+  padding: var(--spacing-tiny) 0;
   font-size: var(--typography-size-small);
+  border-left: 4px solid var(--colors-contentBackground-light-disabled);
+  padding-left: 16px;
 `;
 
 const ArrayInput = ({
