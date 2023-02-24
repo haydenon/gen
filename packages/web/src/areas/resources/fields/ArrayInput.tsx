@@ -16,7 +16,7 @@ interface Props extends BaseInputProps {
 
 const List = styled.ol`
   margin-top: var(--spacing-tiny);
-  border-left: 4px solid var(--colors-text);
+  border-left: 4px solid var(--colors-contentBackground-light-disabled);
   padding-left: 16px;
 `;
 
