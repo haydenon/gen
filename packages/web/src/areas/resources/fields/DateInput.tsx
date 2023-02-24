@@ -24,10 +24,10 @@ interface Props extends BaseInputProps {
 }
 
 const DateInput = ({ type, value, name, onChange, parentActions }: Props) => {
-  const dateValue = useMemo(
-    () => evaluate(value.expression, {}) as Date,
-    [value]
-  );
+  const dateValue = useMemo(() => {
+    const date = evaluate(value.expression, {}) as Date;
+    return date instanceof Date && !isNaN(date.valueOf()) ? date : new Date();
+  }, [value]);
 
   return (
     <>
