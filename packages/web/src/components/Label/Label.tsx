@@ -21,20 +21,24 @@ interface Props {
 }
 
 const Label = ({ className, label, children }: Props) => {
-  return (
+  return label ? (
     <Wrapper className={className}>
       <LabelText>{label}</LabelText>
       {children}
     </Wrapper>
+  ) : (
+    <div className={className}>{children}</div>
   );
 };
 
 export const NonFormLabel = ({ className, label, children }: Props) => {
-  return (
+  return label ? (
     <NonFormWrapper className={className}>
       <LabelText>{label}</LabelText>
       {children}
     </NonFormWrapper>
+  ) : (
+    <div className={className}>{children}</div>
   );
 };
 

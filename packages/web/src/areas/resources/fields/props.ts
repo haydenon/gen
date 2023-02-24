@@ -4,7 +4,7 @@ interface InputContext {
 }
 
 export interface BaseInputProps {
-  name: string;
+  name: string | null;
   context: InputContext;
   parentActions: React.ReactNode | React.ReactNode[];
 }

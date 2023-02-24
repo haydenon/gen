@@ -13,11 +13,7 @@ import { ArrowRight, ChevronLeft, Edit, Link } from 'react-feather';
 import styled from 'styled-components';
 import Button, { ButtonColour, ButtonStyle } from '../../../components/Button';
 import CodeText from '../../../components/CodeText';
-import {
-  baseInputStyles,
-  ReadOnlyInput,
-} from '../../../components/Input/Input';
-import Label from '../../../components/Label';
+import { ReadOnlyInput } from '../../../components/Input/Input';
 import { Menu, MenuButton, MenuItem, MenuList } from '../../../components/Menu';
 import { menuItemStyles } from '../../../components/Menu/Menu';
 import { mapPropTypeRespToExprType } from '../../../utilities/property-type-expr-type.mappers';
@@ -261,12 +257,13 @@ const LinkValueChooser = ({
 };
 
 interface RuntimeValueProps {
-  name: string;
+  name: string | null;
   runtimeValue: FormRuntimeValue;
 }
 
 const ReadOnlyDisplay = styled(ReadOnlyInput)`
-  margin-top: calc(-1 * var(--labelOffset));
+  margin-top: ${(props) =>
+    props.label ? 'calc(-1 * var(--labelOffset))' : 'unset'};
 `;
 
 const LinkedRuntimeValueDisplay = ({
@@ -294,7 +291,7 @@ const LinkedRuntimeValueDisplay = ({
   }
 
   return (
-    <ReadOnlyDisplay label={name}>
+    <ReadOnlyDisplay label={name || ''}>
       <CodeText>{resource.name || '<no name>'}</CodeText>
       <ArrowRight size={18} />
       <CodeText>{indexer.value}</CodeText>

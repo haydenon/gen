@@ -10,8 +10,9 @@ interface Props extends BaseInputProps {
   onChange: (value: boolean | undefined | null) => void;
 }
 
-const Wrapper = styled.div`
-  margin-top: calc(-1 * var(--labelOffset));
+const Wrapper = styled.div<{ offset: boolean }>`
+  margin-top: ${(props) =>
+    props.offset ? 'calc(-1 * var(--labelOffset))' : 'unset'};
 `;
 
 const Checkbox = styled.input`
@@ -81,8 +82,8 @@ const BooleanInput = ({
   };
   return (
     <>
-      <Wrapper>
-        <Label label={name}>
+      <Wrapper offset={name !== null}>
+        <Label label={name || ''}>
           <Checkbox type="checkbox" checked={!!value} onChange={handleChange} />
         </Label>
       </Wrapper>

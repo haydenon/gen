@@ -1,6 +1,6 @@
 import { ComplexTypeResponse } from '@haydenon/gen-server';
 import styled from 'styled-components';
-import Label, { NonFormLabel } from '../../../components/Label';
+import { NonFormLabel } from '../../../components/Label';
 import { getFieldDisplayName } from './field.utils';
 import { BaseInputProps } from './props';
 import { InputForType } from './ResourceField';
@@ -12,7 +12,8 @@ interface Props extends BaseInputProps {
 }
 
 const FieldLabel = styled(NonFormLabel)`
-  margin-top: calc(-1 * var(--labelOffset));
+  margin-top: ${(props) =>
+    props.label ? 'calc(-1 * var(--labelOffset))' : 'unset'};
 `;
 
 const InputWrapper = styled.div`
@@ -46,7 +47,7 @@ const ComplexField = ({
   };
 
   return (
-    <FieldLabel label={name}>
+    <FieldLabel label={name || ''}>
       <Wrapper>
         {parentActions}
         <InputsWrapper>

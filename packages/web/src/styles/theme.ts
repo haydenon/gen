@@ -42,6 +42,7 @@ const lightTheme = css`
 
   --colors-text: hsla(0deg 0% 0% / 95%);
   --colors-text-danger: hsla(0deg 87% 38% / 97%);
+  --colors-border: hsla(0deg 0% 0% / 30%);
 
   --colors-checkbox: hsla(0deg 0% 100% / 95%);
   --colors-checkbox-focusable: hsla(0deg 0% 96% / 95%);
@@ -93,6 +94,7 @@ const darkTheme = css`
 
   --colors-text: hsla(0deg 0% 100% / 95%);
   --colors-text-danger: hsla(0deg 100% 79% / 97%);
+  --colors-border: hsla(0deg 0% 100% / 30%);
 
   --colors-checkbox: hsla(0deg 0% 100% / 95%);
   --colors-checkbox-focusable: hsla(0deg 0% 94% / 95%);

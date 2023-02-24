@@ -5,9 +5,10 @@ import { InputType } from '../../../components/Input/Input';
 import FieldInput from './FieldInput';
 import { BaseInputProps } from './props';
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ offset: boolean }>`
   flex: 0 1 300px;
-  margin-top: calc(-1 * var(--labelOffset));
+  margin-top: ${(props) =>
+    props.offset ? 'calc(-1 * var(--labelOffset))' : 'unset'};
 `;
 
 interface Props extends BaseInputProps {
@@ -19,10 +20,10 @@ interface Props extends BaseInputProps {
 const NumberInput = ({ type, value, name, onChange, parentActions }: Props) => {
   return (
     <>
-      <Wrapper>
+      <Wrapper offset={name !== null}>
         <FieldInput
           type={InputType.Number}
-          label={name}
+          label={name ?? ''}
           value={value ?? 0}
           onChange={onChange}
         />

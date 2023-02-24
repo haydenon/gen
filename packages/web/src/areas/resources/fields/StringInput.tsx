@@ -10,16 +10,21 @@ interface Props extends BaseInputProps {
   onChange: (value: string | undefined | null) => void;
 }
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ offset: boolean }>`
   flex: 0 1 800px;
-  margin-top: calc(-1 * var(--labelOffset));
+  margin-top: ${(props) =>
+    props.offset ? 'calc(-1 * var(--labelOffset))' : 'unset'};
 `;
 
 const StringInput = ({ type, value, name, onChange, parentActions }: Props) => {
   return (
     <>
-      <Wrapper>
-        <FieldInput label={name} value={value ?? ''} onChange={onChange} />
+      <Wrapper offset={name !== null}>
+        <FieldInput
+          label={name ?? ''}
+          value={value ?? ''}
+          onChange={onChange}
+        />
       </Wrapper>
       {parentActions}
     </>

@@ -24,7 +24,8 @@ const IconButton = styled(Button)`
 `;
 
 const ReadOnlyDisplay = styled(ReadOnlyInput)`
-  margin-top: calc(-1 * var(--labelOffset));
+  margin-top: ${(props) =>
+    props.label ? 'calc(-1 * var(--labelOffset))' : 'unset'};
 `;
 
 interface ValueProps extends BaseInputProps {
@@ -46,7 +47,7 @@ const Value = ({ type, value, onChange, ...baseProps }: ValueProps) => {
 
   return (
     <>
-      <ReadOnlyDisplay label={baseProps.name}>
+      <ReadOnlyDisplay label={baseProps.name ?? ''}>
         <CodeText>{value === null ? 'null' : 'undefined'}</CodeText>
       </ReadOnlyDisplay>
       <Button

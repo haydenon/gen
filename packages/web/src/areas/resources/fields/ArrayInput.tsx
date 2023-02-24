@@ -15,7 +15,6 @@ interface Props extends BaseInputProps {
 }
 
 const List = styled.ol`
-  /* padding-left: var(--spacing-extraLarge); */
   margin-top: var(--spacing-tiny);
   border-left: 4px solid var(--colors-text);
   padding-left: 16px;
@@ -28,17 +27,27 @@ interface ListItemProps {
 const ListItem = styled.li<ListItemProps>`
   list-style: none;
   position: relative;
-  padding-bottom: var(--spacing-small);
-  padding-top: var(--labelOffset);
+  padding-bottom: var(--spacing-tiny);
 
   display: flex;
   gap: var(--spacing-tiny);
+  --li-spacing: 0px;
+
+  &:not(:first-child) {
+    border-top: 1px solid var(--colors-border);
+    margin-top: 8px;
+    --li-spacing: var(--spacing-tiny);
+  }
+
+  padding-top: var(--li-spacing);
 
   &::before {
     content: '[${(props) => props.index}]';
     position: absolute;
-    left: calc(-1 * var(--spacing-large));
-    top: calc(var(--labelOffset) + var(--content-padding));
+    left: calc(
+      -1 * var(--spacing-large) ${(props) => (props.index < 10 ? '+ 3px' : '- 1px')}
+    );
+    top: calc(3px + var(--content-padding) + var(--li-spacing));
     font-family: monospace;
     font-weight: 500;
     font-size: 0.75rem;
@@ -47,10 +56,8 @@ const ListItem = styled.li<ListItemProps>`
 `;
 
 const FieldLabel = styled(NonFormLabel)`
-  margin-top: calc(-1 * var(--labelOffset));
-  /* border-left: 4px solid var(--colors-text); */
-  /* padding-left: 16px; */
-  /* margin-left: -20px; */
+  margin-top: ${(props) =>
+    props.label ? 'calc(-1 * var(--labelOffset))' : 'unset'};
 `;
 
 const Actions = styled.div`
@@ -71,8 +78,8 @@ const ArrayInput = ({
   onChange,
   parentActions,
 }: Props) => {
-  return (
-    <FieldLabel label={name}>
+  const children = (
+    <>
       <Actions>
         <Button
           buttonStyle={ButtonStyle.Icon}
@@ -90,7 +97,7 @@ const ArrayInput = ({
             <InputForType
               type={type.inner}
               value={item}
-              name={`Item ${i}`}
+              name={null}
               onChange={(childValue) =>
                 onChange([
                   ...value.slice(0, i),
@@ -114,7 +121,12 @@ const ArrayInput = ({
         ))}
       </List>
       {value.length < 1 ? <SmallText>No array items</SmallText> : null}
-    </FieldLabel>
+    </>
+  );
+  return name !== null ? (
+    <FieldLabel label={name}>{children}</FieldLabel>
+  ) : (
+    children
   );
 };
 
