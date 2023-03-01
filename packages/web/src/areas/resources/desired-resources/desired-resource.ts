@@ -11,7 +11,7 @@ export enum ErrorPathType {
 }
 
 export interface DesiredStateFormError {
-  id: string;
+  resourceId: string;
   error: Error;
   errorCategory: string;
   pathType: ErrorPathType;

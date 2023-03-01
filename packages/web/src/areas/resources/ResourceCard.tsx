@@ -4,7 +4,10 @@ import { Trash2, Maximize2, Minimize2, PlusCircle } from 'react-feather';
 import CardComp from '../../components/Card';
 import Input from '../../components/Input';
 import Select from '../../components/Select';
-import { DesiredResource } from './desired-resources/desired-resource';
+import {
+  DesiredResource,
+  ErrorPathType,
+} from './desired-resources/desired-resource';
 import Button, { ButtonStyle, ButtonColour } from '../../components/Button';
 import VisuallyHidden from '../../components/VisuallyHidden';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -16,6 +19,7 @@ import { getFieldDisplayName } from './fields/field.utils';
 import { Menu, MenuButton, MenuItem, MenuList } from '../../components/Menu';
 import { generateDefaultValue } from '../../utilities/default-value.generator';
 import { InputState } from '../../components/Input/Input';
+import { useDesiredResources } from './desired-resources/desired-resource.hook';
 
 interface Props {
   resource: DesiredResource;
@@ -152,6 +156,7 @@ const ResourceCard = ({
   maximised,
 }: Props) => {
   const { resourceNames, getResource } = useResources();
+  const { formErrors } = useDesiredResources();
 
   const maximisedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -210,6 +215,15 @@ const ResourceCard = ({
     (i) => !(i.name in resource.fieldData)
   );
 
+  // TODO: Use error details
+  const nameErrored = !!formErrors.find(
+    (err) =>
+      err.resourceId === resource.id &&
+      err.pathType === ErrorPathType.Root &&
+      err.path.length === 1 &&
+      err.path[0] === 'name'
+  );
+
   return (
     <Card cardRef={maximisedRef} maximised={maximised ?? false}>
       <Header>
@@ -228,7 +242,7 @@ const ResourceCard = ({
             placeholder="SomePerson"
             value={resource.name ?? ''}
             onChange={onNameChange}
-            state={InputState.Error}
+            state={nameErrored ? InputState.Error : InputState.Normal}
           />
         </motion.div>
         <ActionsWrapper layout="position">

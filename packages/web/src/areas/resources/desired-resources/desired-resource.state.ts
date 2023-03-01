@@ -81,7 +81,7 @@ export const creatingState = atom<Item<void>>({
   default: createUninitialised(),
 });
 
-export const formErrors = atom<DesiredStateFormError[]>({
+export const formErrorsState = atom<DesiredStateFormError[]>({
   key: getKey(StateKey.FormErrors),
   default: [],
 });

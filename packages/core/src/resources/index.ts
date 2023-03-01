@@ -1,4 +1,4 @@
-export { Resource, PropertiesBase, ResourceGroup } from './resource';
+export { Resource, PropertiesBase, ResourceGroup, validateResourceName } from './resource';
 export type {
   PropertyValues,
   ResolvedValues,
