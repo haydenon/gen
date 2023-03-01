@@ -1,5 +1,11 @@
+import { X } from 'react-feather';
 import styled, { css } from 'styled-components';
 import Label from '../Label';
+
+export enum InputState {
+  Normal = 'Normal',
+  Error = 'Error',
+}
 
 export const baseInputStyles = css`
   width: 100%; // Take up size of label
@@ -14,7 +20,7 @@ export const baseInputStyles = css`
   height: var(--content-height);
 `;
 
-const CustomInput = styled.input`
+const NormalInput = styled.input`
   ${baseInputStyles}
 
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -34,6 +40,48 @@ const CustomInput = styled.input`
   }
 `;
 
+const StateWrapper = styled.div<{ color: string }>`
+  --input-state-color: var(${(props) => props.color});
+  width: 100%; // Take up size of label
+  position: relative;
+`;
+
+const Icon = styled.span`
+  position: absolute;
+  right: var(--spacing-tiny);
+  top: 12px;
+  color: var(--input-state-color);
+`;
+
+const StatefulInput = styled(NormalInput)`
+  box-shadow: inset 0px 0px 2px 1px var(--input-state-color);
+  padding-right: var(--spacing-large);
+`;
+
+interface InputProps {
+  type?: React.HTMLInputTypeAttribute | undefined;
+  placeholder?: string | undefined;
+  value?: string | number | readonly string[] | undefined;
+  onChange?: React.ChangeEventHandler<HTMLInputElement> | undefined;
+  inputState: InputState;
+}
+
+const CustomInput = ({ inputState, ...baseProps }: InputProps) => {
+  switch (inputState) {
+    case InputState.Error:
+      return (
+        <StateWrapper color={'--colors-contentBackground-danger-focusable'}>
+          <StatefulInput {...baseProps} />
+          <Icon>
+            <X size={18} strokeWidth={3} />
+          </Icon>
+        </StateWrapper>
+      );
+    default:
+      return <NormalInput {...baseProps} />;
+  }
+};
+
 export enum InputType {
   String = 'String',
   Number = 'Number',
@@ -44,6 +92,7 @@ interface BaseProps {
   type?: InputType;
   label: string;
   className?: string;
+  state?: InputState;
 }
 
 interface StringProps extends BaseProps {
@@ -91,6 +140,7 @@ const Input = ({
   value,
   onChange,
   type,
+  state,
 }: Props) => {
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const newValue = event.target.value;
@@ -122,6 +172,7 @@ const Input = ({
   return (
     <Label className={className} label={label}>
       <CustomInput
+        inputState={state ?? InputState.Normal}
         type={getInputType(type)}
         placeholder={placeholder?.toString()}
         value={displayValue}

@@ -9,11 +9,12 @@ import {
   createUninitialised,
 } from '../../../data';
 import { WELL_KNOWN_RUNTIME_VALUES } from '../runtime-value';
-import { DesiredResource } from './desired-resource';
+import { DesiredResource, DesiredStateFormError } from './desired-resource';
 
 export enum StateKey {
   DesiredResources = 'DesiredResources',
   Creating = 'Creating',
+  FormErrors = 'FormErrors',
 }
 
 const getKey = getKeyGenerator(StateNamespace.DesiredResource);
@@ -78,4 +79,9 @@ export const desiredResourceState = atom<Item<DesiredResource[]>>({
 export const creatingState = atom<Item<void>>({
   key: getKey(StateKey.Creating),
   default: createUninitialised(),
+});
+
+export const formErrors = atom<DesiredStateFormError[]>({
+  key: getKey(StateKey.FormErrors),
+  default: [],
 });

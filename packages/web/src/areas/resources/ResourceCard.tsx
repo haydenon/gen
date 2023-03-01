@@ -15,6 +15,7 @@ import { PropertyDefinitionResponse } from '@haydenon/gen-server';
 import { getFieldDisplayName } from './fields/field.utils';
 import { Menu, MenuButton, MenuItem, MenuList } from '../../components/Menu';
 import { generateDefaultValue } from '../../utilities/default-value.generator';
+import { InputState } from '../../components/Input/Input';
 
 interface Props {
   resource: DesiredResource;
@@ -227,6 +228,7 @@ const ResourceCard = ({
             placeholder="SomePerson"
             value={resource.name ?? ''}
             onChange={onNameChange}
+            state={InputState.Error}
           />
         </motion.div>
         <ActionsWrapper layout="position">

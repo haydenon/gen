@@ -1,5 +1,6 @@
 import { PropertyDefinition } from './properties/properties';
 import { RuntimeValue } from './runtime-values';
+import { BASE_CONTEXT } from './runtime-values/context/base-context';
 
 export interface PropertyMap {
   [name: string]: PropertyDefinition<unknown>;
@@ -83,4 +84,25 @@ export interface ResourceOrGroupItem<
   name: string;
   inputs: Inputs;
   outputs: Outputs;
+}
+
+const NAME_REGEX = /[a-zA-Z_]+[0-9a-zA-Z_]*/;
+
+export function validateResourceName(name?: string): Error | undefined {
+  if (!name) {
+    return;
+  }
+
+  const contextNames = Object.keys(BASE_CONTEXT);
+  if (contextNames.includes(name)) {
+    return new Error(`Name '${name}' is already defined in base context`);
+  }
+
+  if (!NAME_REGEX.test(name)) {
+    return new Error(
+      `Name '${name}' is not valid. Names can only contain alphanumeric characters and underscores, and cannot start with numbers.`
+    );
+  }
+
+  return undefined;
 }

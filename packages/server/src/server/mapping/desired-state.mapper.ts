@@ -11,6 +11,7 @@ import {
   BASE_CONTEXT_TYPES,
 } from '@haydenon/gen-core';
 import { validateInputValues } from '@haydenon/gen-core/src/resources/properties';
+import { validateResourceName } from '@haydenon/gen-core/src/resources/resource';
 import {
   outputExprType,
   parse,
@@ -33,8 +34,19 @@ export interface DesiredStateContext {
 export const getContextForDesiredState = (
   resources: Resource<PropertyMap, PropertyMap>[],
   context: StateItem[]
-): DesiredStateContext | Error[] =>
-  context.reduce((acc, stateItem) => {
+): DesiredStateContext | Error[] => {
+  const duplicateName = context.find(
+    (s) => s._name && context.some((ds) => ds !== s && ds._name === s._name)
+  );
+  if (duplicateName !== undefined) {
+    return [
+      new Error(
+        `Invalid state: contains multiple state items with name '${duplicateName._name}'`
+      ),
+    ];
+  }
+
+  return context.reduce((acc, stateItem) => {
     if (!stateItem._name) {
       return acc;
     }
@@ -62,6 +74,7 @@ export const getContextForDesiredState = (
 
     return acc;
   }, {} as DesiredStateContext | Error[]);
+};
 
 const createValidator = (context: DesiredStateContext) => {
   return (propType: PropertyType, value: RuntimeValue<any>) => {
@@ -112,6 +125,11 @@ export function getMapper(
     );
     if (errors.length > 0) {
       return errors;
+    }
+
+    const nameError = validateResourceName(state._name);
+    if (nameError) {
+      return [nameError];
     }
 
     const inputResult = validateInputValues(
