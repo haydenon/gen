@@ -57,7 +57,7 @@ export const useDesiredResources = () => {
           resources.find((other) => other.id !== r.id && r.name === other.name)
         ) {
           acc[r.id] = [
-            new Error(`The name '${r.name}' is used by other resources`),
+            new Error(`'${r.name}' is used by other resources`),
             'duplicate_resource_name',
           ];
         }

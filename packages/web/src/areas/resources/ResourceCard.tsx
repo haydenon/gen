@@ -60,7 +60,7 @@ const ListItem = styled.li`
 
   list-style: none;
   &:not(:last-child) {
-    padding-bottom: var(--spacing-small);
+    padding-bottom: var(--spacing-base);
   }
 
   --labelOffset: calc(
@@ -216,7 +216,7 @@ const ResourceCard = ({
   );
 
   // TODO: Use error details
-  const nameErrored = !!formErrors.find(
+  const nameError = formErrors.find(
     (err) =>
       err.resourceId === resource.id &&
       err.pathType === ErrorPathType.Root &&
@@ -242,7 +242,8 @@ const ResourceCard = ({
             placeholder="SomePerson"
             value={resource.name ?? ''}
             onChange={onNameChange}
-            state={nameErrored ? InputState.Error : InputState.Normal}
+            state={nameError ? InputState.Error : InputState.Normal}
+            message={nameError ? nameError.error.message : undefined}
           />
         </motion.div>
         <ActionsWrapper layout="position">

@@ -70,6 +70,7 @@ interface InputProps {
   value?: string | number | readonly string[] | undefined;
   onChange?: React.ChangeEventHandler<HTMLInputElement> | undefined;
   inputState: InputState;
+  message?: string;
 }
 
 const getStateColor = (inputState: InputState) => {
@@ -81,7 +82,21 @@ const getStateColor = (inputState: InputState) => {
   }
 };
 
-const CustomInput = ({ inputState, ...baseProps }: InputProps) => {
+const ContextMessage = styled.div`
+  padding-top: 4px;
+  // TODO, another color
+  color: var(--input-state-color);
+  font-size: var(--typography-size-small);
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: absolute;
+  left: 0;
+  right: 0;
+`;
+
+const CustomInput = ({ inputState, message, ...baseProps }: InputProps) => {
   const color = getStateColor(inputState);
   const shadow =
     inputState === InputState.Normal
@@ -99,6 +114,7 @@ const CustomInput = ({ inputState, ...baseProps }: InputProps) => {
           <X size={18} strokeWidth={3} />
         </Icon>
       ) : null}
+      <ContextMessage>{message}</ContextMessage>
     </StateWrapper>
   );
 };
@@ -114,6 +130,7 @@ interface BaseProps {
   label: string;
   className?: string;
   state?: InputState;
+  message?: string;
 }
 
 interface StringProps extends BaseProps {
@@ -162,6 +179,7 @@ const Input = ({
   onChange,
   type,
   state,
+  message,
 }: Props) => {
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const newValue = event.target.value;
@@ -198,6 +216,7 @@ const Input = ({
         placeholder={placeholder?.toString()}
         value={displayValue}
         onChange={handleChange}
+        message={message}
       />
     </Label>
   );
