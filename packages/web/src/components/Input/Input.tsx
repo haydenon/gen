@@ -40,8 +40,14 @@ const NormalInput = styled.input`
   }
 `;
 
-const StateWrapper = styled.div<{ color: string }>`
+const StateWrapper = styled.div<{
+  color: string;
+  shadow: string;
+  padding: string;
+}>`
   --input-state-color: var(${(props) => props.color});
+  --shadow: ${(props) => props.shadow};
+  --padding: ${(props) => props.padding};
   width: 100%; // Take up size of label
   position: relative;
 `;
@@ -54,8 +60,8 @@ const Icon = styled.span`
 `;
 
 const StatefulInput = styled(NormalInput)`
-  box-shadow: inset 0px 0px 2px 1px var(--input-state-color);
-  padding-right: var(--spacing-large);
+  box-shadow: var(--shadow);
+  padding-right: var(--padding);
 `;
 
 interface InputProps {
@@ -66,20 +72,35 @@ interface InputProps {
   inputState: InputState;
 }
 
-const CustomInput = ({ inputState, ...baseProps }: InputProps) => {
+const getStateColor = (inputState: InputState) => {
   switch (inputState) {
     case InputState.Error:
-      return (
-        <StateWrapper color={'--colors-contentBackground-danger-focusable'}>
-          <StatefulInput {...baseProps} />
-          <Icon>
-            <X size={18} strokeWidth={3} />
-          </Icon>
-        </StateWrapper>
-      );
+      return '--colors-contentBackground-danger-focusable';
     default:
-      return <NormalInput {...baseProps} />;
+      return '';
   }
+};
+
+const CustomInput = ({ inputState, ...baseProps }: InputProps) => {
+  const color = getStateColor(inputState);
+  const shadow =
+    inputState === InputState.Normal
+      ? 'unset'
+      : 'inset 0px 0px 2px 1px var(--input-state-color)';
+  const padding =
+    inputState === InputState.Normal
+      ? 'var(--spacing-small)'
+      : 'var(--spacing-large)';
+  return (
+    <StateWrapper color={color} shadow={shadow} padding={padding}>
+      <StatefulInput {...baseProps} />
+      {inputState !== InputState.Normal ? (
+        <Icon>
+          <X size={18} strokeWidth={3} />
+        </Icon>
+      ) : null}
+    </StateWrapper>
+  );
 };
 
 export enum InputType {
