@@ -76,7 +76,7 @@ interface InputProps {
 const getStateColor = (inputState: InputState) => {
   switch (inputState) {
     case InputState.Error:
-      return '--colors-contentBackground-danger-focusable';
+      return '--colors-text-danger';
     default:
       return '';
   }
@@ -84,7 +84,6 @@ const getStateColor = (inputState: InputState) => {
 
 const ContextMessage = styled.div`
   padding-top: 4px;
-  // TODO, another color
   color: var(--input-state-color);
   font-size: var(--typography-size-small);
   line-height: 1;
