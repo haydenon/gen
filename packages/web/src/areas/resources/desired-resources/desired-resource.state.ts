@@ -15,6 +15,7 @@ export enum StateKey {
   DesiredResources = 'DesiredResources',
   Creating = 'Creating',
   FormErrors = 'FormErrors',
+  ResourceDependencies = 'ResourceDependencies',
 }
 
 const getKey = getKeyGenerator(StateNamespace.DesiredResource);
@@ -83,5 +84,16 @@ export const creatingState = atom<Item<void>>({
 
 export const formErrorsState = atom<DesiredStateFormError[]>({
   key: getKey(StateKey.FormErrors),
+  default: [],
+});
+
+interface ResourceDependency {
+  dependantOnId: string;
+  dependeeId: string;
+  fieldPath: string[];
+}
+
+export const resourceDependencyState = atom<ResourceDependency[]>({
+  key: getKey(StateKey.ResourceDependencies),
   default: [],
 });

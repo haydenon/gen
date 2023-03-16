@@ -13,6 +13,7 @@ import {
   creatingState,
   desiredResourceState,
   formErrorsState,
+  resourceDependencyState,
 } from './desired-resource.state';
 import {
   DesiredResource,
@@ -25,6 +26,9 @@ import { validateResourceName } from '@haydenon/gen-core';
 export const useDesiredResources = () => {
   const [desiredResources, setResources] = useRecoilState(desiredResourceState);
   const [createState, setCreatingState] = useRecoilState(creatingState);
+  const [dependentResources, setDependentResourceState] = useRecoilState(
+    resourceDependencyState
+  );
   const [formErrors, setErrorState] = useRecoilState(formErrorsState);
   const { fetch } = useFetch();
 
@@ -37,6 +41,25 @@ export const useDesiredResources = () => {
       return desiredResources.value.find((r) => r.id === id);
     },
     [desiredResources]
+  );
+
+  const validateField = useCallback(
+    (
+      resourceId: string,
+      fieldName: string,
+      currentValue: any,
+      newValue: any
+    ) => {
+      const existingErrors = formErrors.filter(
+        (err) =>
+          err.pathType === ErrorPathType.Field &&
+          err.resourceId === resourceId &&
+          err.path[0] === fieldName
+      );
+
+      // Remove dependent resource errors for this field if applicable
+    },
+    [formErrors, setErrorState, dependentResources]
   );
 
   const validateNames = useCallback(
@@ -115,7 +138,23 @@ export const useDesiredResources = () => {
       if (current.name !== resource.name) {
         validateNames(updatedResources);
       } else {
-        // Validate fields
+        const fields = Array.from(
+          new Set([
+            ...Object.keys(current.fieldData),
+            ...Object.keys(resource.fieldData),
+          ])
+        );
+        const changedFields = fields.filter(
+          (f) => current.fieldData[f] !== resource.fieldData[f]
+        );
+        for (const changedField of changedFields) {
+          validateField(
+            resource.id,
+            changedField,
+            current.fieldData[changedField],
+            resource.fieldData[changedField]
+          );
+        }
       }
     },
     [desiredResources, setResources, validateNames]
@@ -129,6 +168,8 @@ export const useDesiredResources = () => {
 
       const resources = desiredResources.value;
       const idx = resources.findIndex((r) => r.id === id);
+
+      // TODO: Add errors to dependent fields
 
       setResources(
         createCompleted([
