@@ -100,7 +100,7 @@ export function validateResourceName(name?: string): Error | undefined {
 
   if (!NAME_REGEX.test(name)) {
     return new Error(
-      `Name '${name}' is not valid. Names can only contain alphanumeric characters and underscores, and cannot start with numbers.`
+      `Can only contain alphanumeric, underscores, and can't start with a number`
     );
   }
 

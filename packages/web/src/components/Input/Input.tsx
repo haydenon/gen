@@ -1,3 +1,4 @@
+import React from 'react';
 import { X } from 'react-feather';
 import styled, { css } from 'styled-components';
 import Label from '../Label';
@@ -95,28 +96,30 @@ const ContextMessage = styled.div`
   right: 0;
 `;
 
-const CustomInput = ({ inputState, message, ...baseProps }: InputProps) => {
-  const color = getStateColor(inputState);
-  const shadow =
-    inputState === InputState.Normal
-      ? 'unset'
-      : 'inset 0px 0px 2px 1px var(--input-state-color)';
-  const padding =
-    inputState === InputState.Normal
-      ? 'var(--spacing-small)'
-      : 'var(--spacing-large)';
-  return (
-    <StateWrapper color={color} shadow={shadow} padding={padding}>
-      <StatefulInput {...baseProps} />
-      {inputState !== InputState.Normal ? (
-        <Icon>
-          <X size={18} strokeWidth={3} />
-        </Icon>
-      ) : null}
-      <ContextMessage>{message}</ContextMessage>
-    </StateWrapper>
-  );
-};
+const CustomInput = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ inputState, message, ...baseProps }, ref) => {
+    const color = getStateColor(inputState);
+    const shadow =
+      inputState === InputState.Normal
+        ? 'unset'
+        : 'inset 0px 0px 2px 1px var(--input-state-color)';
+    const padding =
+      inputState === InputState.Normal
+        ? 'var(--spacing-small)'
+        : 'var(--spacing-large)';
+    return (
+      <StateWrapper color={color} shadow={shadow} padding={padding}>
+        <StatefulInput ref={ref} {...baseProps} />
+        {inputState !== InputState.Normal ? (
+          <Icon>
+            <X size={18} strokeWidth={3} />
+          </Icon>
+        ) : null}
+        <ContextMessage>{message}</ContextMessage>
+      </StateWrapper>
+    );
+  }
+);
 
 export enum InputType {
   String = 'String',
@@ -170,56 +173,55 @@ const getInputType = (type?: InputType) => {
   }
 };
 
-const Input = ({
-  className,
-  placeholder,
-  label,
-  value,
-  onChange,
-  type,
-  state,
-  message,
-}: Props) => {
-  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    const newValue = event.target.value;
-    if (type === InputType.Number) {
-      // TODO: Better number handling
-      onChange(parseFloat(newValue));
-    } else if (type === InputType.DateTime) {
-      onChange(new Date(newValue));
-    } else {
-      onChange(newValue);
-    }
-  };
+const Input = React.forwardRef<HTMLInputElement, Props>(
+  (
+    { className, placeholder, label, value, onChange, type, state, message },
+    ref
+  ) => {
+    const handleChange: React.ChangeEventHandler<HTMLInputElement> = (
+      event
+    ) => {
+      const newValue = event.target.value;
+      if (type === InputType.Number) {
+        // TODO: Better number handling
+        onChange(parseFloat(newValue));
+      } else if (type === InputType.DateTime) {
+        onChange(new Date(newValue));
+      } else {
+        onChange(newValue);
+      }
+    };
 
-  let displayValue: number | string | undefined;
-  if (type === InputType.DateTime) {
-    if (value) {
-      const timeZoneDiff = value.getTimezoneOffset() * 60 * 1000;
-      const localMillis = value.getTime() - timeZoneDiff;
-      const local = new Date(localMillis);
-      displayValue = local.toISOString();
-      displayValue = displayValue.substring(0, displayValue.length - 1);
+    let displayValue: number | string | undefined;
+    if (type === InputType.DateTime) {
+      if (value) {
+        const timeZoneDiff = value.getTimezoneOffset() * 60 * 1000;
+        const localMillis = value.getTime() - timeZoneDiff;
+        const local = new Date(localMillis);
+        displayValue = local.toISOString();
+        displayValue = displayValue.substring(0, displayValue.length - 1);
+      } else {
+        displayValue = undefined;
+      }
     } else {
-      displayValue = undefined;
+      displayValue = value;
     }
-  } else {
-    displayValue = value;
+
+    return (
+      <Label className={className} label={label}>
+        <CustomInput
+          ref={ref}
+          inputState={state ?? InputState.Normal}
+          type={getInputType(type)}
+          placeholder={placeholder?.toString()}
+          value={displayValue}
+          onChange={handleChange}
+          message={message}
+        />
+      </Label>
+    );
   }
-
-  return (
-    <Label className={className} label={label}>
-      <CustomInput
-        inputState={state ?? InputState.Normal}
-        type={getInputType(type)}
-        placeholder={placeholder?.toString()}
-        value={displayValue}
-        onChange={handleChange}
-        message={message}
-      />
-    </Label>
-  );
-};
+);
 
 const ReadOnlyInputBox = styled.div`
   ${baseInputStyles}

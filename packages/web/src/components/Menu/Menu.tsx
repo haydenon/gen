@@ -2,6 +2,7 @@ import {
   Menu as ReachMenu,
   MenuList as ReachMenuList,
   MenuItem as ReachMenuItem,
+  MenuItems as ReachMenuItems,
   MenuButton as ReachMenuButton,
 } from '@reach/menu-button';
 import styled, { css } from 'styled-components';
@@ -9,11 +10,19 @@ import { buttonCommonStyles } from '../Button/Button';
 
 export const Menu = ReachMenu;
 
-export const MenuList = styled(ReachMenuList)`
+const menuCss = css`
   background-color: var(--colors-contentBackground);
   box-shadow: 2px 2px 10px var(--colors-shadow);
   padding: var(--spacing-small) var(--spacing-tiny);
   border-radius: var(--borders-radius);
+`;
+
+export const MenuList = styled(ReachMenuList)`
+  ${menuCss}
+`;
+
+export const MenuItems = styled(ReachMenuItems)`
+  ${menuCss}
 `;
 
 export const menuItemStyles = css`

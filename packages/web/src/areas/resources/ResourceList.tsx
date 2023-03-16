@@ -1,35 +1,15 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { PlusCircle } from 'react-feather';
 
 import styled, { css } from 'styled-components';
-import Button, { ButtonColour } from '../../components/Button';
 import Card from '../../components/Card';
 import Placeholder from '../../components/Placeholder';
 import { ItemState } from '../../data';
 import { DesiredResource } from './desired-resources/desired-resource';
 import { useDesiredResources } from './desired-resources/desired-resource.hook';
 import { useResources } from './resource.hook';
+import ResourceAdd from './ResourceAdd';
 import ResourceCard from './ResourceCard';
-
-const AddWrapper = styled.div`
-  display: flex;
-`;
-
-const AddButton = styled(Button)`
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  padding: calc(var(--spacing-tiny) * 1.5) 0;
-`;
-
-const AddIcon = styled(PlusCircle)`
-  margin-left: var(--spacing-tiny);
-`;
-
-interface AddProps {
-  onAdd: () => void;
-}
 
 interface MaximiseProps {
   open: boolean;
@@ -66,16 +46,6 @@ const MaximisedCardWrapper = styled(motion.div)<MaximiseProps>`
 const ListItem = styled(motion.li)`
   list-style: none;
 `;
-
-const ResourceAdd = ({ onAdd }: AddProps) => {
-  return (
-    <AddWrapper>
-      <AddButton colour={ButtonColour.Transparent} onClick={onAdd}>
-        Add resource <AddIcon size={18 * 1.2} />
-      </AddButton>
-    </AddWrapper>
-  );
-};
 
 const Hidden = styled.div`
   visibility: hidden;
@@ -291,7 +261,7 @@ const ResourceList = ({ onMaximise }: Props) => {
             </ListItem>
           )),
           <ListItem key="add">
-            <ResourceAdd onAdd={onAdd} />
+            <ResourceAdd onAdd={onAdd} resources={resources.value} />
           </ListItem>,
         ]}
       </AnimatePresence>
