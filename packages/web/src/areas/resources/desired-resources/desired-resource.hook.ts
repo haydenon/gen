@@ -140,22 +140,17 @@ export const useDesiredResources = () => {
     [desiredResources, setResources]
   );
 
-  const addResource = useCallback(() => {
-    if (desiredResources.state !== ItemState.Completed) {
-      return;
-    }
+  const addResource = useCallback(
+    (resource: DesiredResource) => {
+      if (desiredResources.state !== ItemState.Completed) {
+        return;
+      }
 
-    const resources = desiredResources.value;
-    setResources(
-      createCompleted([
-        ...resources,
-        {
-          id: uuid(),
-          fieldData: {},
-        },
-      ])
-    );
-  }, [desiredResources, setResources]);
+      const resources = desiredResources.value;
+      setResources(createCompleted([...resources, resource]));
+    },
+    [desiredResources, setResources]
+  );
 
   const resourceValues = desiredResources.value;
   const isCreating = createState.state === ItemState.Loading;

@@ -18,7 +18,7 @@ import { PropertyDefinitionResponse } from '@haydenon/gen-server';
 import { getFieldDisplayName } from './fields/field.utils';
 import { Menu, MenuButton, MenuItem, MenuList } from '../../components/Menu';
 import { generateDefaultValue } from '../../utilities/default-value.generator';
-import { InputState } from '../../components/Input/Input';
+import { InputState, ReadOnlyInput } from '../../components/Input/Input';
 import { useDesiredResources } from './desired-resources/desired-resource.hook';
 
 interface Props {
@@ -228,13 +228,7 @@ const ResourceCard = ({
     <Card cardRef={maximisedRef} maximised={maximised ?? false}>
       <Header>
         <motion.div layout="position">
-          <Select label="Type" value={resource.type} onChange={onTypeChange}>
-            {resourceNames.map((key) => (
-              <option value={key} key={key}>
-                {key}
-              </option>
-            ))}
-          </Select>
+          <ReadOnlyInput label="Type">{resource.type}</ReadOnlyInput>
         </motion.div>
         <motion.div layout="position">
           <Input

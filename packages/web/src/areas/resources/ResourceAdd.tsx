@@ -1,35 +1,20 @@
+import { v4 as uuid } from 'uuid';
 import { ResourceResponse } from '@haydenon/gen-server';
 import { MenuPopover } from '@reach/menu-button';
-import { positionMatchWidth, positionRight } from '@reach/popover';
-import { useEffect, useRef, useState } from 'react';
 import { PlusCircle } from 'react-feather';
 import styled from 'styled-components';
-import Input from '../../components/Input';
 import {
   Menu,
   MenuItem,
   MenuItems,
   MenuButton,
 } from '../../components/Menu/Menu';
+import { DesiredResource } from './desired-resources/desired-resource';
 
 interface ResourceChooserProps {
   resources: ResourceResponse[];
   onResourceSelect: (type: string) => void;
 }
-
-interface SearchProps {
-  open: boolean;
-}
-
-const SearchInput = ({ open }: SearchProps) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (open && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [inputRef, open]);
-  return <Input ref={inputRef} label="Search" onChange={console.log}></Input>;
-};
 
 const ResourceChooser = ({
   onResourceSelect,
@@ -43,9 +28,11 @@ const ResourceChooser = ({
         </AddButton>
         <MenuPopover portal={true}>
           <MenuItems>
-            {/* <SearchInput open={false} /> */}
             {resources.map((res) => (
-              <MenuItem key={res.name} onSelect={console.log}>
+              <MenuItem
+                key={res.name}
+                onSelect={() => onResourceSelect(res.name)}
+              >
                 <div>{res.name}</div>
               </MenuItem>
             ))}
@@ -72,14 +59,23 @@ const AddIcon = styled(PlusCircle)`
 `;
 
 interface AddProps {
-  onAdd: () => void;
+  onAdd: (res: DesiredResource) => void;
   resources: ResourceResponse[];
 }
 
 const ResourceAdd = ({ onAdd, resources }: AddProps) => {
   return (
     <AddWrapper>
-      <ResourceChooser onResourceSelect={console.log} resources={resources} />
+      <ResourceChooser
+        onResourceSelect={(type) =>
+          onAdd({
+            id: uuid(),
+            type,
+            fieldData: {},
+          })
+        }
+        resources={resources}
+      />
     </AddWrapper>
   );
 };

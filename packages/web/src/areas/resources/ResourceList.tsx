@@ -129,9 +129,6 @@ const ResourceList = ({ onMaximise }: Props) => {
     closeMaximised();
     deleteResource(id);
   };
-  const onAdd = () => {
-    addResource();
-  };
 
   const onMaximiseChange = (idx: number) => () => {
     if (idx === maximised) {
@@ -261,7 +258,7 @@ const ResourceList = ({ onMaximise }: Props) => {
             </ListItem>
           )),
           <ListItem key="add">
-            <ResourceAdd onAdd={onAdd} resources={resources.value} />
+            <ResourceAdd onAdd={addResource} resources={resources.value} />
           </ListItem>,
         ]}
       </AnimatePresence>
