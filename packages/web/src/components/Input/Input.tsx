@@ -234,16 +234,38 @@ interface ReadOnlyProps {
   children: React.ReactNode | React.ReactNode[];
   label: string;
   className?: string;
+  state?: InputState;
+  message?: string;
 }
 
 export const ReadOnlyInput = ({
   className,
   label,
   children,
+  state,
+  message,
 }: ReadOnlyProps) => {
+  const inputState = state ?? InputState.Normal
+  const color = getStateColor(inputState);
+  const shadow =
+    inputState === InputState.Normal
+      ? 'unset'
+      : 'inset 0px 0px 2px 1px var(--input-state-color)';
+  const padding =
+    inputState === InputState.Normal
+      ? 'var(--spacing-small)'
+      : 'var(--spacing-large)';
   return (
     <Label className={className} label={label}>
-      <ReadOnlyInputBox>{children}</ReadOnlyInputBox>
+      <StateWrapper color={color} shadow={shadow} padding={padding}>
+        <ReadOnlyInputBox>{children}</ReadOnlyInputBox>
+        {inputState !== InputState.Normal ? (
+          <Icon>
+            <X size={18} strokeWidth={3} />
+          </Icon>
+        ) : null}
+        <ContextMessage>{message}</ContextMessage>
+      </StateWrapper>
     </Label>
   );
 };

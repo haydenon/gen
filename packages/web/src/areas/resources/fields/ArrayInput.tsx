@@ -1,4 +1,5 @@
 import { ArrayTypeResponse } from '@haydenon/gen-server';
+import { useMemo } from 'react';
 import { Plus, Trash2 } from 'react-feather';
 import styled from 'styled-components';
 import Button, { ButtonColour, ButtonStyle } from '../../../components/Button';
@@ -80,7 +81,27 @@ const ArrayInput = ({
   context,
   onChange,
   parentActions,
+  errors,
 }: Props) => {
+  const contextByIndex = useMemo(
+    () =>
+      value.map((_, idx) => ({
+        ...context,
+        currentPath: [...context.currentPath, idx.toString()],
+      })),
+    [context, value]
+  );
+  const errorsByIndex = useMemo(
+    () =>
+      value.map((_, idx) =>
+        errors.filter((err) => {
+          const path = contextByIndex[idx].currentPath;
+          return path.every((p, idx) => (err.path[idx] = p));
+        })
+      ),
+    [errors, value, contextByIndex]
+  );
+
   const children = (
     <>
       <Actions>
@@ -108,7 +129,8 @@ const ArrayInput = ({
                   ...value.slice(i + 1),
                 ])
               }
-              context={context}
+              context={contextByIndex[i]}
+              errors={errorsByIndex[i]}
               parentActions={
                 <Button
                   buttonStyle={ButtonStyle.Icon}

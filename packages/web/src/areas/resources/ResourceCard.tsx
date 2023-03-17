@@ -6,12 +6,13 @@ import Input from '../../components/Input';
 import Select from '../../components/Select';
 import {
   DesiredResource,
+  DesiredStateFormError,
   ErrorPathType,
 } from './desired-resources/desired-resource';
 import Button, { ButtonStyle, ButtonColour } from '../../components/Button';
 import VisuallyHidden from '../../components/VisuallyHidden';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useResources } from './resource.hook';
 import ResourceField from './fields/ResourceField';
 import { PropertyDefinitionResponse } from '@haydenon/gen-server';
@@ -87,6 +88,7 @@ interface FieldProps {
   onRemoveSpecified: () => void;
   onChange: (value: any) => void;
   desiredResourceId: string;
+  errors: DesiredStateFormError[];
 }
 
 const ResourceFieldItem = ({
@@ -95,6 +97,7 @@ const ResourceFieldItem = ({
   onRemoveSpecified,
   onChange,
   desiredResourceId,
+  errors,
 }: FieldProps) => {
   if (!(field.name in resource.fieldData)) {
     return null;
@@ -108,6 +111,7 @@ const ResourceFieldItem = ({
         onRemoveField={onRemoveSpecified}
         onChange={onChange}
         desiredResourceId={desiredResourceId}
+        errors={errors}
       />
     </ResourceListItem>
   );
@@ -155,7 +159,7 @@ const ResourceCard = ({
   onMaximiseToggle,
   maximised,
 }: Props) => {
-  const { resourceNames, getResource } = useResources();
+  const { getResource } = useResources();
   const { formErrors } = useDesiredResources();
 
   const maximisedRef = useRef<HTMLDivElement>(null);
@@ -182,21 +186,18 @@ const ResourceCard = ({
     (key) => resourceDefinitionInputMap[key]
   );
 
-  const onTypeChange = (type: string) =>
-    onChange({
-      ...resource,
-      type,
-    });
-
   const onNameChange = (name: string) => onChange({ ...resource, name });
 
   const Icon = maximised ? Minimize2 : Maximize2;
 
-  const onFieldRemoval = (field: string) => () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { [field]: _, ...otherFields } = resource.fieldData;
-    onChange({ ...resource, fieldData: otherFields });
-  };
+  const onFieldRemoval = useCallback(
+    (field: string) => () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [field]: _, ...otherFields } = resource.fieldData;
+      onChange({ ...resource, fieldData: otherFields });
+    },
+    [onChange, resource]
+  );
 
   const onSpecifyField = (field: string) => {
     const fields = {
@@ -215,12 +216,41 @@ const ResourceCard = ({
     (i) => !(i.name in resource.fieldData)
   );
 
-  const nameError = formErrors.find(
-    (err) =>
-      err.resourceId === resource.id &&
-      err.pathType === ErrorPathType.Root &&
-      err.path.length === 1 &&
-      err.path[0] === 'name'
+  const resourceId = resource.id;
+  const fieldData = resource.fieldData;
+  const fields = useMemo(() => Object.keys(fieldData), [fieldData]);
+
+  const nameError = useMemo(
+    () =>
+      formErrors.find(
+        (err) =>
+          err.resourceId === resourceId &&
+          err.pathType === ErrorPathType.Root &&
+          err.path.length === 1 &&
+          err.path[0] === 'name'
+      ),
+    [formErrors, resourceId]
+  );
+
+  const resourceErrors = useMemo(
+    () =>
+      formErrors.filter(
+        (err) =>
+          err.resourceId === resourceId && err.pathType === ErrorPathType.Field
+      ),
+    [formErrors, resourceId]
+  );
+
+  const fieldErrorsByField = useMemo(
+    () =>
+      fields.reduce(
+        (acc, field) => ({
+          ...acc,
+          [field]: resourceErrors.filter((err) => err.path[0] === field),
+        }),
+        {} as { [field: string]: DesiredStateFormError[] }
+      ),
+    [resourceErrors, fields]
   );
 
   return (
@@ -286,8 +316,9 @@ const ResourceCard = ({
                   field={input}
                   onRemoveSpecified={onFieldRemoval(input.name)}
                   onChange={onFieldValueChange(input.name)}
-                  desiredResourceId={resource.id}
-                ></ResourceFieldItem>
+                  desiredResourceId={resourceId}
+                  errors={fieldErrorsByField[input.name]}
+                />
               ))}
               {unspecifiedProperties.length > 0 ? (
                 <ListItem key="add-specified-field">

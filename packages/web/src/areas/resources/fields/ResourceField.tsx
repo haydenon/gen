@@ -18,12 +18,15 @@ import BooleanInput from './BooleanInput';
 import UndefinableNullableField from './UndefinableNullableField';
 import ComplexField from './ComplexField';
 import DateInput from './DateInput';
+import { DesiredStateFormError } from '../desired-resources/desired-resource';
+import { useMemo } from 'react';
 
 interface TypeProps extends BaseInputProps {
   type: PropertyTypeResponse;
   value: any;
   onChange: (value: any) => void;
   parentActions: React.ReactNode | React.ReactNode[];
+  errors: DesiredStateFormError[];
 }
 
 export const InputForType = ({
@@ -119,6 +122,7 @@ interface RootProps {
   value: any;
   onRemoveField: () => void;
   onChange: (value: any) => void;
+  errors: DesiredStateFormError[];
 }
 
 const FieldActions = styled.div`
@@ -136,12 +140,22 @@ const ResourceField = ({
   onRemoveField,
   onChange,
   desiredResourceId,
+  errors,
 }: RootProps) => {
-  const displayName = getFieldDisplayName(fieldDefinition.name);
-  const context = {
-    rootInputName: fieldDefinition.name,
-    desiredResourceId,
-  };
+  const displayName = useMemo(
+    () => getFieldDisplayName(fieldDefinition.name),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+  const context = useMemo(
+    () => ({
+      rootInputName: fieldDefinition.name,
+      desiredResourceId,
+      currentPath: [fieldDefinition.name],
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
   return (
     <InputRoot
       type={fieldDefinition.type}
@@ -149,6 +163,7 @@ const ResourceField = ({
       value={value}
       onChange={onChange}
       context={context}
+      errors={errors}
       parentActions={
         <FieldActions>
           <Button

@@ -8,18 +8,21 @@ import {
   Variable,
 } from '@haydenon/gen-core';
 import { LinkTypeResponse, PropertyTypeResponse } from '@haydenon/gen-server';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ArrowRight, ChevronLeft, Edit, Link } from 'react-feather';
 import styled from 'styled-components';
 import Button, { ButtonColour, ButtonStyle } from '../../../components/Button';
 import CodeText from '../../../components/CodeText';
-import { ReadOnlyInput } from '../../../components/Input/Input';
+import { InputState, ReadOnlyInput } from '../../../components/Input/Input';
 import { Menu, MenuButton, MenuItem, MenuList } from '../../../components/Menu';
 import { menuItemStyles } from '../../../components/Menu/Menu';
 import { mapPropTypeRespToExprType } from '../../../utilities/property-type-expr-type.mappers';
 import { useDesiredResources } from '../desired-resources/desired-resource.hook';
 import { useResources } from '../resource.hook';
-import { DesiredResource } from '../desired-resources/desired-resource';
+import {
+  DesiredResource,
+  DesiredStateFormError,
+} from '../desired-resources/desired-resource';
 import { FormRuntimeValue } from '../runtime-value';
 import { getFieldDisplayName } from './field.utils';
 
@@ -259,6 +262,7 @@ const LinkValueChooser = ({
 interface RuntimeValueProps {
   name: string | null;
   runtimeValue: FormRuntimeValue;
+  errors: DesiredStateFormError[];
 }
 
 const ReadOnlyDisplay = styled(ReadOnlyInput)`
@@ -269,8 +273,13 @@ const ReadOnlyDisplay = styled(ReadOnlyInput)`
 const LinkedRuntimeValueDisplay = ({
   name,
   runtimeValue,
+  errors,
 }: RuntimeValueProps) => {
   const { desiredResources } = useDesiredResources();
+  const error: DesiredStateFormError | undefined = useMemo(
+    () => errors[0],
+    [errors]
+  );
   if (
     !(runtimeValue.expression instanceof GetProp) ||
     desiredResources.value === undefined
@@ -291,7 +300,10 @@ const LinkedRuntimeValueDisplay = ({
   }
 
   return (
-    <ReadOnlyDisplay label={name || ''}>
+    <ReadOnlyDisplay
+      label={name || ''}
+      state={error !== undefined ? InputState.Error : undefined}
+    >
       <CodeText>{resource.name || '<no name>'}</CodeText>
       <ArrowRight size={18} />
       <CodeText>{indexer.value}</CodeText>
@@ -305,6 +317,7 @@ const LinkInput = ({
   onChange,
   context,
   parentActions,
+  errors,
   ...baseProps
 }: Props) => {
   const onFieldChoose = (desiredResourceId: string, fieldName: string) => {
@@ -326,6 +339,7 @@ const LinkInput = ({
           <LinkedRuntimeValueDisplay
             name={baseProps.name}
             runtimeValue={value}
+            errors={errors}
           />
           <Button
             buttonStyle={ButtonStyle.Icon}
@@ -341,6 +355,7 @@ const LinkInput = ({
           onChange={onChange}
           context={context}
           parentActions={null}
+          errors={errors}
           {...baseProps}
         />
       )}

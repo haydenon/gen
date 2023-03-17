@@ -1,8 +1,10 @@
 import { ComplexTypeResponse } from '@haydenon/gen-server';
+import { useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { NonFormLabel } from '../../../components/Label';
+import { DesiredStateFormError } from '../desired-resources/desired-resource';
 import { getFieldDisplayName } from './field.utils';
-import { BaseInputProps } from './props';
+import { BaseInputProps, InputContext } from './props';
 import { InputForType } from './ResourceField';
 
 interface Props extends BaseInputProps {
@@ -39,12 +41,45 @@ const ComplexField = ({
   parentActions,
   value,
   onChange,
-  ...baseProps
+  context,
+  errors,
 }: Props) => {
-  const handleChange = (field: string) => (fieldValue: any) => {
-    const newValue = { ...value, [field]: fieldValue };
-    onChange(newValue);
-  };
+  const fields = useMemo(() => type.fields, [type]);
+  const handleChange = useCallback(
+    (field: string) => (fieldValue: any) => {
+      const newValue = { ...value, [field]: fieldValue };
+      onChange(newValue);
+    },
+    [onChange, value]
+  );
+  const contextByField = useMemo(
+    () =>
+      Object.keys(fields).reduce(
+        (acc, field) => ({
+          ...acc,
+          [field]: {
+            ...context,
+            currentPath: [...context.currentPath, field],
+          },
+        }),
+        {} as { [field: string]: InputContext }
+      ),
+    [context, fields]
+  );
+  const errorsByField = useMemo(
+    () =>
+      Object.keys(fields).reduce(
+        (acc, field) => ({
+          ...acc,
+          [field]: errors.filter((err) => {
+            const path = contextByField[field].currentPath;
+            return path.every((p, idx) => (err.path[idx] = p));
+          }),
+        }),
+        {} as { [field: string]: DesiredStateFormError[] }
+      ),
+    [errors, contextByField, fields]
+  );
 
   return (
     <FieldLabel label={name || ''}>
@@ -59,7 +94,8 @@ const ComplexField = ({
                 parentActions={null}
                 value={value[field]}
                 onChange={handleChange(field)}
-                context={baseProps.context}
+                context={contextByField[field]}
+                errors={errorsByField[field]}
               />
             </InputWrapper>
           ))}

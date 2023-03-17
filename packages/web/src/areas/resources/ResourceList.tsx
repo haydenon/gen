@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import styled, { css } from 'styled-components';
 import Card from '../../components/Card';
@@ -116,30 +116,39 @@ const ResourceList = ({ onMaximise }: Props) => {
     loadResourceDefinitions();
   }, [loadResourceDefinitions]);
 
-  const onChange = (resource: DesiredResource) => {
-    updateResource(resource);
-  };
+  const onChange = useCallback(
+    (resource: DesiredResource) => {
+      updateResource(resource);
+    },
+    [updateResource]
+  );
 
-  const closeMaximised = () => {
+  const closeMaximised = useCallback(() => {
     onMaximise(false);
     setMaximised(undefined);
-  };
+  }, [onMaximise, setMaximised]);
 
-  const onDelete = (id: string) => () => {
-    closeMaximised();
-    deleteResource(id);
-  };
-
-  const onMaximiseChange = (idx: number) => () => {
-    if (idx === maximised) {
+  const onDelete = useCallback(
+    (id: string) => () => {
       closeMaximised();
-    } else {
-      if (maximised === undefined) {
-        onMaximise(true);
+      deleteResource(id);
+    },
+    [deleteResource, closeMaximised]
+  );
+
+  const onMaximiseChange = useCallback(
+    (idx: number) => () => {
+      if (idx === maximised) {
+        closeMaximised();
+      } else {
+        if (maximised === undefined) {
+          onMaximise(true);
+        }
+        setMaximised(idx);
       }
-      setMaximised(idx);
-    }
-  };
+    },
+    [onMaximise, setMaximised, closeMaximised, maximised]
+  );
 
   // Remove scrolling on background when modal is open
   useEffect(() => {
