@@ -96,7 +96,7 @@ const ArrayInput = ({
       value.map((_, idx) =>
         errors.filter((err) => {
           const path = contextByIndex[idx].currentPath;
-          return path.every((p, idx) => (err.path[idx] = p));
+          return path.every((p, idx) => err.path[idx] === p);
         })
       ),
     [errors, value, contextByIndex]

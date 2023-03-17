@@ -295,16 +295,14 @@ const LinkedRuntimeValueDisplay = ({
   }
 
   const resource = resources.find((r) => r.id === obj.name.lexeme);
-  if (!resource) {
-    return null;
-  }
 
   return (
     <ReadOnlyDisplay
       label={name || ''}
       state={error !== undefined ? InputState.Error : undefined}
+      message={error?.error.message}
     >
-      <CodeText>{resource.name || '<no name>'}</CodeText>
+      <CodeText>{resource?.name || '<no name>'}</CodeText>
       <ArrowRight size={18} />
       <CodeText>{indexer.value}</CodeText>
     </ReadOnlyDisplay>

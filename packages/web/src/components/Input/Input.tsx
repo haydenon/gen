@@ -228,6 +228,8 @@ const ReadOnlyInputBox = styled.div`
   display: flex;
   align-items: center;
   gap: var(--spacing-tiny);
+  box-shadow: var(--shadow);
+  padding-right: var(--padding);
 `;
 
 interface ReadOnlyProps {
@@ -245,7 +247,7 @@ export const ReadOnlyInput = ({
   state,
   message,
 }: ReadOnlyProps) => {
-  const inputState = state ?? InputState.Normal
+  const inputState = state ?? InputState.Normal;
   const color = getStateColor(inputState);
   const shadow =
     inputState === InputState.Normal

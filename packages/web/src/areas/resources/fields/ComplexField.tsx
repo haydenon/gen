@@ -23,7 +23,7 @@ const InputWrapper = styled.div`
   display: flex;
   gap: var(--spacing-tiny);
   &:not(:last-child) {
-    padding-bottom: var(--spacing-tiny);
+    padding-bottom: var(--spacing-base);
   }
 `;
 
@@ -73,7 +73,7 @@ const ComplexField = ({
           ...acc,
           [field]: errors.filter((err) => {
             const path = contextByField[field].currentPath;
-            return path.every((p, idx) => (err.path[idx] = p));
+            return path.every((p, idx) => err.path[idx] === p);
           }),
         }),
         {} as { [field: string]: DesiredStateFormError[] }
