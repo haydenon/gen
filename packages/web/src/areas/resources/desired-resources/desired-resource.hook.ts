@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useRecoilState } from 'recoil';
-import { v4 as uuid } from 'uuid';
 import {
   createCompleted,
   createErrored,
@@ -9,27 +8,17 @@ import {
   useFetch,
 } from '../../../data';
 
-import {
-  creatingState,
-  desiredResourceState,
-  formErrorsState,
-  resourceDependencyState,
-} from './desired-resource.state';
-import {
-  DesiredResource,
-  DesiredStateFormError,
-  ErrorPathType,
-} from './desired-resource';
+import { creatingState, desiredResourceState } from './desired-resource.state';
+import { DesiredResource } from './desired-resource';
 import { transformFormValues } from './desired-state.utilities';
-import { validateResourceName } from '@haydenon/gen-core';
+import { useResourceValidation } from './validation.hook';
 
 export const useDesiredResources = () => {
   const [desiredResources, setResources] = useRecoilState(desiredResourceState);
   const [createState, setCreatingState] = useRecoilState(creatingState);
-  const [dependentResources, setDependentResourceState] = useRecoilState(
-    resourceDependencyState
-  );
-  const [formErrors, setErrorState] = useRecoilState(formErrorsState);
+  const { validateField, validateNames, validateResourceRemoval, formErrors } =
+    useResourceValidation();
+
   const { fetch } = useFetch();
 
   const getDesiredResource = useCallback(
@@ -41,81 +30,6 @@ export const useDesiredResources = () => {
       return desiredResources.value.find((r) => r.id === id);
     },
     [desiredResources]
-  );
-
-  const validateField = useCallback(
-    (
-      resourceId: string,
-      fieldName: string,
-      currentValue: any,
-      newValue: any
-    ) => {
-      const existingErrors = formErrors.filter(
-        (err) =>
-          err.pathType === ErrorPathType.Field &&
-          err.resourceId === resourceId &&
-          err.path[0] === fieldName
-      );
-
-      // Remove dependent resource errors for this field if applicable
-    },
-    [formErrors, setErrorState, dependentResources]
-  );
-
-  const validateNames = useCallback(
-    (resources: DesiredResource[]) => {
-      const currentNameErrors = formErrors.filter(
-        (err) =>
-          err.pathType === ErrorPathType.Root &&
-          err.path.length === 1 &&
-          err.path[0] === 'name'
-      );
-
-      const erroredResourcesState = resources.reduce((acc, r) => {
-        const validationError = validateResourceName(r.name);
-        if (validationError) {
-          acc[r.id] = [validationError, 'invalid_resource_name'];
-        } else if (
-          r.name &&
-          resources.find((other) => other.id !== r.id && r.name === other.name)
-        ) {
-          acc[r.id] = [
-            new Error(`'${r.name}' is used by other resources`),
-            'duplicate_resource_name',
-          ];
-        }
-        return acc;
-      }, {} as { [id: string]: [Error, string] });
-
-      const errorsToKeep = currentNameErrors.filter(
-        (err) => err.resourceId in erroredResourcesState
-      );
-      const additionalErrors: DesiredStateFormError[] = Object.keys(
-        erroredResourcesState
-      )
-        .filter((id) => currentNameErrors.every((err) => err.resourceId !== id))
-        .map((resourceId) => {
-          const [error, errorCategory] = erroredResourcesState[resourceId];
-          return {
-            resourceId,
-            error,
-            errorCategory,
-            pathType: ErrorPathType.Root,
-            path: ['name'],
-          };
-        });
-
-      const nonNameErrors = formErrors.filter(
-        (err) => !currentNameErrors.includes(err)
-      );
-      const newErrors = [
-        ...nonNameErrors,
-        ...errorsToKeep,
-        ...additionalErrors,
-      ];
-      setErrorState(newErrors);
-    },
-    [formErrors, setErrorState]
   );
 
   const updateResource = useCallback(
@@ -149,6 +63,7 @@ export const useDesiredResources = () => {
         );
         for (const changedField of changedFields) {
           validateField(
+            resources,
             resource.id,
             changedField,
             current.fieldData[changedField],
@@ -157,7 +72,7 @@ export const useDesiredResources = () => {
         }
       }
     },
-    [desiredResources, setResources, validateNames]
+    [desiredResources, setResources, validateNames, validateField]
   );
 
   const deleteResource = useCallback(
@@ -169,7 +84,7 @@ export const useDesiredResources = () => {
       const resources = desiredResources.value;
       const idx = resources.findIndex((r) => r.id === id);
 
-      // TODO: Add errors to dependent fields
+      validateResourceRemoval(id);
 
       setResources(
         createCompleted([
@@ -178,7 +93,7 @@ export const useDesiredResources = () => {
         ])
       );
     },
-    [desiredResources, setResources]
+    [desiredResources, setResources, validateResourceRemoval]
   );
 
   const addResource = useCallback(

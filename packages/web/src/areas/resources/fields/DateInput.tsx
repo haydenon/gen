@@ -50,7 +50,8 @@ const DateInput = ({ type, value, name, onChange, parentActions }: Props) => {
                 new Call(
                   new Variable(identifier('date')),
                   args.map((a) => new Literal(a))
-                )
+                ),
+                []
               )
             );
           }}

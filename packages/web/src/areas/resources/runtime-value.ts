@@ -1,13 +1,18 @@
 import { Call, Expr, identifier, Literal, Variable } from '@haydenon/gen-core';
 
 export class FormRuntimeValue {
-  constructor(public textInput: string | undefined, public expression: Expr) {}
+  constructor(
+    public textInput: string | undefined,
+    public expression: Expr,
+    public dependentResourceIds: string[]
+  ) {}
 }
 
 export const WELL_KNOWN_RUNTIME_VALUES = {
   undefined: new FormRuntimeValue(
     undefined,
-    new Variable(identifier('undefined'))
+    new Variable(identifier('undefined')),
+    []
   ),
   minDate: new FormRuntimeValue(
     undefined,
@@ -15,6 +20,7 @@ export const WELL_KNOWN_RUNTIME_VALUES = {
       new Literal(1970),
       new Literal(0),
       new Literal(1),
-    ])
+    ]),
+    []
   ),
 };

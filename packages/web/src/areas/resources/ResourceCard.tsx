@@ -215,7 +215,6 @@ const ResourceCard = ({
     (i) => !(i.name in resource.fieldData)
   );
 
-  // TODO: Use error details
   const nameError = formErrors.find(
     (err) =>
       err.resourceId === resource.id &&

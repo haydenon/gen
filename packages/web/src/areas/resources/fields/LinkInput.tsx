@@ -314,7 +314,8 @@ const LinkInput = ({
         new GetProp(
           new Variable(identifier(desiredResourceId)),
           new Literal(fieldName)
-        )
+        ),
+        [desiredResourceId]
       )
     );
   };
