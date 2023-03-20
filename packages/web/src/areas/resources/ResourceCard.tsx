@@ -17,7 +17,7 @@ import { useResources } from './resource.hook';
 import ResourceField from './fields/ResourceField';
 import { PropertyDefinitionResponse } from '@haydenon/gen-server';
 import { getFieldDisplayName } from './fields/field.utils';
-import { Menu, MenuButton, MenuItem, MenuList } from '../../components/Menu';
+import { Menu, MenuItem } from '../../components/NewMenu';
 import { generateDefaultValue } from '../../utilities/default-value.generator';
 import { InputState, ReadOnlyInput } from '../../components/Input/Input';
 import { useDesiredResources } from './desired-resources/desired-resource.hook';
@@ -117,33 +117,50 @@ const ResourceFieldItem = ({
   );
 };
 
-const FieldMenuButton = styled(MenuButton)`
-  padding-left: var(--spacing-small);
-  padding-right: var(--spacing-small);
-  display: flex;
-`;
+// const FieldMenuButton = styled(MenuButton)`
+//   padding-left: var(--spacing-small);
+//   padding-right: var(--spacing-small);
+//   display: flex;
+// `;
 
 interface AddFieldProps {
   unspecifiedProperties: string[];
   onSpecifyField: (field: string) => void;
 }
 
+const ButtonInsert = styled.div`
+  padding-left: var(--spacing-small);
+  padding-right: var(--spacing-small);
+  display: flex;
+`;
+
 const AddSpecifiedField = ({
   unspecifiedProperties,
   onSpecifyField,
 }: AddFieldProps) => {
   return (
-    <Menu>
-      <FieldMenuButton>
-        Specify property <AddIcon size={18} />
-      </FieldMenuButton>
-      <MenuList>
-        {unspecifiedProperties.map((prop) => (
-          <MenuItem key={prop} onSelect={() => onSpecifyField(prop)}>
-            {getFieldDisplayName(prop)}
-          </MenuItem>
-        ))}
-      </MenuList>
+    <Menu
+      label={
+        <ButtonInsert>
+          Specify property <AddIcon size={18} />
+        </ButtonInsert>
+      }
+      buttonColour={ButtonColour.Transparent}
+    >
+      {/* <FieldMenuButton>
+
+      </FieldMenuButton> */}
+      {/* <MenuList> */}
+      {unspecifiedProperties.map((prop) => (
+        <MenuItem
+          label={getFieldDisplayName(prop)}
+          key={prop}
+          onClick={() => onSpecifyField(prop)}
+        >
+          {/* {getFieldDisplayName(prop)} */}
+        </MenuItem>
+      ))}
+      {/* </MenuList> */}
     </Menu>
   );
 };

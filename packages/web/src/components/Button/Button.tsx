@@ -40,8 +40,8 @@ export const buttonCommonStyles = css`
   }
 `;
 
-interface ButtonProps {
-  colours: Colours;
+export interface ButtonProps {
+  colours: ButtonColours;
 }
 
 const NormalButton = styled.button<ButtonProps>`
@@ -69,14 +69,14 @@ const IconButton = styled(NormalButton)`
   padding-right: var(--spacing-tiny);
 `;
 
-interface Colours {
+export interface ButtonColours {
   normal: string;
   hover: string;
   focused: string;
   disabled: string;
 }
 
-const colours: { [colour: number]: Colours } = {
+export const buttonColours: { [colour: number]: ButtonColours } = {
   [ButtonColour.Normal]: {
     normal: 'var(--colors-contentBackground-light)',
     hover: 'var(--colors-contentBackground-light-focusable)',
@@ -123,15 +123,11 @@ const Button = ({
     }
   };
   const buttonStyle = style || ButtonStyle.Normal;
-  const buttonColours = colours[colour ?? ButtonColour.Normal];
+  const colours = buttonColours[colour ?? ButtonColour.Normal];
   switch (buttonStyle) {
     case ButtonStyle.Icon:
       return (
-        <IconButton
-          colours={buttonColours}
-          className={className}
-          onClick={click}
-        >
+        <IconButton colours={colours} className={className} onClick={click}>
           {children}
         </IconButton>
       );
@@ -139,7 +135,7 @@ const Button = ({
     default:
       return (
         <NormalButton
-          colours={buttonColours}
+          colours={colours}
           className={className}
           disabled={disabled}
           onClick={click}

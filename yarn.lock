@@ -1819,6 +1819,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@floating-ui/core@npm:^1.2.3":
+  version: 1.2.4
+  resolution: "@floating-ui/core@npm:1.2.4"
+  checksum: 1c163ea1804e2b0a28fda6e32efed0e242d0db8081fd24aab9d1cbb100f94a558709231c483bf74bf09a9204ea6e7845813d43b5322ceb6ee63285308f68f65b
+  languageName: node
+  linkType: hard
+
+"@floating-ui/dom@npm:^1.0.0":
+  version: 1.2.4
+  resolution: "@floating-ui/dom@npm:1.2.4"
+  dependencies:
+    "@floating-ui/core": ^1.2.3
+  checksum: 5c24a2e8f04e436390646c8a4431c6cb79e03711fbb0f818b87d613a6be8971bc560a830b702aaa51a0ebc4d0c45deb06f3140c14125dc1ac770365bf66ee903
+  languageName: node
+  linkType: hard
+
 "@gar/promisify@npm:^1.1.3":
   version: 1.1.3
   resolution: "@gar/promisify@npm:1.1.3"
@@ -2858,6 +2874,37 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@reach/listbox@npm:^0.18.0":
+  version: 0.18.0
+  resolution: "@reach/listbox@npm:0.18.0"
+  dependencies:
+    "@reach/auto-id": 0.18.0
+    "@reach/descendants": 0.18.0
+    "@reach/machine": 0.18.0
+    "@reach/polymorphic": 0.18.0
+    "@reach/popover": 0.18.0
+    "@reach/utils": 0.18.0
+    tiny-invariant: ^1.2.0
+  peerDependencies:
+    react: ^16.8.0 || 17.x
+    react-dom: ^16.8.0 || 17.x
+  checksum: ee759b9cd834253019c679bbf4ff657fc9563b0326e0f0a654dba9d3764b1e496ea2c83aa7dd05563cbc91047673574f52d0400adedc9866f86b90a03ed39915
+  languageName: node
+  linkType: hard
+
+"@reach/machine@npm:0.18.0":
+  version: 0.18.0
+  resolution: "@reach/machine@npm:0.18.0"
+  dependencies:
+    "@reach/utils": 0.18.0
+    "@xstate/fsm": 1.4.0
+  peerDependencies:
+    react: ^16.8.0 || 17.x
+    react-dom: ^16.8.0 || 17.x
+  checksum: 29e30ab0dd6e296a3d102309cfd8c53d0e419b6cf975bd96ba9e4bfe2d626df549f5c96026f415d6c2bce2efd91f7002ba40f0a5a3f34618198ac3d23577f6ff
+  languageName: node
+  linkType: hard
+
 "@reach/menu-button@npm:^0.18.0":
   version: 0.18.0
   resolution: "@reach/menu-button@npm:0.18.0"
@@ -2890,7 +2937,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@reach/popover@npm:0.18.0":
+"@reach/popover@npm:0.18.0, @reach/popover@npm:^0.18.0":
   version: 0.18.0
   resolution: "@reach/popover@npm:0.18.0"
   dependencies:
@@ -4182,6 +4229,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xstate/fsm@npm:1.4.0":
+  version: 1.4.0
+  resolution: "@xstate/fsm@npm:1.4.0"
+  checksum: 518080d3ddec480b582d5569ebb7e1ad14e4ca6b3fd070b5426930082e79dcfe7fd36b382a2d703ce85c957534867339fcea5ee60b38227cef29fa48f91d166f
+  languageName: node
+  linkType: hard
+
 "@xtuc/ieee754@npm:^1.2.0":
   version: 1.2.0
   resolution: "@xtuc/ieee754@npm:1.2.0"
@@ -4588,6 +4642,39 @@ __metadata:
   dependencies:
     deep-equal: ^2.0.5
   checksum: 929ff95f02857b650fb4cbcd2f41072eee2f46159a6605ea03bf63aa572e35ffdff43d69e815ddc462e16e07de8faba3978afc2813650b4448ee18c9895d982b
+  languageName: node
+  linkType: hard
+
+"ariakit-react-utils@npm:0.17.0-next.27":
+  version: 0.17.0-next.27
+  resolution: "ariakit-react-utils@npm:0.17.0-next.27"
+  dependencies:
+    ariakit-utils: 0.17.0-next.27
+  peerDependencies:
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+  checksum: c387969eecd71cd4199fa9eef35b9b758a96be51ad71dd502aa7187f57589bd0c840d8b9ae83d08f20e7c9539598b24ccf5adc1164e9c0ad40954b019e04edde
+  languageName: node
+  linkType: hard
+
+"ariakit-utils@npm:0.17.0-next.27":
+  version: 0.17.0-next.27
+  resolution: "ariakit-utils@npm:0.17.0-next.27"
+  checksum: 65a859375144a997660b7f2d9c58c8d344aa5b81ae72feba3138e9a1c16b4ec01d607fd5955760042abfd6042695ba20c6395dc694a7a9d244ac9f0b4cbc6590
+  languageName: node
+  linkType: hard
+
+"ariakit@npm:^2.0.0-next.43":
+  version: 2.0.0-next.43
+  resolution: "ariakit@npm:2.0.0-next.43"
+  dependencies:
+    "@floating-ui/dom": ^1.0.0
+    ariakit-react-utils: 0.17.0-next.27
+    ariakit-utils: 0.17.0-next.27
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+  checksum: 7dc3a6914c89a296fc8c4a8372dc4f87bd67252ae065dd33869ac0349f781b5bbd6a9ef2cbedacf4646502650f4ff89083aa656689d22d919fa120d849847aaf
   languageName: node
   linkType: hard
 
@@ -17091,6 +17178,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tiny-invariant@npm:^1.2.0":
+  version: 1.3.1
+  resolution: "tiny-invariant@npm:1.3.1"
+  checksum: 872dbd1ff20a21303a2fd20ce3a15602cfa7fcf9b228bd694a52e2938224313b5385a1078cb667ed7375d1612194feaca81c4ecbe93121ca1baebe344de4f84c
+  languageName: node
+  linkType: hard
+
 "tmp@npm:0.2.1":
   version: 0.2.1
   resolution: "tmp@npm:0.2.1"
@@ -17938,7 +18032,9 @@ __metadata:
   dependencies:
     "@haydenon/gen-core": "workspace:*"
     "@haydenon/gen-server": "workspace:*"
+    "@reach/listbox": ^0.18.0
     "@reach/menu-button": ^0.18.0
+    "@reach/popover": ^0.18.0
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^13.4.0
     "@testing-library/user-event": ^13.5.0
@@ -17948,6 +18044,7 @@ __metadata:
     "@types/react-dom": ^18.0.9
     "@types/styled-components": ^5.1.26
     "@types/uuid": ^9.0.0
+    ariakit: ^2.0.0-next.43
     framer-motion: ^7.6.19
     react: ^18.2.0
     react-dom: ^18.2.0
