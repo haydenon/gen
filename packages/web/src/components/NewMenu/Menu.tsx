@@ -48,7 +48,6 @@ export type MenuProps = HTMLAttributes<HTMLDivElement> & {
   buttonColour?: ButtonColour;
   disabled?: boolean;
   composite?: boolean;
-  onClose?: () => void;
 };
 
 type MenuButtonProps = HTMLAttributes<HTMLDivElement> &
@@ -157,11 +156,6 @@ export const Menu = forwardRef<HTMLDivElement, MenuProps>(
           anchor?.getBoundingClientRect() ||
           null
         );
-      },
-      setOpen: (open) => {
-        if (!open && props.onClose) {
-          props.onClose();
-        }
       },
     });
 

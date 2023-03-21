@@ -3,7 +3,6 @@ import { Trash2, Maximize2, Minimize2, PlusCircle } from 'react-feather';
 
 import CardComp from '../../components/Card';
 import Input from '../../components/Input';
-import Select from '../../components/Select';
 import {
   DesiredResource,
   DesiredStateFormError,
@@ -17,10 +16,11 @@ import { useResources } from './resource.hook';
 import ResourceField from './fields/ResourceField';
 import { PropertyDefinitionResponse } from '@haydenon/gen-server';
 import { getFieldDisplayName } from './fields/field.utils';
-import { Menu, MenuItem } from '../../components/NewMenu';
+import { Menu } from '../../components/NewMenu';
 import { generateDefaultValue } from '../../utilities/default-value.generator';
 import { InputState, ReadOnlyInput } from '../../components/Input/Input';
 import { useDesiredResources } from './desired-resources/desired-resource.hook';
+import { MenuComboList } from '../../components/NewMenu/Menu';
 
 interface Props {
   resource: DesiredResource;
@@ -119,20 +119,12 @@ const ResourceFieldItem = ({
   );
 };
 
-// const FieldMenuButton = styled(MenuButton)`
-//   padding-left: var(--spacing-small);
-//   padding-right: var(--spacing-small);
-//   display: flex;
-// `;
-
 interface AddFieldProps {
   unspecifiedProperties: string[];
   onSpecifyField: (field: string) => void;
 }
 
 const ButtonInsert = styled.div`
-  padding-left: var(--spacing-small);
-  padding-right: var(--spacing-small);
   display: flex;
 `;
 
@@ -140,6 +132,25 @@ const AddSpecifiedField = ({
   unspecifiedProperties,
   onSpecifyField,
 }: AddFieldProps) => {
+  const displayNames = useMemo(
+    () => unspecifiedProperties.map(getFieldDisplayName),
+    [unspecifiedProperties]
+  );
+  const displayToField = useMemo(
+    () =>
+      unspecifiedProperties.reduce(
+        (acc, field, idx) => ({
+          ...acc,
+          [displayNames[idx]]: field,
+        }),
+        {} as { [name: string]: string }
+      ),
+    [displayNames, unspecifiedProperties]
+  );
+  const onUpdate = useCallback(
+    (display: string) => onSpecifyField(displayToField[display]),
+    [displayToField, onSpecifyField]
+  );
   return (
     <Menu
       label={
@@ -147,15 +158,9 @@ const AddSpecifiedField = ({
           Specify property <AddIcon size={18} />
         </ButtonInsert>
       }
-      buttonColour={ButtonColour.Transparent}
+      composite={false}
     >
-      {unspecifiedProperties.map((prop) => (
-        <MenuItem
-          label={getFieldDisplayName(prop)}
-          key={prop}
-          onClick={() => onSpecifyField(prop)}
-        ></MenuItem>
-      ))}
+      <MenuComboList list={displayNames} onItemSelect={onUpdate} />
     </Menu>
   );
 };
