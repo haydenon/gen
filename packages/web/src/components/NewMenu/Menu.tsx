@@ -33,6 +33,7 @@ import {
   ComboboxList,
   useComboboxState,
 } from 'ariakit';
+import { baseInputStyles } from '../Input/Input';
 
 type MenuContextProps = {
   getWrapper: () => HTMLElement | null;
@@ -325,11 +326,16 @@ export const MenuItem = forwardRef<HTMLButtonElement, MenuItemProps>(
   }
 );
 
+const CustomMenuSeperator = styled(BaseMenuSeparator)`
+  width: 100%;
+  background-color: var(--colors-contentBackground-light);
+`;
+
 export type MenuSeparatorProps = HTMLAttributes<HTMLHRElement>;
 
 export const MenuSeparator = forwardRef<HTMLHRElement, MenuSeparatorProps>(
   (props, ref) => {
-    return <BaseMenuSeparator ref={ref} className="separator" {...props} />;
+    return <CustomMenuSeperator ref={ref} {...props} />;
   }
 );
 
@@ -350,7 +356,23 @@ export const MenuGroup = forwardRef<HTMLDivElement, MenuGroupProps>(
   }
 );
 
-const ComboboxInput = styled(Combobox)``;
+const ComboboxInput = styled(Combobox)`
+  ${baseInputStyles}
+
+  &:focus,
+  &:focus-visible {
+    outline: 2px solid #4374cb;
+    outline: 5px auto -webkit-focus-ring-color;
+    background-color: var(--colors-contentBackground-light-focused);
+  }
+
+  margin-bottom: var(--spacing-tiny);
+`;
+
+const CustomComboList = styled(ComboboxList)`
+  display: flex;
+  flex-direction: column;
+`;
 
 interface ComboboxProps {
   list: string[];
@@ -368,10 +390,9 @@ export const MenuComboList = ({ list, onItemSelect }: ComboboxProps) => {
         state={combobox}
         autoSelect
         placeholder="Search..."
-        className="combobox"
         autoFocus={true}
       />
-      <ComboboxList state={combobox} className="combobox-list">
+      <CustomComboList state={combobox}>
         {combobox.matches.map((value, i) => (
           <ComboboxItem
             as={MenuItem}
@@ -380,7 +401,6 @@ export const MenuComboList = ({ list, onItemSelect }: ComboboxProps) => {
             value={value}
             focusOnHover
             setValueOnClick={false}
-            className="menu-item"
             onClick={() => {
               onItemSelect(value);
               combobox.setValue('');
@@ -389,7 +409,7 @@ export const MenuComboList = ({ list, onItemSelect }: ComboboxProps) => {
             clickOnEnter={true}
           />
         ))}
-      </ComboboxList>
+      </CustomComboList>
     </>
   );
 };

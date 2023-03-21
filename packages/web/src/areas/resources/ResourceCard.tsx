@@ -35,6 +35,7 @@ const Header = styled.div`
   justify-content: flex-start;
   gap: var(--spacing-small);
   align-items: flex-end;
+  padding-bottom: var(--spacing-base);
 `;
 
 const ActionsWrapper = styled(motion.div)`
@@ -52,7 +53,7 @@ const Card = styled(CardComp)<CardProps>`
   overflow-y: ${(props) => (props.maximised ? 'auto' : undefined)};
   z-index: ${(props) => (props.maximised ? 2 : 'unset')};
   position: ${(props) => (props.maximised ? 'relative' : 'unset')};
-  padding-bottom: var(--spacing-large);
+  padding-bottom: var(--spacing-tiny);
 `;
 
 const ListItem = styled.li`
@@ -75,6 +76,7 @@ const ResourceListItem = styled(ListItem)`
 
 const List = styled.ul`
   padding-left: 0;
+  padding-bottom: var(--spacing-small);
 `;
 
 const AddIcon = styled(PlusCircle)`
