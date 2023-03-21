@@ -35,7 +35,6 @@ const Header = styled.div`
   justify-content: flex-start;
   gap: var(--spacing-small);
   align-items: flex-end;
-  padding-bottom: var(--spacing-large);
 `;
 
 const ActionsWrapper = styled(motion.div)`
@@ -53,6 +52,7 @@ const Card = styled(CardComp)<CardProps>`
   overflow-y: ${(props) => (props.maximised ? 'auto' : undefined)};
   z-index: ${(props) => (props.maximised ? 2 : 'unset')};
   position: ${(props) => (props.maximised ? 'relative' : 'unset')};
+  padding-bottom: var(--spacing-large);
 `;
 
 const ListItem = styled.li`
@@ -147,20 +147,13 @@ const AddSpecifiedField = ({
       }
       buttonColour={ButtonColour.Transparent}
     >
-      {/* <FieldMenuButton>
-
-      </FieldMenuButton> */}
-      {/* <MenuList> */}
       {unspecifiedProperties.map((prop) => (
         <MenuItem
           label={getFieldDisplayName(prop)}
           key={prop}
           onClick={() => onSpecifyField(prop)}
-        >
-          {/* {getFieldDisplayName(prop)} */}
-        </MenuItem>
+        ></MenuItem>
       ))}
-      {/* </MenuList> */}
     </Menu>
   );
 };
@@ -302,13 +295,6 @@ const ResourceCard = ({
         </ActionsWrapper>
       </Header>
 
-      {maximised ? null : (
-        <motion.div layout="position">
-          {resource.type ?? '(type not selected)'}
-          <br />
-          {resource.name ?? '(no name)'}
-        </motion.div>
-      )}
       {maximised && resourceDefinitionInputs.length ? (
         <motion.div
           key={resource.type}

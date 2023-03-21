@@ -1,15 +1,18 @@
 import { v4 as uuid } from 'uuid';
 import { ResourceResponse } from '@haydenon/gen-server';
-import { MenuPopover } from '@reach/menu-button';
+// import { MenuPopover } from '@reach/menu-button';
 import { PlusCircle } from 'react-feather';
 import styled from 'styled-components';
-import {
-  Menu,
-  MenuItem,
-  MenuItems,
-  MenuButton,
-} from '../../components/Menu/Menu';
+import { Menu, MenuComboList, MenuItem } from '../../components/NewMenu/Menu';
 import { DesiredResource } from './desired-resources/desired-resource';
+import { ButtonColour } from '../../components/Button';
+import {
+  Combobox,
+  ComboboxItem,
+  ComboboxList,
+  useComboboxState,
+} from 'ariakit';
+import { useMemo } from 'react';
 
 interface ResourceChooserProps {
   resources: ResourceResponse[];
@@ -20,25 +23,51 @@ const ResourceChooser = ({
   onResourceSelect,
   resources,
 }: ResourceChooserProps) => {
+  const resourceNames = useMemo(
+    () => resources.map((r) => r.name),
+    [resources]
+  );
+  // const combobox = useComboboxState({
+  //   list: resourceNames,
+  //   open: true,
+  // });
+
   return (
-    <Menu>
-      <>
+    <Menu
+      label={
         <AddButton>
           Add resource <AddIcon size={18 * 1.2} />
         </AddButton>
-        <MenuPopover portal={true}>
-          <MenuItems>
-            {resources.map((res) => (
-              <MenuItem
-                key={res.name}
-                onSelect={() => onResourceSelect(res.name)}
-              >
-                <div>{res.name}</div>
-              </MenuItem>
-            ))}
-          </MenuItems>
-        </MenuPopover>
-      </>
+      }
+      composite={false}
+      // onClose={() => combobox.setValue('')}
+    >
+      <MenuComboList list={resourceNames} onItemSelect={onResourceSelect} />
+      {/* <Combobox
+        state={combobox}
+        autoSelect
+        placeholder="Search..."
+        className="combobox"
+        autoFocus={true}
+      />
+      <ComboboxList state={combobox} className="combobox-list">
+        {combobox.matches.map((value, i) => (
+          <ComboboxItem
+            as={MenuItem}
+            label={value}
+            key={value + i}
+            value={value}
+            focusOnHover
+            setValueOnClick={false}
+            className="menu-item"
+            onClick={() => {
+              onResourceSelect(value);
+            }}
+            clickOnSpace={true}
+            clickOnEnter={true}
+          />
+        ))}
+      </ComboboxList> */}
     </Menu>
   );
 };
@@ -47,11 +76,10 @@ const AddWrapper = styled.div`
   display: flex;
 `;
 
-const AddButton = styled(MenuButton)`
+const AddButton = styled.div`
   flex: 1;
   display: flex;
   justify-content: center;
-  padding: calc(var(--spacing-tiny) * 1.5) 0;
 `;
 
 const AddIcon = styled(PlusCircle)`

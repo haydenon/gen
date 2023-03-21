@@ -27,6 +27,12 @@ import {
   buttonCommonStyles,
   ButtonProps,
 } from '../Button/Button';
+import {
+  Combobox,
+  ComboboxItem,
+  ComboboxList,
+  useComboboxState,
+} from 'ariakit';
 
 type MenuContextProps = {
   getWrapper: () => HTMLElement | null;
@@ -40,6 +46,8 @@ export type MenuProps = HTMLAttributes<HTMLDivElement> & {
   label: ReactNode;
   buttonColour?: ButtonColour;
   disabled?: boolean;
+  composite?: boolean;
+  onClose?: () => void;
 };
 
 type MenuButtonProps = HTMLAttributes<HTMLDivElement> &
@@ -148,6 +156,11 @@ export const Menu = forwardRef<HTMLDivElement, MenuProps>(
           anchor?.getBoundingClientRect() ||
           null
         );
+      },
+      setOpen: (open) => {
+        if (!open && props.onClose) {
+          props.onClose();
+        }
       },
     });
 
@@ -260,6 +273,7 @@ export const Menu = forwardRef<HTMLDivElement, MenuProps>(
               wrapperProps={wrapperProps}
               autoFocusOnShow={autoFocus}
               autoFocusOnHide={autoFocus}
+              composite={props.composite}
             >
               <MenuContext.Provider value={contextValue}>
                 {isSubmenu && (
@@ -294,8 +308,6 @@ export type MenuItemProps = HTMLAttributes<HTMLButtonElement> & {
   label: ReactNode;
   disabled?: boolean;
 };
-
-const ItemWrapper = styled.div``;
 
 export const MenuItem = forwardRef<HTMLButtonElement, MenuItemProps>(
   ({ label, ...props }, ref) => {
@@ -337,3 +349,47 @@ export const MenuGroup = forwardRef<HTMLDivElement, MenuGroupProps>(
     );
   }
 );
+
+const ComboboxInput = styled(Combobox)``;
+
+interface ComboboxProps {
+  list: string[];
+  onItemSelect: (item: string) => void;
+}
+
+export const MenuComboList = ({ list, onItemSelect }: ComboboxProps) => {
+  const combobox = useComboboxState({
+    list,
+    open: true,
+  });
+  return (
+    <>
+      <ComboboxInput
+        state={combobox}
+        autoSelect
+        placeholder="Search..."
+        className="combobox"
+        autoFocus={true}
+      />
+      <ComboboxList state={combobox} className="combobox-list">
+        {combobox.matches.map((value, i) => (
+          <ComboboxItem
+            as={MenuItem}
+            label={value}
+            key={value + i}
+            value={value}
+            focusOnHover
+            setValueOnClick={false}
+            className="menu-item"
+            onClick={() => {
+              onItemSelect(value);
+              combobox.setValue('');
+            }}
+            clickOnSpace={true}
+            clickOnEnter={true}
+          />
+        ))}
+      </ComboboxList>
+    </>
+  );
+};
