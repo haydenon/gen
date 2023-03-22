@@ -153,11 +153,11 @@ const AddSpecifiedField = ({
   );
   return (
     <Menu
-      label={
+      label={() => (
         <ButtonInsert>
           Specify property <AddIcon size={18} />
         </ButtonInsert>
-      }
+      )}
       composite={false}
     >
       <MenuComboList list={displayNames} onItemSelect={onUpdate} />

@@ -30,7 +30,7 @@ export const buttonCommonStyles = css`
   border: none;
   font: inherit;
   color: inherit;
-  padding: var(--spacing-tiny) var(--spacing-base);
+  padding: var(--button-padding, var(--spacing-tiny) var(--spacing-base));
   border-radius: var(--borders-radius);
 
   &:focus,
@@ -42,9 +42,12 @@ export const buttonCommonStyles = css`
 
 export interface ButtonProps {
   colours: ButtonColours;
+  padding: string;
 }
 
-const NormalButton = styled.button<ButtonProps>`
+const BaseButton = styled.button<ButtonProps>`
+  --button-padding: ${(props) => props.padding};
+
   ${buttonCommonStyles}
 
   background-color: ${(props) => props.colours.normal};
@@ -62,11 +65,6 @@ const NormalButton = styled.button<ButtonProps>`
     color: var(--colors-text-disabled);
     background: ${(props) => props.colours.disabled};
   }
-`;
-
-const IconButton = styled(NormalButton)`
-  padding-left: var(--spacing-tiny);
-  padding-right: var(--spacing-tiny);
 `;
 
 export interface ButtonColours {
@@ -127,21 +125,27 @@ const Button = ({
   switch (buttonStyle) {
     case ButtonStyle.Icon:
       return (
-        <IconButton colours={colours} className={className} onClick={click}>
+        <BaseButton
+          colours={colours}
+          padding={'var(--spacing-tiny)'}
+          className={className}
+          onClick={click}
+        >
           {children}
-        </IconButton>
+        </BaseButton>
       );
     case ButtonStyle.Normal:
     default:
       return (
-        <NormalButton
+        <BaseButton
           colours={colours}
+          padding={'var(--spacing-tiny) var(--spacing-base)'}
           className={className}
           disabled={disabled}
           onClick={click}
         >
           {children}
-        </NormalButton>
+        </BaseButton>
       );
   }
 };

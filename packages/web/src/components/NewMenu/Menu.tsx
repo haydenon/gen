@@ -13,6 +13,7 @@ import {
   MenuGroup as BaseMenuGroup,
   MenuItem as BaseMenuItem,
   MenuSeparator as BaseMenuSeparator,
+  MenuDescription as BaseMenuDescription,
   MenuButton,
   MenuButtonArrow,
   MenuGroupLabel,
@@ -26,6 +27,7 @@ import {
   buttonColours,
   buttonCommonStyles,
   ButtonProps,
+  ButtonStyle,
 } from '../Button/Button';
 import {
   Combobox,
@@ -43,9 +45,12 @@ type MenuContextProps = {
 
 const MenuContext = createContext<MenuContextProps | null>(null);
 
+export const MenuDescription = BaseMenuDescription;
+
 export type MenuProps = HTMLAttributes<HTMLDivElement> & {
-  label: ReactNode;
+  label: (isSubmenu: boolean) => ReactNode;
   buttonColour?: ButtonColour;
+  buttonStyle?: ButtonStyle;
   disabled?: boolean;
   composite?: boolean;
 };
@@ -58,6 +63,7 @@ const MenuButtonWrapper = styled.span<ButtonProps>`
   --button-colors-hover: ${(props) => props.colours.hover};
   --button-colors-focused: ${(props) => props.colours.focused};
   --button-colors-disabled: ${(props) => props.colours.disabled};
+  --button-padding: ${(props) => props.padding};
 `;
 
 const CustomMenuButton = styled(MenuButton)`
@@ -83,7 +89,7 @@ const CustomMenuButton = styled(MenuButton)`
 const CustomMenu = styled(BaseMenu)`
   z-index: 50;
   display: flex;
-  /* height: min(200px, var(--popover-available-height)); */
+  height: min(320px, var(--popover-available-height));
   /* width: ; */
   scroll-snap-align: start;
   scroll-snap-stop: always;
@@ -136,6 +142,26 @@ const MenuWrapper = styled.div`
     &:active {
       background: var(--colors-button-transparent-active);
     }
+  }
+`;
+
+const SubmenuHeader = styled.div`
+  display: flex;
+  min-width: 200px;
+  align-items: center;
+`;
+
+const SubmenuHeading = styled(MenuHeading)`
+  font-size: var(--typography-size-paragraph);
+  padding: 0;
+  line-height: 1.4;
+`;
+
+const BackMenuItem = styled(BaseMenuItem)`
+  &.menu-item {
+    min-width: unset;
+    padding: var(--spacing-tiny);
+    margin-right: var(--spacing-tiny);
   }
 `;
 
@@ -219,11 +245,15 @@ export const Menu = forwardRef<HTMLDivElement, MenuProps>(
     }, [menuOpen, menuStop]);
 
     const colours = buttonColours[props.buttonColour ?? ButtonColour.Normal];
+    const padding =
+      props.buttonStyle === ButtonStyle.Icon
+        ? 'var(--spacing-tiny)'
+        : 'var(--spacing-tiny) var(--spacing-base)';
 
     const renderMenuButton = (menuButtonProps: MenuButtonProps) => (
-      <MenuButtonWrapper colours={colours}>
+      <MenuButtonWrapper colours={colours} padding={padding}>
         <CustomMenuButton state={menu} showOnHover={false} {...menuButtonProps}>
-          <span className="label">{label}</span>
+          <span className="label">{label(false)}</span>
         </CustomMenuButton>
       </MenuButtonWrapper>
     );
@@ -273,9 +303,9 @@ export const Menu = forwardRef<HTMLDivElement, MenuProps>(
               <MenuContext.Provider value={contextValue}>
                 {isSubmenu && (
                   <>
-                    <div className="header">
-                      <BaseMenuItem
-                        as="button"
+                    <SubmenuHeader>
+                      <BackMenuItem
+                        // as="button"
                         hideOnClick={false}
                         focusOnHover={false}
                         onClick={menu.hide}
@@ -283,9 +313,9 @@ export const Menu = forwardRef<HTMLDivElement, MenuProps>(
                         aria-label="Back to parent menu"
                       >
                         <MenuButtonArrow placement="left" />
-                      </BaseMenuItem>
-                      <MenuHeading className="heading">{label}</MenuHeading>
-                    </div>
+                      </BackMenuItem>
+                      <SubmenuHeading>{label(true)}</SubmenuHeading>
+                    </SubmenuHeader>
                     <MenuSeparator />
                   </>
                 )}

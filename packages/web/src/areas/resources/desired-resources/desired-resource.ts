@@ -1,6 +1,6 @@
 export interface DesiredResource {
   id: string;
-  type?: string;
+  type: string;
   name?: string;
   fieldData: { [property: string]: any };
 }

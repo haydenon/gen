@@ -14,7 +14,7 @@ import styled from 'styled-components';
 import Button, { ButtonColour, ButtonStyle } from '../../../components/Button';
 import CodeText from '../../../components/CodeText';
 import { InputState, ReadOnlyInput } from '../../../components/Input/Input';
-import { Menu, MenuButton, MenuItem, MenuList } from '../../../components/Menu';
+import { Menu, MenuItem } from '../../../components/NewMenu/Menu';
 import { menuItemStyles } from '../../../components/Menu/Menu';
 import { mapPropTypeRespToExprType } from '../../../utilities/property-type-expr-type.mappers';
 import { useDesiredResources } from '../desired-resources/desired-resource.hook';
@@ -38,26 +38,6 @@ interface Props extends BaseInputProps {
   ) => void;
 }
 
-const LinkButton = styled(MenuButton)`
-  padding-left: var(--spacing-tiny);
-  padding-right: var(--spacing-tiny);
-  background: var(--colors-contentBackground-light);
-
-  &:hover {
-    background: var(--colors-contentBackground-light-focusable);
-  }
-
-  &:active {
-    background: var(--colors-contentBackground-light-focused);
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    color: var(--colors-text-disabled);
-    background: var(--colors-contentBackground-light-disabled);
-  }
-`;
-
 const ResourceItem = styled.div`
   ${menuItemStyles}
 
@@ -67,6 +47,7 @@ const ResourceItem = styled.div`
 
 const SmallText = styled.span`
   font-size: var(--typography-size-small);
+  font-weight: normal;
 `;
 
 const NoItems = styled(SmallText)`
@@ -127,6 +108,8 @@ const ChosenResource = styled.div`
   display: flex;
   align-items: flex-start;
   flex-direction: column;
+  font-weight: normal;
+  padding-bottom: var(--spacing-tiny);
 `;
 
 const FieldPickerControls = styled.div`
@@ -202,14 +185,14 @@ const FieldChooser = ({
         </AssignableToText>
       )}
 
-      {validFields.map((key) => (
+      {/* {validFields.map((key) => (
         <MenuItem key={key} onSelect={() => onFieldSelect(key)}>
           <div>{getFieldDisplayName(key)}</div>
           <SmallText>
             <CodeText>{getTypeDisplay(exprTypes[key])}</CodeText>
           </SmallText>
         </MenuItem>
-      ))}
+      ))} */}
     </>
   );
 };
@@ -220,6 +203,10 @@ interface ChooserProps {
   onFieldSelect: (desiredResourceId: string, field: string) => void;
 }
 
+const CustomMenu = styled(Menu)`
+  margin-right: -8px;
+`;
+
 const LinkValueChooser = ({
   currentResourceId,
   fieldType,
@@ -227,35 +214,125 @@ const LinkValueChooser = ({
 }: ChooserProps) => {
   const [resource, setResource] = useState<string | null>(null);
   const { desiredResources } = useDesiredResources();
+  const { getResource } = useResources();
   const resources = desiredResources.value;
   if (!resources) {
     return null;
   }
 
-  const selectedResource = resource && resources.find((r) => r.id === resource);
+  // const selectedResource = resource && resources.find((r) => r.id === resource);
+  const otherResources = resources.filter(
+    (r) => r.id !== currentResourceId && r.type
+  );
+  const namedResources = otherResources.filter((r) => r.name);
+  const unnamedResourceCount = otherResources.length - namedResources.length;
+
+  const resourceFields = otherResources
+    .map((r) => r.type)
+    .reduce((acc, type) => {
+      const resourceType = getResource(type);
+      if (!resourceType || type in acc) {
+        return acc;
+      }
+
+      const fields = Object.keys(resourceType.outputs);
+      const fieldExprType = mapPropTypeRespToExprType(fieldType);
+      const exprTypes = fields.reduce((acc, field) => {
+        acc[field] = mapPropTypeRespToExprType(
+          resourceType.outputs[field].type
+        );
+        return acc;
+      }, {} as { [field: string]: ExprType });
+      const validFields = fields.filter((field) =>
+        containsType(exprTypes[field], fieldExprType)
+      );
+      const typeDisplay = getTypeDisplay(fieldExprType);
+
+      acc[type] = {
+        typeDisplay,
+        validFields,
+        exprTypes,
+      };
+      return acc;
+    }, {} as { [type: string]: { typeDisplay: string; validFields: string[]; exprTypes: { [field: string]: ExprType } } });
 
   return (
-    <Menu>
-      <LinkButton>
-        <Link size={18} />
-      </LinkButton>
-      <MenuList>
-        {!selectedResource ? (
-          <ResourceChooser
-            currentResourceId={currentResourceId}
-            resources={resources}
-            onResourceSelect={setResource}
-          />
-        ) : (
-          <FieldChooser
-            fieldType={fieldType}
-            selectedResource={selectedResource}
-            onFieldSelect={(field) => onFieldSelect(resource, field)}
-            onResourceDeselect={() => setResource(null)}
-          />
-        )}
-      </MenuList>
-    </Menu>
+    // <Menu>
+    //   <LinkButton>
+    //     <Link size={18} />
+    //   </LinkButton>
+    //   <MenuList>
+    //     {!selectedResource ? (
+    //       <ResourceChooser
+    //         currentResourceId={currentResourceId}
+    //         resources={resources}
+    //         onResourceSelect={setResource}
+    //       />
+    //     ) : (
+    //       <FieldChooser
+    //         fieldType={fieldType}
+    //         selectedResource={selectedResource}
+    //         onFieldSelect={(field) => onFieldSelect(resource, field)}
+    //         onResourceDeselect={() => setResource(null)}
+    //       />
+    //     )}
+    //   </MenuList>
+    // </Menu>
+    <CustomMenu buttonStyle={ButtonStyle.Icon} label={() => <Link size={18} />}>
+      {namedResources.length === 0 ? (
+        <NoItems>No named resources</NoItems>
+      ) : null}
+      {namedResources.map((r) => (
+        <Menu
+          label={(submenu) =>
+            submenu ? (
+              <ChosenResource>
+                <span>{r.name}</span>
+                <SmallText>{r.type}</SmallText>
+              </ChosenResource>
+            ) : (
+              r.name
+            )
+          }
+          key={'resource-' + r.id}
+          role="menuitem"
+        >
+          {resourceFields[r.type].validFields.length === 0 ? (
+            <AssignableToText>
+              Nothing assignable to{' '}
+              <CodeText>{resourceFields[r.type].typeDisplay}</CodeText>
+            </AssignableToText>
+          ) : (
+            <AssignableToText>
+              Assignable to{' '}
+              <CodeText>{resourceFields[r.type].typeDisplay}</CodeText>
+            </AssignableToText>
+          )}
+          {resourceFields[r.type].validFields.map((key) => (
+            <MenuItem
+              label={
+                <>
+                  <div>{getFieldDisplayName(key)}</div>
+                  <SmallText>
+                    <CodeText>
+                      {getTypeDisplay(resourceFields[r.type].exprTypes[key])}
+                    </CodeText>
+                  </SmallText>
+                </>
+              }
+              key={key}
+              onClick={() => onFieldSelect(r.id, key)}
+            ></MenuItem>
+          ))}
+        </Menu>
+      ))}
+      {unnamedResourceCount > 0 ? (
+        <OtherResources>
+          {unnamedResourceCount} unnamed resource
+          {unnamedResourceCount > 1 ? 's' : ''}
+        </OtherResources>
+      ) : null}
+    </CustomMenu>
   );
 };
 
