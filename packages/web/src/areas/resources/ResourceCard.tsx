@@ -16,11 +16,11 @@ import { useResources } from './resource.hook';
 import ResourceField from './fields/ResourceField';
 import { PropertyDefinitionResponse } from '@haydenon/gen-server';
 import { getFieldDisplayName } from './fields/field.utils';
-import { Menu } from '../../components/NewMenu';
+import { Menu } from '../../components/Menu';
 import { generateDefaultValue } from '../../utilities/default-value.generator';
 import { InputState, ReadOnlyInput } from '../../components/Input/Input';
 import { useDesiredResources } from './desired-resources/desired-resource.hook';
-import { MenuComboList } from '../../components/NewMenu/Menu';
+import { MenuComboList } from '../../components/Menu/Menu';
 
 interface Props {
   resource: DesiredResource;

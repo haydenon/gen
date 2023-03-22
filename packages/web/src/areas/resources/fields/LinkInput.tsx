@@ -14,7 +14,7 @@ import styled from 'styled-components';
 import Button, { ButtonStyle } from '../../../components/Button';
 import CodeText from '../../../components/CodeText';
 import { InputState, ReadOnlyInput } from '../../../components/Input/Input';
-import { Menu, MenuItem } from '../../../components/NewMenu/Menu';
+import { Menu, MenuItem } from '../../../components/Menu/Menu';
 import { mapPropTypeRespToExprType } from '../../../utilities/property-type-expr-type.mappers';
 import { useDesiredResources } from '../desired-resources/desired-resource.hook';
 import { useResources } from '../resource.hook';

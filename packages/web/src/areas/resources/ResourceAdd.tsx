@@ -1,9 +1,8 @@
 import { v4 as uuid } from 'uuid';
 import { ResourceResponse } from '@haydenon/gen-server';
-// import { MenuPopover } from '@reach/menu-button';
 import { PlusCircle } from 'react-feather';
 import styled from 'styled-components';
-import { Menu, MenuComboList } from '../../components/NewMenu/Menu';
+import { Menu, MenuComboList } from '../../components/Menu/Menu';
 import { DesiredResource } from './desired-resources/desired-resource';
 import { useMemo } from 'react';
 
