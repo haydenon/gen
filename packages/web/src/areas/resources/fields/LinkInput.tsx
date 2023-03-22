@@ -8,21 +8,17 @@ import {
   Variable,
 } from '@haydenon/gen-core';
 import { LinkTypeResponse, PropertyTypeResponse } from '@haydenon/gen-server';
-import { useMemo, useState } from 'react';
-import { ArrowRight, ChevronLeft, Edit, Link } from 'react-feather';
+import { useMemo } from 'react';
+import { ArrowRight, Edit, Link } from 'react-feather';
 import styled from 'styled-components';
-import Button, { ButtonColour, ButtonStyle } from '../../../components/Button';
+import Button, { ButtonStyle } from '../../../components/Button';
 import CodeText from '../../../components/CodeText';
 import { InputState, ReadOnlyInput } from '../../../components/Input/Input';
 import { Menu, MenuItem } from '../../../components/NewMenu/Menu';
-import { menuItemStyles } from '../../../components/Menu/Menu';
 import { mapPropTypeRespToExprType } from '../../../utilities/property-type-expr-type.mappers';
 import { useDesiredResources } from '../desired-resources/desired-resource.hook';
 import { useResources } from '../resource.hook';
-import {
-  DesiredResource,
-  DesiredStateFormError,
-} from '../desired-resources/desired-resource';
+import { DesiredStateFormError } from '../desired-resources/desired-resource';
 import { FormRuntimeValue } from '../runtime-value';
 import { getFieldDisplayName } from './field.utils';
 
@@ -37,13 +33,6 @@ interface Props extends BaseInputProps {
     value: FormRuntimeValue | string | number | undefined | null
   ) => void;
 }
-
-const ResourceItem = styled.div`
-  ${menuItemStyles}
-
-  display: flex;
-  flex-direction: column;
-`;
 
 const SmallText = styled.span`
   font-size: var(--typography-size-small);
@@ -63,47 +52,6 @@ const OtherResources = styled(SmallText)`
   border-top: 1px solid var(--colors-contentBackground-light);
 `;
 
-interface ResourceChooserProps {
-  currentResourceId: string;
-  resources: DesiredResource[];
-  onResourceSelect: (id: string) => void;
-}
-
-const ResourceChooser = ({
-  resources,
-  currentResourceId,
-  onResourceSelect,
-}: ResourceChooserProps) => {
-  const otherResources = resources.filter(
-    (r) => r.id !== currentResourceId && r.type
-  );
-  const namedResources = otherResources.filter((r) => r.name);
-  const unnamedResourceCount = otherResources.length - namedResources.length;
-  return (
-    <>
-      {namedResources.length === 0 ? (
-        <NoItems>No named resources</NoItems>
-      ) : null}
-      {namedResources.map((r) => (
-        <ResourceItem
-          onClick={() => onResourceSelect(r.id)}
-          key={'resource-' + r.id}
-          role="menuitem"
-        >
-          <span>{r.name}</span>
-          <SmallText>{r.type}</SmallText>
-        </ResourceItem>
-      ))}
-      {unnamedResourceCount > 0 ? (
-        <OtherResources>
-          {unnamedResourceCount} unnamed resource
-          {unnamedResourceCount > 1 ? 's' : ''}
-        </OtherResources>
-      ) : null}
-    </>
-  );
-};
-
 const ChosenResource = styled.div`
   display: flex;
   align-items: flex-start;
@@ -112,90 +60,12 @@ const ChosenResource = styled.div`
   padding-bottom: var(--spacing-tiny);
 `;
 
-const FieldPickerControls = styled.div`
-  display: flex;
-  border-bottom: 1px solid var(--colors-contentBackground-light);
-  padding-bottom: var(--spacing-tiny);
-`;
-
-const BackButton = styled(Button)`
-  padding: var(--spacing-large) var(--spacing-large) var(--spacing-large)
-    var(--spacing-tiny);
-  display: flex;
-  gap: var(--spacing-tiny);
-  align-items: center;
-`;
-
 const AssignableToText = styled(SmallText)`
   display: block;
   padding: var(--spacing-small);
 `;
 
-interface FieldChooserProps {
-  fieldType: PropertyTypeResponse;
-  selectedResource: DesiredResource;
-  onFieldSelect: (field: string) => void;
-  onResourceDeselect: () => void;
-}
-
 const getTypeDisplay = (type: ExprType): string => outputExprType(type);
-
-const FieldChooser = ({
-  fieldType,
-  selectedResource,
-  onFieldSelect,
-  onResourceDeselect,
-}: FieldChooserProps) => {
-  const { getResource } = useResources();
-  const resource = getResource(selectedResource.type!);
-  if (!resource) {
-    return null;
-  }
-  const fields = Object.keys(resource.outputs);
-  const fieldExprType = mapPropTypeRespToExprType(fieldType);
-  const exprTypes = fields.reduce((acc, field) => {
-    acc[field] = mapPropTypeRespToExprType(resource.outputs[field].type);
-    return acc;
-  }, {} as { [field: string]: ExprType });
-  const validFields = fields.filter((field) =>
-    containsType(exprTypes[field], fieldExprType)
-  );
-  const typeDisplay = getTypeDisplay(fieldExprType);
-  return (
-    <>
-      <FieldPickerControls>
-        <BackButton
-          colour={ButtonColour.Transparent}
-          onClick={onResourceDeselect}
-        >
-          <ChevronLeft size={18} />
-          <ChosenResource>
-            <span>{selectedResource.name}</span>
-            <SmallText>{selectedResource.type}</SmallText>
-          </ChosenResource>
-        </BackButton>
-      </FieldPickerControls>
-      {validFields.length === 0 ? (
-        <AssignableToText>
-          No properties are assignable to <CodeText>{typeDisplay}</CodeText>
-        </AssignableToText>
-      ) : (
-        <AssignableToText>
-          Properties assignable to <CodeText>{typeDisplay}</CodeText>
-        </AssignableToText>
-      )}
-
-      {/* {validFields.map((key) => (
-        <MenuItem key={key} onSelect={() => onFieldSelect(key)}>
-          <div>{getFieldDisplayName(key)}</div>
-          <SmallText>
-            <CodeText>{getTypeDisplay(exprTypes[key])}</CodeText>
-          </SmallText>
-        </MenuItem>
-      ))} */}
-    </>
-  );
-};
 
 interface ChooserProps {
   currentResourceId: string;
@@ -212,7 +82,6 @@ const LinkValueChooser = ({
   fieldType,
   onFieldSelect,
 }: ChooserProps) => {
-  const [resource, setResource] = useState<string | null>(null);
   const { desiredResources } = useDesiredResources();
   const { getResource } = useResources();
   const resources = desiredResources.value;
