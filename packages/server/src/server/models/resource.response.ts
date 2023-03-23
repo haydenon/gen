@@ -1,6 +1,7 @@
 import { Type } from '@haydenon/gen-core';
 
 export interface ConstraintResponse {
+  validValues?: any[];
   hasValidator: boolean;
   hasGenerator: boolean;
   min?: number;

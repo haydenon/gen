@@ -9,6 +9,7 @@ export class GenerationResult {
 }
 
 export interface BaseConstraint<T> {
+  validValues?: T[];
   isValid?: (value: T) => boolean;
   generateConstrainedValue?: (
     values: PropertyValues<PropertyMap>

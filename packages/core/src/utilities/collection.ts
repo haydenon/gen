@@ -16,7 +16,7 @@ type EnumObject<T> = T extends number | string
 
 export type LookupValues<T> = T[] | { [index: string]: T } | EnumObject<T>;
 
-const getLookupValues = <T>(values: LookupValues<T>): T[] => {
+export const getLookupValues = <T>(values: LookupValues<T>): T[] => {
   if (values instanceof Array) {
     return values;
   }

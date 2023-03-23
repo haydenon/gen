@@ -1,4 +1,4 @@
-import { isOneOf, LookupValues, oneOf } from '../../utilities';
+import { getLookupValues, isOneOf, LookupValues, oneOf } from '../../utilities';
 import { ErasedDesiredState } from '../desired-state';
 import { PropertyMap, OutputValues, ResourceOrGroupItem } from '../resource';
 import { RuntimeValue } from '../runtime-values';
@@ -161,6 +161,39 @@ export type PropertyTypeForValue<T> = null extends T
   ? BooleanType
   : never;
 
+type NonNullableUndefinableTypeForPropertyType<T> = T extends {
+  type: Type.Array;
+  inner: infer Inner;
+}
+  ? TypeForPropertyType<Inner>[]
+  : T extends DateType
+  ? Date
+  : T extends { type: Type.Complex; fields: infer Fields }
+  ? {
+      [K in keyof Fields]: TypeForPropertyType<Fields[K]>;
+    }
+  : T extends StringType
+  ? string
+  : T extends IntType | FloatType
+  ? number
+  : T extends BooleanType
+  ? boolean
+  : never;
+
+type NonNullableTypeForPropertyType<T> = T extends {
+  type: Type.Undefinable;
+  inner: infer Inner;
+}
+  ? NonNullableUndefinableTypeForPropertyType<Inner> | undefined
+  : NonNullableUndefinableTypeForPropertyType<T>;
+
+export type TypeForPropertyType<T> = T extends {
+  type: Type.Nullable;
+  inner: infer Inner;
+}
+  ? NonNullableTypeForPropertyType<Inner> | null
+  : NonNullableTypeForPropertyType<T>;
+
 export type TypeForProperty<T> = T extends PropertyDefinition<infer Type>
   ? Type
   : never;
@@ -188,12 +221,13 @@ export function def<T>(type: PropertyTypeForValue<T>): PropertyDefinition<T> {
 
 export function lookup<Prop extends PropertyType>(
   property: Prop,
-  values: LookupValues<TypeForProperty<Prop>>
+  values: LookupValues<TypeForPropertyType<Prop>>
 ): Prop {
   return {
     ...property,
     constraint: {
-      isValid: (value: TypeForProperty<Prop>) => isOneOf(values, value),
+      validValues: getLookupValues(values),
+      isValid: (value: TypeForPropertyType<Prop>) => isOneOf(values, value),
       generateConstrainedValue: () => oneOf(values),
     },
   };
