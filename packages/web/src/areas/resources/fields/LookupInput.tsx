@@ -10,17 +10,25 @@ interface Props extends BaseInputProps {
   onChange: (value: string) => void;
 }
 
-const LookupInput = ({ validValues, onChange, value }: Props) => {
+const LookupInput = ({
+  validValues,
+  onChange,
+  value,
+  parentActions,
+}: Props) => {
   return (
-    <OffsetWrapper offset={true}>
-      <Select
-        label="Test"
-        value={value.toString()}
-        options={validValues}
-        onChange={onChange}
-        optionRender={(opt) => <CodeText>{opt}</CodeText>}
-      ></Select>
-    </OffsetWrapper>
+    <>
+      <OffsetWrapper offset={true}>
+        <Select
+          label="Test"
+          value={value.toString()}
+          options={validValues}
+          onChange={onChange}
+          optionRender={(opt) => <CodeText>{opt}</CodeText>}
+        ></Select>
+      </OffsetWrapper>
+      {parentActions}
+    </>
   );
 };
 
