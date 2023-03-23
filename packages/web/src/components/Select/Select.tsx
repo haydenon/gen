@@ -70,6 +70,8 @@ const ComboboxList = styled(ComboboxPopover)`
 
 const ComboboxValue = styled(ComboboxItem)`
   ${menuItemStyles}
+
+  min-width: 200px;
 `;
 
 const NoItems = styled.div`
@@ -129,6 +131,7 @@ const Select = ({
     list: values,
     setValue: handleChange,
     defaultValue: value,
+    gutter: 8,
   });
 
   const handleInteraction = useCallback(() => {

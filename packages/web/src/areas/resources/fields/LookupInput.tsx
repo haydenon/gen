@@ -24,7 +24,6 @@ const LookupInput = ({
           value={value.toString()}
           options={validValues}
           onChange={onChange}
-          optionRender={(opt) => <CodeText>{opt}</CodeText>}
         ></Select>
       </OffsetWrapper>
       {parentActions}
