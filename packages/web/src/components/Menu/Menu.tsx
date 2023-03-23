@@ -21,7 +21,7 @@ import {
   useMenuState,
 } from 'ariakit/menu';
 import { flushSync } from 'react-dom';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import {
   ButtonColour,
   buttonColours,
@@ -86,6 +86,31 @@ const CustomMenuButton = styled(MenuButton)`
   }
 `;
 
+export const menuStyles = css`
+  border-radius: var(--borders-radius);
+  background-color: var(--colors-contentBackground);
+  box-shadow: 2px 2px 10px var(--colors-shadow);
+  padding: var(--spacing-tiny) var(--spacing-tiny);
+  border-radius: var(--borders-radius);
+`;
+
+export const menuItemStyles = css`
+  font-size: 1rem;
+
+  background: none;
+  border: none;
+  padding: var(--spacing-tiny) var(--spacing-small);
+  border-radius: var(--borders-radius);
+  &:hover {
+    background: var(--colors-button-transparent-hover);
+    cursor: pointer;
+  }
+
+  &:active {
+    background: var(--colors-button-transparent-active);
+  }
+`;
+
 const CustomMenu = styled(BaseMenu)`
   z-index: 50;
   display: flex;
@@ -107,16 +132,13 @@ const CustomMenu = styled(BaseMenu)`
 
 const MenuWrapper = styled.div`
   & .menu-wrapper {
+    ${menuStyles}
+
     z-index: 50;
     overflow-y: hidden;
     overflow-x: scroll;
     overscroll-behavior: contain;
     scroll-behavior: smooth;
-    border-radius: var(--borders-radius);
-    background-color: var(--colors-contentBackground);
-    box-shadow: 2px 2px 10px var(--colors-shadow);
-    padding: var(--spacing-tiny) var(--spacing-tiny);
-    border-radius: var(--borders-radius);
     scroll-snap-type: x mandatory;
     scroll-snap-stop: always;
     scrollbar-width: none;
@@ -127,21 +149,9 @@ const MenuWrapper = styled.div`
 
   & .menu-item {
     min-width: 200px;
-    font-size: 1rem;
     text-align: start;
 
-    background: none;
-    border: none;
-    padding: var(--spacing-tiny) var(--spacing-small);
-    border-radius: var(--borders-radius);
-    &:hover {
-      background: var(--colors-button-transparent-hover);
-      cursor: pointer;
-    }
-
-    &:active {
-      background: var(--colors-button-transparent-active);
-    }
+    ${menuItemStyles}
   }
 `;
 

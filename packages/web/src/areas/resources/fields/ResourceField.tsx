@@ -20,6 +20,7 @@ import ComplexField from './ComplexField';
 import DateInput from './DateInput';
 import { DesiredStateFormError } from '../desired-resources/desired-resource';
 import { useMemo } from 'react';
+import LookupInput from './LookupInput';
 
 interface TypeProps extends BaseInputProps {
   type: PropertyTypeResponse;
@@ -35,6 +36,17 @@ export const InputForType = ({
   onChange,
   ...baseProps
 }: TypeProps) => {
+  if (type.constraint?.validValues !== undefined) {
+    return (
+      <LookupInput
+        {...baseProps}
+        validValues={type.constraint.validValues}
+        value={value}
+        onChange={onChange}
+      />
+    );
+  }
+
   switch (type.type) {
     case Type.Int:
     case Type.Float:
