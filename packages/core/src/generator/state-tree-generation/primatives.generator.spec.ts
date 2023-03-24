@@ -14,17 +14,35 @@ import { range } from '../../utilities';
 
 describe('Getting values for primative types', () => {
   describe('Strings', () => {
-    test.failing('creates strings with min lengths', () => {
-      runTimes(50, () => {
+    test('creates strings with correct lengths', () => {
+      runTimes(500, () => {
         // Arrange
-        const minLength = faker.datatype.number({ min: 1, max: 200 });
+        const length = faker.datatype.number({ min: 1, max: 5000 });
 
         // Act
-        const value = getValueForPrimativeType(string({ minLength }));
+        const value = getValueForPrimativeType(
+          string({ minLength: length, maxLength: length })
+        );
 
         // Assert
         expect(typeof value).toBe('string');
-        expect(value.length).toBeGreaterThanOrEqual(minLength);
+        expect(value.length).toBe(length);
+      });
+    });
+
+    test('creates short strings', () => {
+      runTimes(20, (i) => {
+        // Arrange
+        const length = faker.datatype.number({ min: i, max: i });
+
+        // Act
+        const value = getValueForPrimativeType(
+          string({ minLength: length, maxLength: length })
+        );
+
+        // Assert
+        expect(typeof value).toBe('string');
+        expect(value.length).toBe(length);
       });
     });
   });

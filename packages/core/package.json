@@ -36,16 +36,25 @@
     "typescript": "^4.8.4"
   },
   "jest": {
+    "preset": "ts-jest",
     "transform": {
-      "^.+\\.tsx?$": "ts-jest"
+      "^.+\\.tsx?$": "ts-jest",
+      "^.+\\.(js|jsx)$": "babel-jest"
     },
     "moduleFileExtensions": [
       "ts",
       "js"
     ],
-    "testRegex": "^.+\\.spec\\.ts$"
+    "testRegex": "^.+\\.spec\\.ts$",
+    "testEnvironment": "node",
+    "transformIgnorePatterns": [
+      "<rootDir>/node_modules/"
+    ]
   },
   "dependencies": {
-    "@faker-js/faker": "^7.5.0"
+    "@babel/preset-env": "^7.20.2",
+    "@faker-js/faker": "^7.5.0",
+    "babel-jest": "^29.5.0",
+    "txtgen": "^3.0.5"
   }
 }
