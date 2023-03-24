@@ -36,7 +36,7 @@ export enum ParentCreationMode {
 const isProxy = Symbol('__isProxy');
 
 export const constrainAll = <T>(value: T[]): T => {
-  if (value && (value as any).__isProxy) {
+  if (value && (value as any)[isProxy]) {
     (value as any).__setPathValue__ = new AllIndexMarker();
     return value as any;
   }

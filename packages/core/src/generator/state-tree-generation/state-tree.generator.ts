@@ -143,6 +143,7 @@ function fillInType(
     const resourceCount = type.resources.length;
     const resourceIndex = getRandomInt(0, resourceCount - 1);
     const parentState = createDesiredState(type.resources[resourceIndex], {});
+
     const link = (getRuntimeResourceValue as any)(parentState, type.outputKey);
     return [link, [{ state: parentState, constraints: parentConstraints }]];
   }
