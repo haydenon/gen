@@ -14702,7 +14702,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
+"prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:
@@ -14929,6 +14929,18 @@ __metadata:
   version: 18.2.0
   resolution: "react-is@npm:18.2.0"
   checksum: e72d0ba81b5922759e4aff17e0252bd29988f9642ed817f56b25a3e217e13eea8a7f2322af99a06edb779da12d5d636e9fda473d620df9a3da0df2a74141d53e
+  languageName: node
+  linkType: hard
+
+"react-json-pretty@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "react-json-pretty@npm:2.2.0"
+  dependencies:
+    prop-types: ^15.6.2
+  peerDependencies:
+    react: ">=15.0"
+    react-dom: ">=15.0"
+  checksum: 9a3a316d46c7333f650cb37b0e71b121405c863ff5007d1bd0f4af0254d89560c49b153ffeedf7c2ffd5ad7d0adcccb7180b7ce23486d2df51bb1f98e543214c
   languageName: node
   linkType: hard
 
@@ -18031,6 +18043,7 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-feather: ^2.0.10
+    react-json-pretty: ^2.2.0
     react-scripts: 5.0.1
     react-switch: ^7.0.0
     react-use-localstorage: ^3.5.3

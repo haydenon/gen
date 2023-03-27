@@ -5,6 +5,7 @@ import FullWidthWrapper from '../../components/FullWidthWrapper';
 import { useDesiredResources } from './desired-resources/desired-resource.hook';
 import ResourceList from './ResourceList';
 import { Loader } from 'react-feather';
+import ResourceCreationOutput from './output/ResourceCreationOutput';
 
 const Wrapper = styled.div``;
 
@@ -135,6 +136,7 @@ const ResourceCreator = () => {
       <FullWidthWrapper>
         <Contents>
           <ResourceList onMaximise={setMaximised} />
+          <ResourceCreationOutput />
         </Contents>
       </FullWidthWrapper>
     </Wrapper>
