@@ -55,6 +55,6 @@
     "@babel/preset-env": "^7.20.2",
     "@faker-js/faker": "^7.5.0",
     "babel-jest": "^29.5.0",
-    "txtgen": "^3.0.5"
+    "txtgen": "git+https://git@github.com/haydenon/txtgen.git#main"
   }
 }

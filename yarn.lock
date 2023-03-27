@@ -1863,7 +1863,7 @@ __metadata:
     prettier: ^2.7.1
     ts-jest: ^29.0.3
     tsdx: ^0.14.1
-    txtgen: ^3.0.5
+    txtgen: "git+https://git@github.com/haydenon/txtgen.git#main"
     typescript: ^4.8.4
   languageName: unknown
   linkType: soft
@@ -17503,10 +17503,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"txtgen@npm:^3.0.5":
+"txtgen@git+https://git@github.com/haydenon/txtgen.git#main":
   version: 3.0.5
-  resolution: "txtgen@npm:3.0.5"
-  checksum: 9fbbcdb3f211f152ebd6377f5360317fc6828caec49e1b95f8f16cd6e4afc25733cd556cf7667e4a67b2636614bad4e6cfe734be752e516f29e783aa07066f76
+  resolution: "txtgen@https://git@github.com/haydenon/txtgen.git#commit=dd482367b051a38d801477fb6389bd390c20be88"
+  checksum: 073a555eabff2615ea307d661edfeda8ed80ff72181b2aed910ac22c5f7d79a07afee6c6d09600ee4bc33f088b94bdf35ac952737513397e7935b0b27e537262
   languageName: node
   linkType: hard
 
