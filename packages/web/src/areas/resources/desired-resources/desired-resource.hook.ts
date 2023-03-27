@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useRecoilState } from 'recoil';
 import {
   createCompleted,
@@ -12,6 +12,7 @@ import { creatingState, desiredResourceState } from './desired-resource.state';
 import { DesiredResource } from './desired-resource';
 import { transformFormValues } from './desired-state.utilities';
 import { useResourceValidation } from './validation.hook';
+import useLocalStorage from 'react-use-localstorage';
 
 export const useDesiredResources = () => {
   const [desiredResources, setResources] = useRecoilState(desiredResourceState);
@@ -20,6 +21,34 @@ export const useDesiredResources = () => {
     useResourceValidation();
 
   const { fetch } = useFetch();
+
+  const [savedResources, setSavedResources] = useLocalStorage(
+    'Editor.DesiredResources',
+    undefined
+  );
+
+  const setDesiredResources = useCallback(
+    (resources: DesiredResource[]) => {
+      setResources(createCompleted(resources));
+      setSavedResources(JSON.stringify(resources));
+    },
+    [setResources, setSavedResources]
+  );
+
+  const desiredResourceStatus = desiredResources.state;
+  useEffect(() => {
+    if (desiredResourceStatus === ItemState.Uninitialised) {
+      let resources: DesiredResource[];
+      try {
+        const parsed = JSON.parse(savedResources);
+        resources =
+          parsed instanceof Array ? (parsed as DesiredResource[]) : [];
+      } catch {
+        resources = [];
+      }
+      setResources(createCompleted(resources));
+    }
+  }, [desiredResourceStatus, savedResources, setResources]);
 
   const getDesiredResource = useCallback(
     (id: string) => {
@@ -47,7 +76,7 @@ export const useDesiredResources = () => {
         resource,
         ...resources.slice(idx + 1),
       ];
-      setResources(createCompleted(updatedResources));
+      setDesiredResources(updatedResources);
 
       if (current.name !== resource.name) {
         validateNames(updatedResources);
@@ -72,7 +101,7 @@ export const useDesiredResources = () => {
         }
       }
     },
-    [desiredResources, setResources, validateNames, validateField]
+    [desiredResources, setDesiredResources, validateNames, validateField]
   );
 
   const deleteResource = useCallback(
@@ -86,14 +115,12 @@ export const useDesiredResources = () => {
 
       validateResourceRemoval(id);
 
-      setResources(
-        createCompleted([
-          ...resources.slice(0, idx),
-          ...resources.slice(idx + 1),
-        ])
-      );
+      setDesiredResources([
+        ...resources.slice(0, idx),
+        ...resources.slice(idx + 1),
+      ]);
     },
-    [desiredResources, setResources, validateResourceRemoval]
+    [desiredResources, setDesiredResources, validateResourceRemoval]
   );
 
   const addResource = useCallback(
@@ -103,9 +130,9 @@ export const useDesiredResources = () => {
       }
 
       const resources = desiredResources.value;
-      setResources(createCompleted([...resources, resource]));
+      setDesiredResources([...resources, resource]);
     },
-    [desiredResources, setResources]
+    [desiredResources, setDesiredResources]
   );
 
   const resourceValues = desiredResources.value;
