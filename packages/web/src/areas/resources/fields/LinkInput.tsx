@@ -147,7 +147,7 @@ const LinkValueChooser = ({
     //     )}
     //   </MenuList>
     // </Menu>
-    <CustomMenu buttonStyle={ButtonStyle.Icon} label={() => <Link size={18} />}>
+    <CustomMenu $buttonStyle={ButtonStyle.Icon} label={() => <Link size={18} />}>
       {namedResources.length === 0 ? (
         <NoItems>No named resources</NoItems>
       ) : null}
@@ -237,7 +237,7 @@ const LinkedRuntimeValueDisplay = ({
   const obj = runtimeValue.expression.obj;
   const indexer = runtimeValue.expression.indexer;
   if (!(obj instanceof Variable && indexer instanceof Literal)) {
-    return null;
+    return null
   }
 
   const resource = resources.find((r) => r.id === obj.name.lexeme);

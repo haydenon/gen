@@ -27,7 +27,7 @@ const ResourceChooser = ({
           Add resource <AddIcon size={18 * 1.2} />
         </AddButton>
       )}
-      composite={false}
+      $composite={false}
     >
       <MenuComboList list={resourceNames} onItemSelect={onResourceSelect} />
     </Menu>

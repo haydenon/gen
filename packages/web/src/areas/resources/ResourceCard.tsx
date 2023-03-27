@@ -158,7 +158,7 @@ const AddSpecifiedField = ({
           Specify property <AddIcon size={18} />
         </ButtonInsert>
       )}
-      composite={false}
+      $composite={false}
     >
       <MenuComboList list={displayNames} onItemSelect={onUpdate} />
     </Menu>

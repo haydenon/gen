@@ -49,10 +49,10 @@ export const MenuDescription = BaseMenuDescription;
 
 export type MenuProps = HTMLAttributes<HTMLDivElement> & {
   label: (isSubmenu: boolean) => ReactNode;
-  buttonColour?: ButtonColour;
-  buttonStyle?: ButtonStyle;
+  $buttonColour?: ButtonColour;
+  $buttonStyle?: ButtonStyle;
   disabled?: boolean;
-  composite?: boolean;
+  $composite?: boolean;
 };
 
 type MenuButtonProps = HTMLAttributes<HTMLDivElement> &
@@ -254,9 +254,9 @@ export const Menu = forwardRef<HTMLDivElement, MenuProps>(
       menuStop();
     }, [menuOpen, menuStop]);
 
-    const colours = buttonColours[props.buttonColour ?? ButtonColour.Normal];
+    const colours = buttonColours[props.$buttonColour ?? ButtonColour.Normal];
     const padding =
-      props.buttonStyle === ButtonStyle.Icon
+      props.$buttonStyle === ButtonStyle.Icon
         ? 'var(--spacing-tiny)'
         : 'var(--spacing-tiny) var(--spacing-base)';
 
@@ -308,7 +308,7 @@ export const Menu = forwardRef<HTMLDivElement, MenuProps>(
               wrapperProps={wrapperProps}
               autoFocusOnShow={autoFocus}
               autoFocusOnHide={autoFocus}
-              composite={props.composite}
+              composite={props.$composite}
             >
               <MenuContext.Provider value={contextValue}>
                 {isSubmenu && (
