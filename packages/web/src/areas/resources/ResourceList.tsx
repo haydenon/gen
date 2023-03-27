@@ -85,6 +85,7 @@ const CloseOverlay = styled.div`
 
 const List = styled.ul`
   padding-left: 0;
+  margin: 0;
 `;
 
 const PlaceholderResource = () => {

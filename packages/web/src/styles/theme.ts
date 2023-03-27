@@ -52,25 +52,32 @@ const lightTheme = css`
   /* Buttons */
   --colors-button-transparent-hover: hsl(0deg 0% 0% / 10%);
   --colors-button-transparent-active: hsl(0deg 0% 0% / 5%);
+
+  /* Code */
+  --code-background: hsl(0deg 0% 94%);
+  --code-main: hsl(240deg 63% 74%);
+  --code-key: hsl(206deg 26% 49%);
+  --code-string: hsl(93deg 75% 36%);
+  --code-value: hsl(8deg 82% 37.62%);
 `;
 
 const darkTheme = css`
   /* Background  */
-  --colors-background: hsl(200deg 15% 10%);
-  --colors-background-focusable: hsl(200deg 15% 18%);
-  --colors-background-focused: hsl(200deg 15% 14%);
-  --colors-shadow: hsl(200deg 15% 7%);
+  --colors-background: hsl(220deg 15% 10%);
+  --colors-background-focusable: hsl(220deg 15% 18%);
+  --colors-background-focused: hsl(220deg 15% 14%);
+  --colors-shadow: hsl(220deg 15% 7%);
 
   /* Content background  */
-  --colors-contentBackground: hsl(200deg 5% 20%);
-  --colors-contentBackground-focusable: hsl(200deg 5% 28%);
-  --colors-contentBackground-focused: hsl(200deg 5% 24%);
-  --colors-contentBackground-dark: hsl(200deg 5% 16%);
+  --colors-contentBackground: hsl(220deg 13% 18%);
+  --colors-contentBackground-focusable: hsl(220deg 13% 26%);
+  --colors-contentBackground-focused: hsl(220deg 13% 22%);
+  --colors-contentBackground-dark: hsl(220deg 13% 14%);
 
-  --colors-contentBackground-light: hsl(200deg 5% 26%);
-  --colors-contentBackground-light-focusable: hsl(200deg 5% 32%);
-  --colors-contentBackground-light-focused: hsl(200deg 5% 29%);
-  --colors-contentBackground-light-disabled: hsl(200deg 5% 60%);
+  --colors-contentBackground-light: hsl(220deg 13% 26%);
+  --colors-contentBackground-light-focusable: hsl(220deg 13% 32%);
+  --colors-contentBackground-light-focused: hsl(220deg 13% 29%);
+  --colors-contentBackground-light-disabled: hsl(220deg 13% 60%);
 
   --colors-contentBackground-checkbox: hsl(202deg 83% 45%);
   --colors-contentBackground-checkbox-focusable: hsl(202deg 83% 52%);
@@ -108,6 +115,13 @@ const darkTheme = css`
   [data-reach-dialog-overlay] {
     background: hsla(0, 100%, 100%, 0.33);
   }
+
+  /* Code */
+  --code-background: var(--colors-contentBackground);
+  --code-main: hsl(218deg 15% 76%);
+  --code-key: hsl(355deg 56% 62%);
+  --code-string: hsl(96deg 32% 59%);
+  --code-value: hsl(29deg 52% 60%);
 `;
 
 export const ThemeStyle = createGlobalStyle`

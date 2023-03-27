@@ -13,6 +13,8 @@ const Contents = styled.div`
   display: grid;
 
   grid-template-columns: 2fr 3fr;
+
+  gap: var(--spacing-extraLarge);
 `;
 
 interface BarProps {
