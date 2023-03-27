@@ -297,22 +297,46 @@ export function complex<T>(
 }
 
 export function nullable<Prop extends PropertyType>(
-  prop: Prop
-): { type: Type.Nullable; inner: Prop } {
-  return { type: Type.Nullable, inner: prop };
+  prop: Prop,
+  constraint?: Constraint<NonNullableTypeForPropertyType<Prop> | null>
+): {
+  type: Type.Nullable;
+  inner: Prop;
+  constraint?: Constraint<NonNullableTypeForPropertyType<Prop> | null>;
+} {
+  return { type: Type.Nullable, inner: prop, constraint };
 }
 
 export function undefinable<Prop extends PropertyType>(
-  prop: Prop
-): { type: Type.Undefinable; inner: Prop } {
-  return { type: Type.Undefinable, inner: prop };
+  prop: Prop,
+  constraint?: Constraint<
+    NonNullableUndefinableTypeForPropertyType<Prop> | undefined
+  >
+): {
+  type: Type.Undefinable;
+  inner: Prop;
+  constraint?: Constraint<
+    NonNullableUndefinableTypeForPropertyType<Prop> | undefined
+  >;
+} {
+  return {
+    type: Type.Undefinable,
+    inner: prop,
+    constraint,
+  };
 }
 
 export function nullOrUndefinable<Prop extends PropertyType>(
-  prop: Prop
+  prop: Prop,
+  constraint?: Constraint<
+    NonNullableUndefinableTypeForPropertyType<Prop> | null | undefined
+  >
 ): {
   type: Type.Nullable;
   inner: { type: Type.Undefinable; inner: Prop };
+  constraint?: Constraint<
+    NonNullableUndefinableTypeForPropertyType<Prop> | null | undefined
+  >;
 } {
-  return nullable(undefinable(prop));
+  return nullable(undefinable(prop), constraint);
 }
