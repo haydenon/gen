@@ -65,6 +65,9 @@ const ComboboxInput = styled(Combobox)`
 `;
 
 const ComboboxList = styled(ComboboxPopover)`
+  overflow-y: auto;
+  z-index: 2;
+
   ${menuStyles}
 `;
 

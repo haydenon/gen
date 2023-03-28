@@ -18,6 +18,7 @@ import {
 import {
   mapDesiredStateToResponse,
   mapResourceInstanceToResponse,
+  StateCreateResponse,
 } from './models/state-responses';
 import { mapResourceToResponse } from './mapping/resource.mapper';
 
@@ -107,10 +108,11 @@ export class GenServer {
       const generator = Generator.create(desired);
       try {
         const { createdState, desiredState } = await generator.generateState();
-        res.send({
+        const response: StateCreateResponse = {
           createdState: createdState.map(mapResourceInstanceToResponse),
           desiredState: desiredState.map(mapDesiredStateToResponse),
-        });
+        };
+        res.send(response);
       } catch (err) {
         const error = err as GenerationResultError;
         res.status(400);

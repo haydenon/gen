@@ -24,15 +24,19 @@ export function createDesiredState<
   if (name) {
     stateName = name;
   } else {
-    if (!anonymousIds[resourceType]) {
-      anonymousIds[resourceType] = 1;
-    }
-
-    stateName = `__${resourceType}${anonymousIds[resourceType]++}`;
+    stateName = getAnonymousName(resourceType);
   }
   return {
     name: stateName,
     resource,
     inputs: inputs as Partial<PropertyValues<Res['inputs']>>,
   };
+}
+
+export function getAnonymousName(resourceType: string): string {
+  if (!anonymousIds[resourceType]) {
+    anonymousIds[resourceType] = 1;
+  }
+
+  return `__${resourceType}${anonymousIds[resourceType]++}`;
 }

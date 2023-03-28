@@ -9,4 +9,6 @@ export type {
   UndefinableTypeResponse,
   ComplexTypeResponse,
   LinkTypeResponse,
+  CreatedStateItem,
+  StateCreateResponse
 } from './models';

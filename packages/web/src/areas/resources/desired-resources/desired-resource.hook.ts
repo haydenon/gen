@@ -1,18 +1,25 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useRecoilState } from 'recoil';
 import {
   createCompleted,
   createErrored,
-  createLoading,
+  createUninitialised,
+  isUninitialisedOrLoading,
   ItemState,
   useFetch,
 } from '../../../data';
 
-import { creatingState, desiredResourceState } from './desired-resource.state';
+import {
+  CreatingState,
+  creatingState,
+  desiredResourceState,
+} from './desired-resource.state';
 import { DesiredResource } from './desired-resource';
 import { transformFormValues } from './desired-state.utilities';
 import { useResourceValidation } from './validation.hook';
 import useLocalStorage from 'react-use-localstorage';
+import { StateCreateResponse } from '@haydenon/gen-server';
+import { getAnonymousName } from '@haydenon/gen-core';
 
 export const useDesiredResources = () => {
   const [desiredResources, setResources] = useRecoilState(desiredResourceState);
@@ -136,7 +143,13 @@ export const useDesiredResources = () => {
   );
 
   const resourceValues = desiredResources.value;
-  const isCreating = createState.state === ItemState.Loading;
+  const isCreating = useMemo(
+    () =>
+      Object.keys(createState).some((id) =>
+        isUninitialisedOrLoading(createState[id])
+      ),
+    [createState]
+  );
 
   const createDesiredState = useCallback(() => {
     if (!resourceValues || isCreating) {
@@ -146,20 +159,40 @@ export const useDesiredResources = () => {
     const stateBody = {
       state: resourceValues.map((r) => ({
         _type: r.type,
-        _name: r.name,
+        _name: r.name ?? getAnonymousName(r.type),
         ...transformFormValues(r.fieldData, {
           desiredResources: resourceValues,
         }),
       })),
     };
-    setCreatingState(createLoading());
 
-    fetch('/v1/state', {
+    setCreatingState(
+      stateBody.state.reduce(
+        (acc, res) => ({ ...acc, [res._name]: createUninitialised() }),
+        {} as CreatingState
+      )
+    );
+
+    fetch<StateCreateResponse>('/v1/state', {
       method: 'POST',
       body: JSON.stringify(stateBody),
     })
-      .then(() => setCreatingState(createCompleted(undefined)))
-      .catch((error) => setCreatingState(createErrored(error)));
+      .then((response) =>
+        setCreatingState(
+          response.createdState.reduce(
+            (acc, res) => ({ ...acc, [res._name]: createCompleted(res) }),
+            {} as CreatingState
+          )
+        )
+      )
+      .catch((error) =>
+        setCreatingState(
+          stateBody.state.reduce(
+            (acc, res) => ({ ...acc, [res._name]: createErrored(error) }),
+            {} as CreatingState
+          )
+        )
+      );
   }, [fetch, resourceValues, isCreating, setCreatingState]);
 
   return {
@@ -170,6 +203,7 @@ export const useDesiredResources = () => {
     addResource,
     createDesiredState,
     isCreating,
+    creatingState: createState,
     formErrors,
   };
 };

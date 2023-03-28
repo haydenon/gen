@@ -1,4 +1,9 @@
-export { Resource, PropertiesBase, ResourceGroup, validateResourceName } from './resource';
+export {
+  Resource,
+  PropertiesBase,
+  ResourceGroup,
+  validateResourceName,
+} from './resource';
 export type {
   PropertyValues,
   ResolvedValues,
@@ -27,7 +32,7 @@ export {
   constrainAll,
   getOptionalLink,
 } from './properties/links';
-export { createDesiredState } from './desired-state';
+export { createDesiredState, getAnonymousName } from './desired-state';
 export type { DesiredState, ErasedDesiredState } from './desired-state';
 export {
   RuntimeValue,

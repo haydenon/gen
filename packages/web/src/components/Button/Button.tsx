@@ -19,7 +19,7 @@ interface Props {
   colour?: ButtonColour;
   children: React.ReactNode | React.ReactNode[];
   disabled?: boolean;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 export const buttonCommonStyles = css`
@@ -116,7 +116,7 @@ const Button = ({
   onClick,
 }: Props) => {
   const click = () => {
-    if (!disabled) {
+    if (!disabled && onClick) {
       onClick();
     }
   };

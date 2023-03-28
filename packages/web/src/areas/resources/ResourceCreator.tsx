@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import Button, { ButtonColour } from '../../components/Button';
 import FullWidthWrapper from '../../components/FullWidthWrapper';
@@ -7,9 +7,14 @@ import ResourceList from './ResourceList';
 import { Loader } from 'react-feather';
 import ResourceCreationOutput from './output/ResourceCreationOutput';
 
-const Wrapper = styled.div``;
+const Wrapper = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+`;
 
 const Contents = styled.div`
+  flex: 1;
   display: grid;
 
   grid-template-columns: 2fr 3fr;
@@ -115,9 +120,22 @@ const Loading = styled(Loader)`
   }
 `;
 
+const ContentWrapper = styled(FullWidthWrapper)`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--spacing-large);
+`;
+
 const ResourceCreator = () => {
-  const { createDesiredState, isCreating } = useDesiredResources();
+  const { desiredResources, createDesiredState, isCreating, creatingState } =
+    useDesiredResources();
   const [maximised, setMaximised] = useState(false);
+
+  const resources = useMemo(
+    () => desiredResources?.value ?? [],
+    [desiredResources]
+  );
 
   return (
     <Wrapper>
@@ -135,12 +153,15 @@ const ResourceCreator = () => {
           </HeaderContents>
         </FullWidthWrapper>
       </ActionHeader>
-      <FullWidthWrapper>
+      <ContentWrapper>
         <Contents>
           <ResourceList onMaximise={setMaximised} />
-          <ResourceCreationOutput />
+          <ResourceCreationOutput
+            resources={resources}
+            creatingState={creatingState}
+          />
         </Contents>
-      </FullWidthWrapper>
+      </ContentWrapper>
     </Wrapper>
   );
 };

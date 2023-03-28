@@ -406,6 +406,8 @@ const ComboboxInput = styled(Combobox)`
 const CustomComboList = styled(ComboboxList)`
   display: flex;
   flex-direction: column;
+
+  overflow-y: auto;
 `;
 
 interface ComboboxProps {

@@ -10,3 +10,5 @@ export type {
   ComplexTypeResponse,
   LinkTypeResponse,
 } from './resource.response';
+
+export type { CreatedStateItem, StateCreateResponse } from './state-responses';

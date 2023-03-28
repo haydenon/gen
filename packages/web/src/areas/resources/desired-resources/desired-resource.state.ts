@@ -1,3 +1,4 @@
+import { CreatedStateItem } from '@haydenon/gen-server';
 import { atom } from 'recoil';
 
 import {
@@ -22,9 +23,13 @@ export const desiredResourceState = atom<Item<DesiredResource[]>>({
   default: createUninitialised(),
 });
 
-export const creatingState = atom<Item<void>>({
+export interface CreatingState {
+  [name: string]: Item<CreatedStateItem>;
+}
+
+export const creatingState = atom<CreatingState>({
   key: getKey(StateKey.Creating),
-  default: createUninitialised(),
+  default: {},
 });
 
 export const formErrorsState = atom<DesiredStateFormError[]>({

@@ -100,3 +100,8 @@ export function mapResourceInstanceToResponse(
     ...removeSpecialFields(instance.outputs),
   };
 }
+
+export interface StateCreateResponse {
+  createdState: CreatedStateItem[];
+  desiredState: DesiredStateItem[];
+}
