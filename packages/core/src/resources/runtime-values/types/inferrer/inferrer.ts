@@ -9,6 +9,7 @@ import {
   Variable,
   Visitor,
   Expr,
+  acceptExpr,
 } from '../../ast/expressions';
 import { outputExpression } from '../../outputer/outputer';
 import {
@@ -225,7 +226,7 @@ class TypeVisitor implements Visitor<ExprType> {
     }
 
     const subType = expr.items.reduce(
-      (acc, item) => unifyExpressions(acc, item.accept(this)),
+      (acc, item) => unifyExpressions(acc, acceptExpr(this, item)),
       unknownType as ExprType
     );
 
@@ -239,7 +240,7 @@ class TypeVisitor implements Visitor<ExprType> {
     return {
       type: Type.Object,
       fields: expr.fields.reduce((acc, [field, fieldValue]) => {
-        acc[field.lexeme] = fieldValue.accept(this);
+        acc[field.lexeme] = acceptExpr(this, fieldValue);
         return acc;
       }, {} as { [field: string]: ExprType }),
     };
@@ -255,7 +256,7 @@ class TypeVisitor implements Visitor<ExprType> {
   }
 
   visitCallExpr(expr: Call): ExprType {
-    const baseType = expr.callee.accept(this);
+    const baseType = acceptExpr(this, expr.callee);
     if ([Type.Any, Type.Unknown].includes(baseType.type)) {
       return baseType;
     }
@@ -264,7 +265,7 @@ class TypeVisitor implements Visitor<ExprType> {
       throw new Error(`Cannot call value '${outputExpression(expr.callee)}'`);
     }
 
-    const parameterTypes = expr.args.map((a) => a.accept(this));
+    const parameterTypes = expr.args.map((a) => acceptExpr(this, a));
 
     // Can't validate non typed functions
     if (!baseType.signatures) {
@@ -287,8 +288,8 @@ class TypeVisitor implements Visitor<ExprType> {
   }
 
   visitGetExpr(expr: GetProp): ExprType {
-    const baseType = expr.obj.accept(this);
-    const indexerType = expr.indexer.accept(this);
+    const baseType = acceptExpr(this, expr.obj);
+    const indexerType = acceptExpr(this, expr.indexer);
 
     if ([Type.Any, Type.Unknown].includes(baseType.type)) {
       return baseType;
@@ -301,7 +302,7 @@ class TypeVisitor implements Visitor<ExprType> {
       unwrappedBase.type === Type.Object &&
       [Type.String, Type.Number].includes(indexerType.type)
     ) {
-      if (!(expr.indexer instanceof Literal)) {
+      if (!Expr.isLiteral(expr.indexer)) {
         throw new Error(`Invalid object field access '${expr}'`);
       }
       const property = expr.indexer.value;
@@ -338,7 +339,7 @@ export function inferType(
 ): ExprType | Error {
   try {
     const inferrer = new TypeVisitor(context);
-    return expression.accept(inferrer);
+    return acceptExpr(inferrer, expression);
   } catch (err) {
     return err as Error;
   }

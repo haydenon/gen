@@ -16,8 +16,9 @@ export {
 export type { ExprType } from './types';
 export { parse } from './ast/parser';
 
-export {
-  Expr,
+export { Expr, acceptExpr } from './ast/expressions';
+export type {
+  Visitor,
   GetProp,
   Variable,
   Call,
@@ -27,7 +28,6 @@ export {
   FormatString,
   Literal,
 } from './ast/expressions';
-export type { Visitor } from './ast/expressions';
 
 export { identifier } from './ast/tokens/token';
 

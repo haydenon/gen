@@ -123,7 +123,7 @@ export class Parser {
           "Expect property name after '.'.",
           TokenType.IDENTIFIER
         );
-        expr = new GetProp(expr, new Literal(name.lexeme));
+        expr = Expr.GetProp(expr, Expr.Literal(name.lexeme));
       } else {
         break;
       }
@@ -140,22 +140,22 @@ export class Parser {
   //     } while (this.match(TokenType.COMMA));
   //   }
 
-  //   return new Call(callee, args);
+  //   return Expr.Call(callee, args);
   // }
 
   private primary(): Expr {
-    // if (this.match(TokenType.FALSE)) return new Literal(false);
-    // if (this.match(TokenType.TRUE)) return new Literal(true);
-    // if (this.match(TokenType.NULL)) return new Literal(null);
+    // if (this.match(TokenType.FALSE)) return Expr.Literal(false);
+    // if (this.match(TokenType.TRUE)) return Expr.Literal(true);
+    // if (this.match(TokenType.NULL)) return Expr.Literal(null);
 
     // if (this.match(TokenType.NUMBER, TokenType.STRING)) {
-    //   return new Literal(this.previous().literal);
+    //   return Expr.Literal(this.previous().literal);
     // }
 
     if (this.match(TokenType.IDENTIFIER)) {
       const token = this.previous();
       this.dependentStateNames.push(token.lexeme);
-      return new Variable(token);
+      return Expr.Variable(token);
     }
 
     // if (this.match(TokenType.LEFT_PAREN)) {
@@ -171,7 +171,7 @@ export class Parser {
     //     this.match(TokenType.COMMA);
     //   }
     //   this.consume("Expect ']' after array.", TokenType.RIGHT_SQUARE);
-    //   return new ArrayConstructor(exprs);
+    //   return Expr.ArrayConstructor(exprs);
     // }
 
     throw this.error(this.peek(), 'Expect expression.');

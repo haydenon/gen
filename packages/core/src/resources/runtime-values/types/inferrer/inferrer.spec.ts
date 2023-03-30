@@ -32,12 +32,12 @@ describe('Inferrer', () => {
     test('infers correct type for literals', () => {
       // Arrange
       const literals: [Literal, ExprType][] = [
-        [new Literal(undefined), undefinedType],
-        [new Literal(null), nullType],
-        [new Literal(true), primative(Type.Boolean)],
-        [new Literal(3), primative(Type.Number)],
-        [new Literal('hello'), primative(Type.String)],
-        [new Literal(new Date(2022, 1, 2)), primative(Type.Date)],
+        [Expr.Literal(undefined), undefinedType],
+        [Expr.Literal(null), nullType],
+        [Expr.Literal(true), primative(Type.Boolean)],
+        [Expr.Literal(3), primative(Type.Number)],
+        [Expr.Literal('hello'), primative(Type.String)],
+        [Expr.Literal(new Date(2022, 1, 2)), primative(Type.Date)],
       ];
 
       for (const [literal, expected] of literals) {
@@ -55,10 +55,10 @@ describe('Inferrer', () => {
       // Arrange
       const varName = 'test';
       const variables: [Variable, ExprType][] = [
-        [new Variable(identifier(varName)), primative(Type.String)],
-        [new Variable(identifier(varName)), array(primative(Type.Boolean))],
+        [Expr.Variable(identifier(varName)), primative(Type.String)],
+        [Expr.Variable(identifier(varName)), array(primative(Type.Boolean))],
         [
-          new Variable(identifier(varName)),
+          Expr.Variable(identifier(varName)),
           complexObject({ test: primative(Type.Boolean) }),
         ],
       ];
@@ -77,7 +77,7 @@ describe('Inferrer', () => {
       const varName = 'nonExistent';
 
       // Act
-      const type = inferType(new Variable(identifier(varName)), {
+      const type = inferType(Expr.Variable(identifier(varName)), {
         test: primative(Type.String),
       });
 
@@ -96,7 +96,7 @@ describe('Inferrer', () => {
 
       // Act
       const type = inferType(
-        new GetProp(new Variable(identifier(objVar)), new Literal(propName)),
+        Expr.GetProp(Expr.Variable(identifier(objVar)), Expr.Literal(propName)),
         { [objVar]: objType }
       );
 
@@ -112,7 +112,7 @@ describe('Inferrer', () => {
 
       // Act
       const type = inferType(
-        new GetProp(new Variable(identifier(objVar)), new Literal(propName)),
+        Expr.GetProp(Expr.Variable(identifier(objVar)), Expr.Literal(propName)),
         { [objVar]: objType }
       );
 
@@ -128,7 +128,7 @@ describe('Inferrer', () => {
 
       // Act
       const type = inferType(
-        new GetProp(new Variable(identifier(objVar)), new Literal(7)),
+        Expr.GetProp(Expr.Variable(identifier(objVar)), Expr.Literal(7)),
         { [objVar]: objType }
       );
 
@@ -144,7 +144,7 @@ describe('Inferrer', () => {
       for (const invalidType of invalidTypes) {
         // Act
         const type = inferType(
-          new GetProp(new Variable(identifier(baseVar)), new Literal(7)),
+          Expr.GetProp(Expr.Variable(identifier(baseVar)), Expr.Literal(7)),
           { [baseVar]: invalidType }
         );
 
@@ -171,7 +171,7 @@ describe('Inferrer', () => {
               returnType: primative(Type.String),
             },
           ]),
-          [new Literal('hello'), new Literal(7), new Literal(true)],
+          [Expr.Literal('hello'), Expr.Literal(7), Expr.Literal(true)],
           primative(Type.String),
         ],
         [
@@ -194,7 +194,7 @@ describe('Inferrer', () => {
               returnType: primative(Type.Date),
             },
           ]),
-          [new Literal(''), new Literal(null)],
+          [Expr.Literal(''), Expr.Literal(null)],
           primative(Type.Date),
         ],
       ];
@@ -202,7 +202,7 @@ describe('Inferrer', () => {
       for (const [funcType, args, expected] of cases) {
         // Act
         const result = inferType(
-          new Call(new Variable(identifier(funcVar)), args),
+          Expr.Call(Expr.Variable(identifier(funcVar)), args),
           { [funcVar]: funcType }
         );
 
@@ -219,7 +219,7 @@ describe('Inferrer', () => {
       for (const callee of anyOrUnknown) {
         // Act
         const result = inferType(
-          new Call(new Variable(identifier(funcVar)), []),
+          Expr.Call(Expr.Variable(identifier(funcVar)), []),
           { [funcVar]: callee }
         );
 
@@ -244,7 +244,7 @@ describe('Inferrer', () => {
       for (const invalidCallee of invalidCallees) {
         // Act
         const result = inferType(
-          new Call(new Variable(identifier(funcVar)), []),
+          Expr.Call(Expr.Variable(identifier(funcVar)), []),
           { [funcVar]: invalidCallee }
         );
 
@@ -278,7 +278,7 @@ describe('Inferrer', () => {
               returnType: array(primative(Type.Boolean)),
             },
           ]),
-          [new Literal('String')],
+          [Expr.Literal('String')],
         ],
         [
           func([
@@ -287,7 +287,7 @@ describe('Inferrer', () => {
               returnType: array(primative(Type.Boolean)),
             },
           ]),
-          [new Literal('String')],
+          [Expr.Literal('String')],
         ],
         [
           func([
@@ -297,9 +297,9 @@ describe('Inferrer', () => {
             },
           ]),
           [
-            new GetProp(
-              new Variable(identifier(objectWithStringOrNullName)),
-              new Literal('field')
+            Expr.GetProp(
+              Expr.Variable(identifier(objectWithStringOrNullName)),
+              Expr.Literal('field')
             ),
           ],
         ],
@@ -308,7 +308,7 @@ describe('Inferrer', () => {
       for (const [funcType, args] of cases) {
         // Act
         const result = inferType(
-          new Call(new Variable(identifier(funcVar)), args),
+          Expr.Call(Expr.Variable(identifier(funcVar)), args),
           {
             [funcVar]: funcType,
             [objectWithStringOrNullName]: objectWithStringOrNullProp,
@@ -326,7 +326,7 @@ describe('Inferrer', () => {
 
       // Act
       const result = inferType(
-        new Call(new Variable(identifier(funcVar)), [new Literal('string')]),
+        Expr.Call(Expr.Variable(identifier(funcVar)), [Expr.Literal('string')]),
         { [funcVar]: func(undefined) }
       );
 
@@ -350,7 +350,10 @@ describe('Inferrer', () => {
       ];
 
       // Act
-      const result = inferType(new FunctionValue(() => '', signatures), {});
+      const result = inferType(
+        Expr.FunctionValue(() => '', signatures),
+        {}
+      );
 
       // Assert
       expect(result).toEqual(func(signatures));
@@ -358,7 +361,10 @@ describe('Inferrer', () => {
 
     test('returns function type without signatures when not provided', () => {
       // Act
-      const result = inferType(new FunctionValue(() => ''), {});
+      const result = inferType(
+        Expr.FunctionValue(() => ''),
+        {}
+      );
 
       // Assert
       expect(result).toEqual(func(undefined));
@@ -369,7 +375,7 @@ describe('Inferrer', () => {
     test('returns function type without signatures when not provided', () => {
       // Arrange
       // Act
-      const result = inferType(new FormatString([], []), {});
+      const result = inferType(Expr.FormatString([], []), {});
 
       // Assert
       expect(result).toEqual(primative(Type.String));
@@ -380,15 +386,15 @@ describe('Inferrer', () => {
     test('returns array of inner expression types', () => {
       // Arrange
       const cases: [Expr[], ExprType][] = [
-        [[new Literal(''), new FormatString([], [])], primative(Type.String)],
-        [[new Literal(1), new Literal(5.6)], primative(Type.Number)],
-        [[new Literal(true), new Literal(false)], primative(Type.Boolean)],
-        [[new Literal(undefined), new Literal(undefined)], undefinedType],
-        [[new Literal(null), new Literal(null)], nullType],
+        [[Expr.Literal(''), Expr.FormatString([], [])], primative(Type.String)],
+        [[Expr.Literal(1), Expr.Literal(5.6)], primative(Type.Number)],
+        [[Expr.Literal(true), Expr.Literal(false)], primative(Type.Boolean)],
+        [[Expr.Literal(undefined), Expr.Literal(undefined)], undefinedType],
+        [[Expr.Literal(null), Expr.Literal(null)], nullType],
         [
           [
-            new ObjectConstructor([[identifier('test'), new Literal(8.1)]]),
-            new ObjectConstructor([[identifier('test'), new Literal(2)]]),
+            Expr.ObjectConstructor([[identifier('test'), Expr.Literal(8.1)]]),
+            Expr.ObjectConstructor([[identifier('test'), Expr.Literal(2)]]),
           ],
           complexObject({ test: primative(Type.Number) }),
         ],
@@ -396,7 +402,7 @@ describe('Inferrer', () => {
 
       for (const [expressions, expected] of cases) {
         // Act
-        const result = inferType(new ArrayConstructor(expressions), {});
+        const result = inferType(Expr.ArrayConstructor(expressions), {});
 
         // Assert
         expect(result).toEqual(array(expected));
@@ -407,22 +413,22 @@ describe('Inferrer', () => {
       // Arrange
       const cases: [Expr[], ExprType][] = [
         [
-          [new Literal(7), new Literal(undefined)],
+          [Expr.Literal(7), Expr.Literal(undefined)],
           createUnion(undefinedType, primative(Type.Number)),
         ],
         [
-          [new Literal(null), new Literal('hello')],
+          [Expr.Literal(null), Expr.Literal('hello')],
           createUnion(nullType, primative(Type.String)),
         ],
         [
-          [new Literal(null), new Literal(undefined)],
+          [Expr.Literal(null), Expr.Literal(undefined)],
           createUnion(undefinedType, nullType),
         ],
         [
           [
-            new Literal(null),
-            new Literal(new Date(2022, 1, 2)),
-            new Literal(undefined),
+            Expr.Literal(null),
+            Expr.Literal(new Date(2022, 1, 2)),
+            Expr.Literal(undefined),
           ],
           createUnion(
             nullType,
@@ -433,7 +439,7 @@ describe('Inferrer', () => {
 
       for (const [expressions, expected] of cases) {
         // Act
-        const result = inferType(new ArrayConstructor(expressions), {});
+        const result = inferType(Expr.ArrayConstructor(expressions), {});
 
         // Assert
         expect(result).toEqual(array(expected));
@@ -443,19 +449,19 @@ describe('Inferrer', () => {
     test('returns error when unifying invalid expression types', () => {
       // Arrange
       const cases: Expr[][] = [
-        [new Literal(7), new Literal('hello')],
-        [new Literal(true), new Literal('hello')],
-        [new Literal(new Date(2022, 1, 1)), new Literal('string')],
-        [new Literal(true), new ArrayConstructor([new Literal(true)])],
+        [Expr.Literal(7), Expr.Literal('hello')],
+        [Expr.Literal(true), Expr.Literal('hello')],
+        [Expr.Literal(new Date(2022, 1, 1)), Expr.Literal('string')],
+        [Expr.Literal(true), Expr.ArrayConstructor([Expr.Literal(true)])],
         [
-          new ObjectConstructor([[identifier('test'), new Literal(9)]]),
-          new Literal(3),
+          Expr.ObjectConstructor([[identifier('test'), Expr.Literal(9)]]),
+          Expr.Literal(3),
         ],
       ];
 
       for (const expressions of cases) {
         // Act
-        const result = inferType(new ArrayConstructor(expressions), {});
+        const result = inferType(Expr.ArrayConstructor(expressions), {});
 
         // Assert
         expect(result).toBeInstanceOf(Error);
@@ -471,19 +477,19 @@ describe('Inferrer', () => {
 
       // Act
       const result = inferType(
-        new ObjectConstructor([
-          [identifier('string'), new Literal('hello')],
-          [identifier('number'), new Literal(1)],
-          [identifier('bool'), new Literal(true)],
-          [identifier('date'), new Literal(new Date(2022, 1, 2))],
-          [identifier('undefined'), new Literal(undefined)],
-          [identifier('null'), new Literal(null)],
-          [identifier('array'), new ArrayConstructor([new Literal(1)])],
+        Expr.ObjectConstructor([
+          [identifier('string'), Expr.Literal('hello')],
+          [identifier('number'), Expr.Literal(1)],
+          [identifier('bool'), Expr.Literal(true)],
+          [identifier('date'), Expr.Literal(new Date(2022, 1, 2))],
+          [identifier('undefined'), Expr.Literal(undefined)],
+          [identifier('null'), Expr.Literal(null)],
+          [identifier('array'), Expr.ArrayConstructor([Expr.Literal(1)])],
           [
             identifier('nestedObject'),
-            new ObjectConstructor([[identifier('number'), new Literal(1)]]),
+            Expr.ObjectConstructor([[identifier('number'), Expr.Literal(1)]]),
           ],
-          [identifier('variable'), new Variable(identifier(varName))],
+          [identifier('variable'), Expr.Variable(identifier(varName))],
         ]),
         { [varName]: varType }
       );

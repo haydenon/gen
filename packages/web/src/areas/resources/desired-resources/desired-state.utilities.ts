@@ -1,16 +1,17 @@
 import {
   identifier,
-  Call,
   Expr,
+  Visitor,
+  outputExpression,
+  acceptExpr,
+  Literal,
+  Variable,
+  ObjectConstructor,
+  ArrayConstructor,
+  Call,
   FormatString,
   FunctionValue,
   GetProp,
-  Literal,
-  Variable,
-  Visitor,
-  ArrayConstructor,
-  ObjectConstructor,
-  outputExpression,
 } from '@haydenon/gen-core';
 import { FormRuntimeValue } from '../runtime-value';
 import { DesiredResource } from './desired-resource';
@@ -74,7 +75,7 @@ function transformRuntimeValue(
   context: TransformationContext
 ): string {
   const visitor = new RuntimeValueVisitor(context);
-  const transformedExpr = value.expression.accept(visitor);
+  const transformedExpr = acceptExpr(visitor, value.expression);
   return outputExpression(transformedExpr);
 }
 
@@ -85,11 +86,13 @@ class RuntimeValueVisitor implements Visitor<Expr> {
     return expr;
   }
   visitArrayConstructorExpr(expr: ArrayConstructor): Expr {
-    return new ArrayConstructor(expr.items.map((exp) => exp.accept(this)));
+    return Expr.ArrayConstructor(
+      expr.items.map((exp) => acceptExpr(this, exp))
+    );
   }
   visitObjectConstructorExpr(expr: ObjectConstructor): Expr {
-    return new ObjectConstructor(
-      expr.fields.map(([tok, exp]) => [tok, exp.accept(this)])
+    return Expr.ObjectConstructor(
+      expr.fields.map(([tok, exp]) => [tok, acceptExpr(this, exp)])
     );
   }
   visitVariableExpr(expr: Variable): Expr {
@@ -102,25 +105,28 @@ class RuntimeValueVisitor implements Visitor<Expr> {
         (r) => r.id === lexeme
       );
       if (resource && resource.name) {
-        return new Variable(identifier(resource.name));
+        return Expr.Variable(identifier(resource.name));
       }
     }
 
     return expr;
   }
   visitCallExpr(expr: Call): Expr {
-    return new Call(
-      expr.callee.accept(this),
-      expr.args.map((exp) => exp.accept(this))
+    return Expr.Call(
+      acceptExpr(this, expr.callee),
+      expr.args.map((exp) => acceptExpr(this, exp))
     );
   }
   visitGetExpr(expr: GetProp): Expr {
-    return new GetProp(expr.obj.accept(this), expr.indexer.accept(this));
+    return Expr.GetProp(
+      acceptExpr(this, expr.obj),
+      acceptExpr(this, expr.indexer)
+    );
   }
   visitFormatString(expr: FormatString): Expr {
-    return new FormatString(
+    return Expr.FormatString(
       expr.strings,
-      expr.expressions.map((exp) => exp.accept(this))
+      expr.expressions.map((exp) => acceptExpr(this, exp))
     );
   }
   visitFunctionExpr(expr: FunctionValue): Expr {

@@ -75,8 +75,8 @@ function replaceStringRuntimeTemplates(
     );
     return new RuntimeValue(
       desired,
-      new FormatString(
-        strs.map((str) => new Literal(str.replace(/\$\$\{/g, '${'))),
+      Expr.FormatString(
+        strs.map((str) => Expr.Literal(str.replace(/\$\$\{/g, '${'))),
         exprs
       )
     );

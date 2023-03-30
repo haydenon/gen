@@ -1,4 +1,4 @@
-import { FunctionValue, Literal, Signature } from '../ast/expressions';
+import { Expr, Signature } from '../ast/expressions';
 import {
   func,
   nullType,
@@ -64,7 +64,7 @@ const dateFunc = (...args: number[]) => {
 };
 
 export const BASE_CONTEXT: Context = {
-  undefined: new Literal(undefined),
-  null: new Literal(null),
-  date: new FunctionValue(dateFunc, dateSignatures),
+  undefined: Expr.Literal(undefined),
+  null: Expr.Literal(null),
+  date: Expr.FunctionValue(dateFunc, dateSignatures),
 };

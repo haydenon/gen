@@ -5,7 +5,7 @@ import {
 } from '@haydenon/gen-core/src/resources/runtime-values/ast/expressions';
 import { replaceRuntimeValueTemplates } from './runtime-value.mapper';
 
-const validParserExpr = new Literal(1);
+const validParserExpr = Expr.Literal(1);
 const validParserRuntimeValue = new RuntimeValue([], validParserExpr);
 let validParser: (value: string) => RuntimeValue<any> | Error;
 
@@ -117,8 +117,8 @@ describe('Mapping expression strings', () => {
 
   test('merges depdendent state requirements when creating a format string', () => {
     // Arrange
-    const firstLiteral = new Literal(1);
-    const secondLiteral = new Literal(2);
+    const firstLiteral = Expr.Literal(1);
+    const secondLiteral = Expr.Literal(2);
     const firstRuntimeValue = new RuntimeValue(['first'], firstLiteral);
     const secondRuntimeValue = new RuntimeValue(['second'], secondLiteral);
     validParser = jest

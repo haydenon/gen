@@ -1,10 +1,4 @@
-import {
-  Call,
-  evaluate,
-  identifier,
-  Literal,
-  Variable,
-} from '@haydenon/gen-core';
+import { evaluate, Expr, identifier } from '@haydenon/gen-core';
 import { BasicTypeResponse } from '@haydenon/gen-server';
 import { useMemo } from 'react';
 import styled from 'styled-components';
@@ -47,9 +41,9 @@ const DateInput = ({ type, value, name, onChange, parentActions }: Props) => {
             onChange(
               new FormRuntimeValue(
                 undefined,
-                new Call(
-                  new Variable(identifier('date')),
-                  args.map((a) => new Literal(a))
+                Expr.Call(
+                  Expr.Variable(identifier('date')),
+                  args.map((a) => Expr.Literal(a))
                 ),
                 []
               )

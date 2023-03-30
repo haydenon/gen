@@ -1,11 +1,9 @@
 import {
   containsType,
+  Expr,
   ExprType,
-  GetProp,
   identifier,
-  Literal,
   outputExprType,
-  Variable,
 } from '@haydenon/gen-core';
 import { LinkTypeResponse, PropertyTypeResponse } from '@haydenon/gen-server';
 import { useMemo } from 'react';
@@ -147,7 +145,10 @@ const LinkValueChooser = ({
     //     )}
     //   </MenuList>
     // </Menu>
-    <CustomMenu $buttonStyle={ButtonStyle.Icon} label={() => <Link size={18} />}>
+    <CustomMenu
+      $buttonStyle={ButtonStyle.Icon}
+      label={() => <Link size={18} />}
+    >
       {namedResources.length === 0 ? (
         <NoItems>No named resources</NoItems>
       ) : null}
@@ -227,7 +228,7 @@ const LinkedRuntimeValueDisplay = ({
     [errors]
   );
   if (
-    !(runtimeValue.expression instanceof GetProp) ||
+    !Expr.isGetProp(runtimeValue.expression) ||
     desiredResources.value === undefined
   ) {
     return null;
@@ -236,8 +237,8 @@ const LinkedRuntimeValueDisplay = ({
   const resources = desiredResources.value;
   const obj = runtimeValue.expression.obj;
   const indexer = runtimeValue.expression.indexer;
-  if (!(obj instanceof Variable && indexer instanceof Literal)) {
-    return null
+  if (!(Expr.isVariable(obj) && Expr.isLiteral(indexer))) {
+    return null;
   }
 
   const resource = resources.find((r) => r.id === obj.name.lexeme);
@@ -268,9 +269,9 @@ const LinkInput = ({
     onChange(
       new FormRuntimeValue(
         undefined,
-        new GetProp(
-          new Variable(identifier(desiredResourceId)),
-          new Literal(fieldName)
+        Expr.GetProp(
+          Expr.Variable(identifier(desiredResourceId)),
+          Expr.Literal(fieldName)
         ),
         [desiredResourceId]
       )

@@ -44,7 +44,7 @@ export function mapValue<T, R>(
   if (isRuntimeValue(value)) {
     return new RuntimeValue<R>(
       value.depdendentStateNames,
-      new Call(new FunctionValue(mapper), [value.expression])
+      Expr.Call(Expr.FunctionValue(mapper), [value.expression])
     );
   }
 
@@ -70,7 +70,7 @@ export function mapValues<T extends any[], R>(
     }) as { [I in keyof T]: T[I] };
     return new RuntimeValue<R>(
       resourceOutputValues,
-      new Call(new FunctionValue(mapper), inputValues)
+      Expr.Call(Expr.FunctionValue(mapper), inputValues)
     );
   }
 
@@ -89,9 +89,9 @@ export function getRuntimeResourceValue<
 ): RuntimeValue<PropertyValueType<Res['outputs'][Key]>> {
   return new RuntimeValue(
     [item.name],
-    new GetProp(
-      new Variable(identifier(item.name)),
-      new Literal(key.toString())
+    Expr.GetProp(
+      Expr.Variable(identifier(item.name)),
+      Expr.Literal(key.toString())
     )
   );
 }

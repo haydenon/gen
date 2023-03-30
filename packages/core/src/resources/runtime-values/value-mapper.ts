@@ -9,11 +9,11 @@ import { identifier } from './ast/tokens/token';
 
 export const getValueExpr = (value: any): Expr => {
   if (value === undefined) {
-    return new Literal(undefined);
+    return Expr.Literal(undefined);
   }
 
   if (value === null) {
-    return new Literal(null);
+    return Expr.Literal(null);
   }
 
   if (value instanceof Date) {
@@ -34,22 +34,22 @@ export const getValueExpr = (value: any): Expr => {
       }
     }
 
-    return new Call(
-      new Variable(identifier('date')),
-      args.map((a) => new Literal(a))
+    return Expr.Call(
+      Expr.Variable(identifier('date')),
+      args.map((a) => Expr.Literal(a))
     );
   }
 
   const validPrimatives = ['boolean', 'number', 'string'];
   if (validPrimatives.includes(typeof value)) {
-    return new Literal(value);
+    return Expr.Literal(value);
   }
 
   if (value instanceof Array) {
-    return new ArrayConstructor(value.map(getValueExpr));
+    return Expr.ArrayConstructor(value.map(getValueExpr));
   }
   if (typeof value === 'object') {
-    return new ArrayConstructor(value.map(getValueExpr));
+    return Expr.ArrayConstructor(value.map(getValueExpr));
   }
 
   throw new Error('Invalid expression');

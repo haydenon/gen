@@ -11,15 +11,15 @@ export class FormRuntimeValue {
 export const WELL_KNOWN_RUNTIME_VALUES = {
   undefined: new FormRuntimeValue(
     undefined,
-    new Variable(identifier('undefined')),
+    Expr.Variable(identifier('undefined')),
     []
   ),
   minDate: new FormRuntimeValue(
     undefined,
-    new Call(new Variable(identifier('date')), [
-      new Literal(1970),
-      new Literal(0),
-      new Literal(1),
+    Expr.Call(Expr.Variable(identifier('date')), [
+      Expr.Literal(1970),
+      Expr.Literal(0),
+      Expr.Literal(1),
     ]),
     []
   ),

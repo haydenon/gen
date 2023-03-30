@@ -10,6 +10,7 @@ import {
   ObjectConstructor,
   Variable,
   Visitor,
+  acceptExpr,
 } from '../ast/expressions';
 import { Context } from '../context';
 import { BASE_CONTEXT } from '../context/base-context';
@@ -22,40 +23,43 @@ class EvalutorVisitor implements Visitor<any> {
   }
 
   visitArrayConstructorExpr(expr: ArrayConstructor): any[] {
-    return expr.items.map((i) => i.accept(this));
+    return expr.items.map((i) => acceptExpr(this, i));
   }
 
   visitObjectConstructorExpr(expr: ObjectConstructor): { [key: string]: any } {
     return expr.fields.reduce((acc, [key, value]) => {
-      acc[key.lexeme] = value.accept(this);
+      acc[key.lexeme] = acceptExpr(this, value);
       return acc;
     }, {} as { [key: string]: any });
   }
 
   visitCallExpr(expr: Call): any {
-    return expr.callee.accept(this)(...expr.args.map((a) => a.accept(this)));
+    return acceptExpr(
+      this,
+      expr.callee
+    )(...expr.args.map((a) => acceptExpr(this, a)));
   }
 
   visitVariableExpr(expr: Variable): any {
     if (expr.name.lexeme in this.context) {
-      return this.context[expr.name.lexeme].accept(this);
+      return acceptExpr(this, this.context[expr.name.lexeme]);
     }
 
     return this.createdState[expr.name.lexeme].createdState;
   }
 
   visitGetExpr(expr: GetProp): any {
-    const indexer = expr.indexer.accept(this);
-    return expr.obj.accept(this)[indexer];
+    const indexer = acceptExpr(this, expr.indexer);
+    return acceptExpr(this, expr.obj)[indexer];
   }
 
   visitFormatString(expr: FormatString) {
-    let string: string = expr.strings[0].accept(this).toString();
+    let string: string = acceptExpr(this, expr.strings[0]).toString();
 
     for (let i = 0; i < expr.expressions.length; i++) {
       string +=
-        expr.expressions[i].accept(this).toString() +
-        expr.strings[i + 1].accept(this).toString();
+        acceptExpr(this, expr.expressions[i]).toString() +
+        acceptExpr(this, expr.strings[i + 1]).toString();
     }
 
     return string;
@@ -68,5 +72,5 @@ class EvalutorVisitor implements Visitor<any> {
 
 export function evaluate<T>(expression: Expr, createdState: CreatedState): T {
   const visitor = new EvalutorVisitor(createdState, BASE_CONTEXT);
-  return expression.accept(visitor);
+  return acceptExpr(visitor, expression);
 }

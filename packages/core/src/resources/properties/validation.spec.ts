@@ -704,7 +704,7 @@ describe('validateInputValue', () => {
         nullable(string()),
         undefinable(string()),
       ];
-      const runtimeValue = new RuntimeValue([], new Literal(1));
+      const runtimeValue = new RuntimeValue([], Expr.Literal(1));
 
       for (const type of cases) {
         // Act
@@ -723,7 +723,7 @@ describe('validateInputValue', () => {
 
     test('returns runtime values in arrays', () => {
       // Arrange
-      const runtimeValue = new RuntimeValue([], new Literal(1));
+      const runtimeValue = new RuntimeValue([], Expr.Literal(1));
 
       // Act
       const result = validateInputValue(
@@ -740,7 +740,7 @@ describe('validateInputValue', () => {
 
     test('returns runtime values in complex objects', () => {
       // Arrange
-      const runtimeValue = new RuntimeValue([], new Literal(1));
+      const runtimeValue = new RuntimeValue([], Expr.Literal(1));
 
       // Act
       const result = validateInputValue(
