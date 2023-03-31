@@ -6,7 +6,7 @@ import {
   PropertyType,
 } from '../resources/properties/properties';
 import { ErasedResourceInstance } from '../resources/instance';
-import { ErasedDesiredState } from '../resources/desired-state';
+import { DesiredState, ErasedDesiredState } from '../resources/desired-state';
 import { fillInDesiredStateTree } from './state-tree-generation/state-tree.generator';
 import {
   ValueAndPropertyVisitor,
@@ -30,9 +30,11 @@ interface StateNode {
 
 const CONCURRENT_CREATIONS = 10;
 
-interface GeneratorOptions {
-  onCreate?: (resource: ErasedResourceInstance) => void;
-  onError?: (error: GenerationError) => void;
+export interface GeneratorOptions {
+  onDesiredStatePlaned?: (desiredResources: ErasedDesiredState[]) => void;
+  onCreateStarting?: (resource: ErasedDesiredState) => void;
+  onCreateFinished?: (resource: ErasedResourceInstance) => void;
+  onErrored?: (error: GenerationError) => void;
 }
 
 const getNode =
@@ -149,6 +151,7 @@ export class Generator {
     private options?: GeneratorOptions
   ) {
     this.desiredState = stateNodes.map((n) => n.state);
+    this.notifyItemsPlanned(this.desiredState);
     this.appendReadyNodesToQueue(stateNodes);
     this.resolve = () => {};
     this.reject = () => {};
@@ -175,6 +178,7 @@ export class Generator {
 
     for (const stateItem of toCreate) {
       this.markCreating(stateItem);
+      this.notifyItemCreateStart(stateItem);
       this.createDesiredState(stateItem)
         .then((instance) => {
           this.notifyItemSuccess(instance);
@@ -253,10 +257,30 @@ export class Generator {
     return runtimeValue.evaluate(createdState);
   };
 
-  private notifyItemSuccess(instance: ErasedResourceInstance) {
-    if (this.options?.onCreate) {
+  private notifyItemsPlanned(stateItems: ErasedDesiredState[]) {
+    if (this.options?.onDesiredStatePlaned) {
       try {
-        this.options.onCreate(instance);
+        this.options.onDesiredStatePlaned(stateItems);
+      } catch {
+        // Prevent consumer errors stopping the generator
+      }
+    }
+  }
+
+  private notifyItemCreateStart(stateItem: ErasedDesiredState) {
+    if (this.options?.onCreateStarting) {
+      try {
+        this.options.onCreateStarting(stateItem);
+      } catch {
+        // Prevent consumer errors stopping the generator
+      }
+    }
+  }
+
+  private notifyItemSuccess(instance: ErasedResourceInstance) {
+    if (this.options?.onCreateFinished) {
+      try {
+        this.options.onCreateFinished(instance);
       } catch {
         // Prevent consumer errors stopping the generator
       }
@@ -264,9 +288,9 @@ export class Generator {
   }
 
   private notifyItemError(error: Error, desired: ErasedDesiredState) {
-    if (this.options?.onError) {
+    if (this.options?.onErrored) {
       try {
-        this.options.onError(new GenerationError(error, desired));
+        this.options.onErrored(new GenerationError(error, desired));
       } catch {
         // Prevent consumer errors stopping the generator
       }

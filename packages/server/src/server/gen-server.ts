@@ -8,6 +8,7 @@ import {
   GenerationResultError,
   Generator,
   ErasedDesiredState,
+  GeneratorOptions,
 } from '@haydenon/gen-core';
 import { isStateRequest, StateRequest } from './models/state-requests';
 import {
@@ -16,11 +17,17 @@ import {
   getMapper,
 } from './mapping/desired-state.mapper';
 import {
+  CreatedStateItem,
+  DesiredStateItem,
   mapDesiredStateToResponse,
   mapResourceInstanceToResponse,
   StateCreateResponse,
 } from './models/state-responses';
 import { mapResourceToResponse } from './mapping/resource.mapper';
+import {
+  CreateServerMessage,
+  CreateStateMessage,
+} from './messages/create-state';
 
 interface ServerOptions {
   port?: number;
@@ -64,7 +71,7 @@ export class GenServer {
     wsServer.on('connection', (socket) => {
       socket.on('message', (message) => {
         this.handleWebSocketMessage(message.toString('utf8'), (value) =>
-          socket.send(value)
+          socket.send(JSON.stringify(value))
         );
       });
     });
@@ -93,18 +100,20 @@ export class GenServer {
       } else {
         const status = resp.errorType === ErrorType.ClientError ? 400 : 500;
         res.status(status);
-        res.send({
-          errors: resp.errors.map((err) => ({ message: err })),
-        });
+        res.send(createErrorResponse(resp.errors));
       }
     });
   }
 
-  private handleWebSocketMessage(body: string, send: (data: string) => void) {
+  private handleWebSocketMessage(body: string, send: (data: any) => void) {
     try {
       const message = JSON.parse(body) as ClientMessage;
       if (!message || !message.type || typeof message.type !== 'string') {
-        send('Error: invalid body');
+        send(
+          createErrorResponse(
+            "Invalid message body. Must be an object with a 'type' field."
+          )
+        );
         return;
       }
 
@@ -114,24 +123,58 @@ export class GenServer {
           break;
       }
     } catch {
-      send('Error: invalid body');
+      send(
+        createErrorResponse(
+          "Invalid message body. Must be an object with a 'type' field."
+        )
+      );
     }
   }
 
   private async handleCreateMessage(
     body: StateRequest,
-    send: (data: string) => void
+    send: (data: CreateServerMessage) => void
   ) {
-    const result = await this.handleStateCreation(body);
+    const options: GeneratorOptions = {
+      onErrored: (error) =>
+        send({
+          type: ServerMessageType.ResourceCreateErrored,
+          desiredState: mapDesiredStateToResponse(error.desired),
+          error: error.message,
+        }),
+      onDesiredStatePlaned: (state) =>
+        send({
+          type: ServerMessageType.StateCreationPlanned,
+          desiredState: state.map(mapDesiredStateToResponse),
+        }),
+      onCreateStarting: (item) =>
+        send({
+          type: ServerMessageType.ResourceCreateStarting,
+          desiredState: mapDesiredStateToResponse(item),
+        }),
+      onCreateFinished: (item) =>
+        send({
+          type: ServerMessageType.ResourceCreateFinished,
+          createdState: mapResourceInstanceToResponse(item),
+        }),
+    };
+    const result = await this.handleStateCreation(body, options);
     if (result.success) {
-      send(JSON.stringify(result.body));
+      send({
+        type: ServerMessageType.StateCreationFinished,
+        result: result.body,
+      });
     } else {
-      send(JSON.stringify(result.errors));
+      send({
+        type: ServerMessageType.StateCreationErrored,
+        errors: result.errors,
+      });
     }
   }
 
   private async handleStateCreation(
-    body: any
+    body: any,
+    options?: GeneratorOptions
   ): Promise<Response<StateCreateResponse>> {
     if (!isStateRequest(body)) {
       return createClientError('Invalid state body.');
@@ -149,7 +192,7 @@ export class GenServer {
 
     const desired = mappedState as ErasedDesiredState[];
 
-    const generator = Generator.create(desired);
+    const generator = Generator.create(desired, options);
     try {
       const { createdState, desiredState } = await generator.generateState();
       const response: StateCreateResponse = {
@@ -167,20 +210,45 @@ export class GenServer {
   }
 }
 
-enum ClientMessageType {
+function createErrorResponse(
+  errorMessages: string | string[] | Error | Error[]
+): {
+  errors: { message: string }[];
+} {
+  const mapError = (error: string | Error) => ({
+    message: typeof error === 'string' ? error : error.message,
+  });
+  const errors =
+    errorMessages instanceof Array
+      ? errorMessages.map(mapError)
+      : [mapError(errorMessages)];
+  return {
+    errors,
+  };
+}
+
+export enum ClientMessageType {
   CreateState = 'CreateState',
 }
 
-interface ClientMessageBase {
+export interface ClientMessageBase {
   type: ClientMessageType;
 }
 
-interface CreateStateMessage extends ClientMessageBase {
-  type: ClientMessageType.CreateState;
-  body: StateRequest;
+type ClientMessage = CreateStateMessage;
+
+export enum ServerMessageType {
+  StateCreationPlanned = 'StatePlanned',
+  ResourceCreateStarting = 'ResourceCreateStarting',
+  ResourceCreateFinished = 'ResourceCreateFinished',
+  ResourceCreateErrored = 'ResourceCreateErrored',
+  StateCreationFinished = 'StateCreationFinished',
+  StateCreationErrored = 'StateCreationErrored',
 }
 
-type ClientMessage = CreateStateMessage;
+export interface ServerMessageBase {
+  type: ServerMessageType;
+}
 
 function createSuccess<T>(body: T): SuccessResponse<T> {
   return { success: true, body };
