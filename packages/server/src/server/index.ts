@@ -10,5 +10,6 @@ export type {
   ComplexTypeResponse,
   LinkTypeResponse,
   CreatedStateItem,
-  StateCreateResponse
+  StateCreateResponse,
 } from './models';
+export { CreateStateClientTypes } from './messages/create-state';

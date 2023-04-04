@@ -17,8 +17,6 @@ import {
   getMapper,
 } from './mapping/desired-state.mapper';
 import {
-  CreatedStateItem,
-  DesiredStateItem,
   mapDesiredStateToResponse,
   mapResourceInstanceToResponse,
   StateCreateResponse,
@@ -26,6 +24,7 @@ import {
 import { mapResourceToResponse } from './mapping/resource.mapper';
 import {
   CreateServerMessage,
+  CreateStateClientTypes,
   CreateStateMessage,
 } from './messages/create-state';
 
@@ -118,7 +117,7 @@ export class GenServer {
       }
 
       switch (message.type) {
-        case ClientMessageType.CreateState:
+        case CreateStateClientTypes.CreateState:
           this.handleCreateMessage(message.body, send);
           break;
       }
@@ -227,9 +226,7 @@ function createErrorResponse(
   };
 }
 
-export enum ClientMessageType {
-  CreateState = 'CreateState',
-}
+export type ClientMessageType = CreateStateClientTypes;
 
 export interface ClientMessageBase {
   type: ClientMessageType;

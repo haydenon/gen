@@ -18,14 +18,20 @@ import { DesiredResource } from './desired-resource';
 import { transformFormValues } from './desired-state.utilities';
 import { useResourceValidation } from './validation.hook';
 import useLocalStorage from 'react-use-localstorage';
-import { StateCreateResponse } from '@haydenon/gen-server';
+import {
+  CreateStateClientTypes,
+  StateCreateResponse,
+} from '@haydenon/gen-server';
 import { getAnonymousName } from '@haydenon/gen-core';
+import { useWebsocket } from '../../../data/ws.hook';
 
 export const useDesiredResources = () => {
   const [desiredResources, setResources] = useRecoilState(desiredResourceState);
   const [createState, setCreatingState] = useRecoilState(creatingState);
   const { validateField, validateNames, validateResourceRemoval, formErrors } =
     useResourceValidation();
+
+  const websocket = useWebsocket('/v1', console.log);
 
   const { fetch } = useFetch();
 
@@ -151,7 +157,7 @@ export const useDesiredResources = () => {
     [createState]
   );
 
-  const createDesiredState = useCallback(() => {
+  const createDesiredState = useCallback(async () => {
     if (!resourceValues || isCreating) {
       return;
     }
@@ -173,6 +179,11 @@ export const useDesiredResources = () => {
       )
     );
 
+    const ws = await websocket;
+    ws.sendMessage({
+      type: 'CreateState',
+      body: stateBody,
+    });
     fetch<StateCreateResponse>('/v1/state', {
       method: 'POST',
       body: JSON.stringify(stateBody),
@@ -193,7 +204,7 @@ export const useDesiredResources = () => {
           )
         )
       );
-  }, [fetch, resourceValues, isCreating, setCreatingState]);
+  }, [fetch, resourceValues, isCreating, setCreatingState, websocket]);
 
   return {
     desiredResources,

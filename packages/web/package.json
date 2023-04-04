@@ -2,7 +2,6 @@
   "name": "web",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:4000",
   "dependencies": {
     "@haydenon/gen-core": "workspace:*",
     "@haydenon/gen-server": "workspace:*",
@@ -17,6 +16,7 @@
     "@types/uuid": "^9.0.0",
     "ariakit": "^2.0.0-next.43",
     "framer-motion": "^7.6.19",
+    "http-proxy-middleware": "^2.0.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-feather": "^2.0.10",

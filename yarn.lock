@@ -9502,7 +9502,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"http-proxy-middleware@npm:^2.0.3":
+"http-proxy-middleware@npm:^2.0.3, http-proxy-middleware@npm:^2.0.6":
   version: 2.0.6
   resolution: "http-proxy-middleware@npm:2.0.6"
   dependencies:
@@ -18040,6 +18040,7 @@ __metadata:
     "@types/uuid": ^9.0.0
     ariakit: ^2.0.0-next.43
     framer-motion: ^7.6.19
+    http-proxy-middleware: ^2.0.6
     react: ^18.2.0
     react-dom: ^18.2.0
     react-feather: ^2.0.10

@@ -1,6 +1,5 @@
 import {
   ClientMessageBase,
-  ClientMessageType,
   ServerMessageBase,
   ServerMessageType,
 } from '../gen-server';
@@ -11,8 +10,12 @@ import {
   StateCreateResponse,
 } from '../models/state-responses';
 
+export enum CreateStateClientTypes {
+  CreateState = 'CreateState',
+}
+
 export interface CreateStateMessage extends ClientMessageBase {
-  type: ClientMessageType.CreateState;
+  type: CreateStateClientTypes.CreateState;
   body: StateRequest;
 }
 
