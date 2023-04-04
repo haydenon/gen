@@ -18,10 +18,7 @@ import { DesiredResource } from './desired-resource';
 import { transformFormValues } from './desired-state.utilities';
 import { useResourceValidation } from './validation.hook';
 import useLocalStorage from 'react-use-localstorage';
-import {
-  CreateStateClientTypes,
-  StateCreateResponse,
-} from '@haydenon/gen-server';
+import { StateCreateResponse } from '@haydenon/gen-server';
 import { getAnonymousName } from '@haydenon/gen-core';
 import { useWebsocket } from '../../../data/ws.hook';
 
@@ -31,7 +28,7 @@ export const useDesiredResources = () => {
   const { validateField, validateNames, validateResourceRemoval, formErrors } =
     useResourceValidation();
 
-  const websocket = useWebsocket('/v1', console.log);
+  const websocket = useWebsocket();
 
   const { fetch } = useFetch();
 
@@ -157,8 +154,21 @@ export const useDesiredResources = () => {
     [createState]
   );
 
+  useEffect(() => {
+    if (websocket.state === ItemState.Completed) {
+      const ws = websocket.value;
+      const handler = console.log;
+      ws.addMessageHandler(handler);
+      return () => ws.removeMessageHandler(handler);
+    }
+  }, [websocket]);
+
   const createDesiredState = useCallback(async () => {
-    if (!resourceValues || isCreating) {
+    if (
+      !resourceValues ||
+      isCreating ||
+      websocket.state !== ItemState.Completed
+    ) {
       return;
     }
 
@@ -179,7 +189,7 @@ export const useDesiredResources = () => {
       )
     );
 
-    const ws = await websocket;
+    const ws = websocket.value;
     ws.sendMessage({
       type: 'CreateState',
       body: stateBody,
