@@ -431,8 +431,7 @@ export class Generator {
 
 export class GenerationError extends Error {
   constructor(public inner: Error, public desired: ErasedDesiredState) {
-    super();
-    this.message = `Failed to create state: ${inner.message}`;
+    super(inner.message);
   }
 }
 

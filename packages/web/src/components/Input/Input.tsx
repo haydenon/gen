@@ -77,7 +77,7 @@ interface InputProps {
 const getStateColor = (inputState: InputState) => {
   switch (inputState) {
     case InputState.Error:
-      return '--colors-text-danger';
+      return '--colors-contentBackground-danger-disabled';
     default:
       return '';
   }

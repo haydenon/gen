@@ -1,9 +1,15 @@
 import { CreatedStateItem } from '@haydenon/gen-server';
 import { useCallback, useMemo } from 'react';
-import { ChevronDown, ChevronUp } from 'react-feather';
+import {
+  AlertCircle,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+} from 'react-feather';
 import JSONPretty from 'react-json-pretty';
 import styled from 'styled-components';
 import Disclosure from '../../../components/Disclosure';
+import Loader from '../../../components/Loader';
 import { createUninitialised, Item, ItemState } from '../../../data';
 import { DesiredResource } from '../desired-resources/desired-resource';
 import { CreatingState } from '../desired-resources/desired-resource.state';
@@ -31,6 +37,8 @@ const Wrapper = styled.ul`
   border-radius: var(--borders-radius);
   margin: 0;
 
+  max-width: 100%;
+
   & pre {
     margin: 0;
   }
@@ -49,6 +57,7 @@ interface ResourceProps {
 const ListItem = styled.li`
   list-style: none;
   display: flex;
+  flex-direction: column;
   gap: var(--spacing-small);
 
   padding: var(--spacing-tiny) 0;
@@ -63,7 +72,61 @@ const ResourceHeader = styled.div`
 `;
 
 const HeaderWrapper = styled.div`
-  padding: var(--spacing-tiny) var(--spacing-base);
+  padding: var(--spacing-tiny);
+`;
+
+const StatusColour = styled.span<{ colour: string }>`
+  color: var(${(props) => props.colour});
+`;
+
+const Icon = ({ state }: { state: ItemState }) => {
+  switch (state) {
+    case ItemState.Completed:
+      return <CheckCircle size={18} />;
+    case ItemState.Loading:
+      return <Loader size={18} />;
+    case ItemState.Errored:
+      return <AlertCircle size={18} />;
+    case ItemState.Uninitialised:
+      return null;
+  }
+};
+
+const colours: { [state: string]: string } = {
+  [ItemState.Completed]: '--colors-contentBackground-success-disabled',
+  [ItemState.Loading]: '--colors-text',
+  [ItemState.Errored]: '--colors-contentBackground-danger-disabled',
+};
+
+const Chevron = styled.span`
+  padding-right: 4px;
+`;
+
+const StatusIcon = ({ state, open }: { state: ItemState; open: boolean }) => {
+  if (state === ItemState.Uninitialised) {
+    return null;
+  }
+
+  const colour = colours[state];
+  return (
+    <>
+      {state === ItemState.Completed ? (
+        <Chevron>
+          {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        </Chevron>
+      ) : null}
+      <StatusColour colour={colour}>
+        <Icon state={state} />
+      </StatusColour>
+    </>
+  );
+};
+
+const ContextMessage = styled.div`
+  color: var(--colors-contentBackground-danger-disabled);
+  font-size: var(--typography-size-small);
+  line-height: 1;
+  padding-bottom: var(--spacing-small);
 `;
 
 const ResourceOutput = ({ creatingState, name }: ResourceProps) => {
@@ -76,39 +139,35 @@ const ResourceOutput = ({ creatingState, name }: ResourceProps) => {
     }
   }, [creatingState]);
 
-  const created = creatingState.state === ItemState.Completed;
+  const createState = creatingState.state;
   const header = useCallback(
     (open: boolean) => (
       <ResourceHeader>
-        {name}{' '}
-        {created ? (
-          open ? (
-            <ChevronUp size={18} />
-          ) : (
-            <ChevronDown size={18} />
-          )
-        ) : null}
+        {name} <StatusIcon state={createState} open={open} />
       </ResourceHeader>
     ),
-    [name, created]
+    [name, createState]
   );
 
   return (
     <ListItem>
-      {created ? (
+      {createState === ItemState.Completed ? (
         <Disclosure label={header}>
           <JSONPretty theme={theme} data={values} />
         </Disclosure>
       ) : (
         <HeaderWrapper>{header(false)}</HeaderWrapper>
       )}
+      {createState === ItemState.Errored ? (
+        <ContextMessage>{creatingState.error.message}</ContextMessage>
+      ) : null}
     </ListItem>
   );
 };
 
 const ResourceCreationOutput = ({ creatingState }: Props) => {
   const resourceNames = useMemo(
-    () => Object.keys(creatingState),
+    () => Object.keys(creatingState.resources),
     [creatingState]
   );
   const stateByResource = useMemo(
@@ -116,7 +175,7 @@ const ResourceCreationOutput = ({ creatingState }: Props) => {
       resourceNames.reduce(
         (acc, name) => ({
           ...acc,
-          [name]: creatingState[name] ?? createUninitialised(),
+          [name]: creatingState.resources[name] ?? createUninitialised(),
         }),
         {} as { [name: string]: Item<CreatedStateItem> }
       ),

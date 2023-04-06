@@ -3,10 +3,10 @@ import { useRecoilState } from 'recoil';
 import {
   createCompleted,
   createErrored,
+  createLoading,
   createUninitialised,
   isUninitialisedOrLoading,
   ItemState,
-  useFetch,
 } from '../../../data';
 
 import {
@@ -18,9 +18,19 @@ import { DesiredResource } from './desired-resource';
 import { transformFormValues } from './desired-state.utilities';
 import { useResourceValidation } from './validation.hook';
 import useLocalStorage from 'react-use-localstorage';
-import { StateCreateResponse } from '@haydenon/gen-server';
+import {
+  CreateServerMessage,
+  CreateStateMessage,
+  CreateStateServerTypes,
+} from '@haydenon/gen-server';
 import { getAnonymousName } from '@haydenon/gen-core';
 import { useWebsocket } from '../../../data/ws.hook';
+
+class ResourceCreationError extends Error {
+  constructor(message: string, public errors: string[]) {
+    super(message);
+  }
+}
 
 export const useDesiredResources = () => {
   const [desiredResources, setResources] = useRecoilState(desiredResourceState);
@@ -29,8 +39,6 @@ export const useDesiredResources = () => {
     useResourceValidation();
 
   const websocket = useWebsocket();
-
-  const { fetch } = useFetch();
 
   const [savedResources, setSavedResources] = useLocalStorage(
     'Editor.DesiredResources',
@@ -147,21 +155,97 @@ export const useDesiredResources = () => {
 
   const resourceValues = desiredResources.value;
   const isCreating = useMemo(
-    () =>
-      Object.keys(createState).some((id) =>
-        isUninitialisedOrLoading(createState[id])
-      ),
+    () => createState.requestState.state === ItemState.Loading,
     [createState]
   );
+
+  type CreateStateTypeValues = `${CreateStateServerTypes}`;
 
   useEffect(() => {
     if (websocket.state === ItemState.Completed) {
       const ws = websocket.value;
-      const handler = console.log;
+      const validMessages: CreateStateTypeValues[] = [
+        'StatePlanned',
+        'ResourceCreateStarting',
+        'ResourceCreateErrored',
+        'ResourceCreateFinished',
+        'StateCreationFinished',
+        'StateCreationErrored',
+      ];
+      const isCreateMessage = (message: any): message is CreateServerMessage =>
+        message && message.type && validMessages.includes(message.type);
+      const handler = (message: any) => {
+        if (!isCreateMessage(message)) {
+          return;
+        }
+
+        switch (message.type) {
+          case 'StatePlanned':
+            setCreatingState({
+              ...createState,
+              resources: message.desiredState.reduce(
+                (acc, res) => ({ ...acc, [res._name]: createUninitialised() }),
+                {} as CreatingState['resources']
+              ),
+            });
+            break;
+          case 'ResourceCreateStarting':
+            setCreatingState({
+              ...createState,
+              resources: {
+                ...createState.resources,
+                [message.desiredState._name]: createLoading(),
+              },
+            });
+            break;
+          case 'ResourceCreateErrored':
+            setCreatingState({
+              ...createState,
+              resources: {
+                ...createState.resources,
+                [message.desiredState._name]: createErrored(
+                  new Error(message.error)
+                ),
+              },
+            });
+            break;
+          case 'ResourceCreateFinished':
+            setCreatingState({
+              ...createState,
+              resources: {
+                ...createState.resources,
+                [message.createdState._name]: createCompleted(
+                  message.createdState
+                ),
+              },
+            });
+            break;
+          case 'StateCreationFinished':
+            setCreatingState({
+              requestState: createCompleted(undefined),
+              resources: message.result.createdState.reduce(
+                (acc, res) => ({ ...acc, [res._name]: createCompleted(res) }),
+                {} as CreatingState['resources']
+              ),
+            });
+            break;
+          case 'StateCreationErrored':
+            setCreatingState({
+              ...createState,
+              requestState: createErrored(
+                new ResourceCreationError(
+                  'Create state request failed',
+                  message.errors
+                )
+              ),
+            });
+            break;
+        }
+      };
       ws.addMessageHandler(handler);
       return () => ws.removeMessageHandler(handler);
     }
-  }, [websocket]);
+  }, [websocket, setCreatingState, createState]);
 
   const createDesiredState = useCallback(async () => {
     if (
@@ -175,46 +259,48 @@ export const useDesiredResources = () => {
     const stateBody = {
       state: resourceValues.map((r) => ({
         _type: r.type,
-        _name: r.name ?? getAnonymousName(r.type),
+        _name: r.name?.trim() ?? getAnonymousName(r.type),
         ...transformFormValues(r.fieldData, {
           desiredResources: resourceValues,
         }),
       })),
     };
 
-    setCreatingState(
-      stateBody.state.reduce(
+    setCreatingState({
+      requestState: createLoading(),
+      resources: stateBody.state.reduce(
         (acc, res) => ({ ...acc, [res._name]: createUninitialised() }),
-        {} as CreatingState
-      )
-    );
+        {} as CreatingState['resources']
+      ),
+    });
 
     const ws = websocket.value;
+    // TODO:
     ws.sendMessage({
       type: 'CreateState',
       body: stateBody,
-    });
-    fetch<StateCreateResponse>('/v1/state', {
-      method: 'POST',
-      body: JSON.stringify(stateBody),
-    })
-      .then((response) =>
-        setCreatingState(
-          response.createdState.reduce(
-            (acc, res) => ({ ...acc, [res._name]: createCompleted(res) }),
-            {} as CreatingState
-          )
-        )
-      )
-      .catch((error) =>
-        setCreatingState(
-          stateBody.state.reduce(
-            (acc, res) => ({ ...acc, [res._name]: createErrored(error) }),
-            {} as CreatingState
-          )
-        )
-      );
-  }, [fetch, resourceValues, isCreating, setCreatingState, websocket]);
+    } as CreateStateMessage);
+    // fetch<StateCreateResponse>('/v1/state', {
+    //   method: 'POST',
+    //   body: JSON.stringify(stateBody),
+    // })
+    //   .then((response) =>
+    //     setCreatingState(
+    //       response.createdState.reduce(
+    //         (acc, res) => ({ ...acc, [res._name]: createCompleted(res) }),
+    //         {} as CreatingState
+    //       )
+    //     )
+    //   )
+    //   .catch((error) =>
+    //     setCreatingState(
+    //       stateBody.state.reduce(
+    //         (acc, res) => ({ ...acc, [res._name]: createErrored(error) }),
+    //         {} as CreatingState
+    //       )
+    //     )
+    //   );
+  }, [resourceValues, isCreating, setCreatingState, websocket]);
 
   return {
     desiredResources,

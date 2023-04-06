@@ -24,12 +24,15 @@ export const desiredResourceState = atom<Item<DesiredResource[]>>({
 });
 
 export interface CreatingState {
-  [name: string]: Item<CreatedStateItem>;
+  resources: {
+    [name: string]: Item<CreatedStateItem>;
+  };
+  requestState: Item<void>;
 }
 
 export const creatingState = atom<CreatingState>({
   key: getKey(StateKey.Creating),
-  default: {},
+  default: { resources: {}, requestState: createUninitialised() },
 });
 
 export const formErrorsState = atom<DesiredStateFormError[]>({

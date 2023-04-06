@@ -18,7 +18,7 @@ export enum StateKey {
 
 const getKey = getKeyGenerator(StateNamespace.Resource);
 
-const wsState = atom<Item<WebSocket>>({
+const wsState = atom<Item<WebSocketClient>>({
   key: getKey(StateKey.WebSocket),
   default: createUninitialised(),
 });
@@ -28,45 +28,60 @@ export const useWebsocket = () => {
 
   useEffect(() => {
     if (websocket.state === ItemState.Uninitialised) {
-      /* eslint-disable no-restricted-globals */
-      const isSecure = location.protocol === 'https';
-      const host = `${location.hostname}${
-        location.port ? ':' + location.port : ''
-      }`;
-      /* eslint-enable no-restricted-globals */
-      const protocol = isSecure ? 'wss' : 'ws';
-      const ws = new WebSocket(`${protocol}://${host}/v1`);
-
       const handlers: ((payload: any) => void)[] = [];
-      setWebsocket(createLoading());
-      ws.addEventListener('open', () => {
-        setWebsocket(
-          createCompleted({
-            sendMessage: (payload) => ws.send(JSON.stringify(payload)),
-            addMessageHandler: (handler) => handlers.push(handler),
-            removeMessageHandler: (handler) => {
-              const idx = handlers.indexOf(handler);
-              if (idx !== -1) {
-                handlers.splice(idx, 1);
-              }
-            },
-          } as WebSocket)
+      const createWebsocket = () => {
+        /* eslint-disable no-restricted-globals */
+        const isSecure = location.protocol === 'https';
+        const host = `${location.hostname}${
+          location.port ? ':' + location.port : ''
+        }`;
+        /* eslint-enable no-restricted-globals */
+        const protocol = isSecure ? 'wss' : 'ws';
+        let ws: WebSocket | undefined = new WebSocket(
+          `${protocol}://${host}/v1`
         );
-      });
 
-      // Listen for messages
-      ws.addEventListener('message', (event) => {
-        for (const handler of handlers) {
-          handler(event.data);
-        }
-      });
+        setWebsocket(createLoading());
+        ws.addEventListener('open', () => {
+          setWebsocket(
+            createCompleted({
+              sendMessage: (payload) => ws && ws.send(JSON.stringify(payload)),
+              addMessageHandler: (handler) => handlers.push(handler),
+              removeMessageHandler: (handler) => {
+                const idx = handlers.indexOf(handler);
+                if (idx !== -1) {
+                  handlers.splice(idx, 1);
+                }
+              },
+            } as WebSocketClient)
+          );
+        });
+
+        // Listen for messages
+        ws.addEventListener('message', (event) => {
+          if (ws) {
+            for (const handler of handlers) {
+              handler(JSON.parse(event.data));
+            }
+          }
+        });
+
+        ws.addEventListener('close', () => {
+          if (ws) {
+            ws = undefined;
+            setTimeout(createWebsocket, 5000);
+          }
+        });
+      };
+
+      createWebsocket();
     }
   }, [websocket, setWebsocket]);
 
   return websocket;
 };
 
-interface WebSocket {
+interface WebSocketClient {
   sendMessage: (payload: any) => void;
   addMessageHandler: <T>(handler: (payload: T) => void) => void;
   removeMessageHandler: <T>(handler: (payload: T) => void) => void;

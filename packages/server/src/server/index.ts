@@ -12,4 +12,9 @@ export type {
   CreatedStateItem,
   StateCreateResponse,
 } from './models';
-export { CreateStateClientTypes } from './messages/create-state';
+export type {
+  CreateStateClientTypes,
+  CreateStateServerTypes,
+  CreateStateMessage,
+  CreateServerMessage,
+} from './messages/create-state';

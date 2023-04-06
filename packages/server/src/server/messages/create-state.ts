@@ -19,29 +19,38 @@ export interface CreateStateMessage extends ClientMessageBase {
   body: StateRequest;
 }
 
+export const enum CreateStateServerTypes {
+  StateCreationPlanned = 'StatePlanned',
+  ResourceCreateStarting = 'ResourceCreateStarting',
+  ResourceCreateFinished = 'ResourceCreateFinished',
+  ResourceCreateErrored = 'ResourceCreateErrored',
+  StateCreationFinished = 'StateCreationFinished',
+  StateCreationErrored = 'StateCreationErrored',
+}
+
 export interface StateCreationPlannedMessage extends ServerMessageBase {
-  type: ServerMessageType.StateCreationPlanned;
+  type: CreateStateServerTypes.StateCreationPlanned;
   desiredState: DesiredStateItem[];
 }
 export interface ResourceCreateStartingMessage extends ServerMessageBase {
-  type: ServerMessageType.ResourceCreateStarting;
+  type: CreateStateServerTypes.ResourceCreateStarting;
   desiredState: DesiredStateItem;
 }
 export interface ResourceCreateFinishedMessage extends ServerMessageBase {
-  type: ServerMessageType.ResourceCreateFinished;
+  type: CreateStateServerTypes.ResourceCreateFinished;
   createdState: CreatedStateItem;
 }
 export interface ResourceCreateErroredMessage extends ServerMessageBase {
-  type: ServerMessageType.ResourceCreateErrored;
+  type: CreateStateServerTypes.ResourceCreateErrored;
   desiredState: DesiredStateItem;
   error: string;
 }
 export interface StateCreationFinishedMessage extends ServerMessageBase {
-  type: ServerMessageType.StateCreationFinished;
+  type: CreateStateServerTypes.StateCreationFinished;
   result: StateCreateResponse;
 }
 export interface StateCreationErroredMessage extends ServerMessageBase {
-  type: ServerMessageType.StateCreationErrored;
+  type: CreateStateServerTypes.StateCreationErrored;
   errors: string[];
 }
 

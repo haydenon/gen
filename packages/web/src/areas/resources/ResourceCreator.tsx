@@ -4,8 +4,8 @@ import Button, { ButtonColour } from '../../components/Button';
 import FullWidthWrapper from '../../components/FullWidthWrapper';
 import { useDesiredResources } from './desired-resources/desired-resource.hook';
 import ResourceList from './ResourceList';
-import { Loader } from 'react-feather';
 import ResourceCreationOutput from './output/ResourceCreationOutput';
+import Loader from '../../components/Loader';
 
 const Wrapper = styled.div`
   flex: 1;
@@ -17,7 +17,7 @@ const Contents = styled.div`
   flex: 1;
   display: grid;
 
-  grid-template-columns: 2fr 3fr;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
 
   gap: var(--spacing-extraLarge);
 `;
@@ -105,21 +105,6 @@ const CreateButton = styled(Button)`
   align-items: center;
 `;
 
-const Loading = styled(Loader)`
-  animation: spin 2s linear infinite;
-
-  width: 1rem;
-  height: 1rem;
-  margin-left: var(--spacing-tiny);
-  margin-right: calc(-1 * var(--spacing-tiny));
-  @keyframes spin {
-    100% {
-      -webkit-transform: rotate(360deg);
-      transform: rotate(360deg);
-    }
-  }
-`;
-
 const ContentWrapper = styled(FullWidthWrapper)`
   flex: 1;
   display: flex;
@@ -148,7 +133,7 @@ const ResourceCreator = () => {
               disabled={isCreating}
             >
               Create
-              {isCreating ? <Loading /> : null}
+              {isCreating ? <Loader /> : null}
             </CreateButton>
           </HeaderContents>
         </FullWidthWrapper>

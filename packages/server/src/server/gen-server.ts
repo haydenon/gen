@@ -26,6 +26,7 @@ import {
   CreateServerMessage,
   CreateStateClientTypes,
   CreateStateMessage,
+  CreateStateServerTypes,
 } from './messages/create-state';
 
 interface ServerOptions {
@@ -137,35 +138,35 @@ export class GenServer {
     const options: GeneratorOptions = {
       onErrored: (error) =>
         send({
-          type: ServerMessageType.ResourceCreateErrored,
+          type: CreateStateServerTypes.ResourceCreateErrored,
           desiredState: mapDesiredStateToResponse(error.desired),
           error: error.message,
         }),
       onDesiredStatePlaned: (state) =>
         send({
-          type: ServerMessageType.StateCreationPlanned,
+          type: CreateStateServerTypes.StateCreationPlanned,
           desiredState: state.map(mapDesiredStateToResponse),
         }),
       onCreateStarting: (item) =>
         send({
-          type: ServerMessageType.ResourceCreateStarting,
+          type: CreateStateServerTypes.ResourceCreateStarting,
           desiredState: mapDesiredStateToResponse(item),
         }),
       onCreateFinished: (item) =>
         send({
-          type: ServerMessageType.ResourceCreateFinished,
+          type: CreateStateServerTypes.ResourceCreateFinished,
           createdState: mapResourceInstanceToResponse(item),
         }),
     };
     const result = await this.handleStateCreation(body, options);
     if (result.success) {
       send({
-        type: ServerMessageType.StateCreationFinished,
+        type: CreateStateServerTypes.StateCreationFinished,
         result: result.body,
       });
     } else {
       send({
-        type: ServerMessageType.StateCreationErrored,
+        type: CreateStateServerTypes.StateCreationErrored,
         errors: result.errors,
       });
     }
@@ -234,14 +235,7 @@ export interface ClientMessageBase {
 
 type ClientMessage = CreateStateMessage;
 
-export enum ServerMessageType {
-  StateCreationPlanned = 'StatePlanned',
-  ResourceCreateStarting = 'ResourceCreateStarting',
-  ResourceCreateFinished = 'ResourceCreateFinished',
-  ResourceCreateErrored = 'ResourceCreateErrored',
-  StateCreationFinished = 'StateCreationFinished',
-  StateCreationErrored = 'StateCreationErrored',
-}
+export type ServerMessageType = CreateStateServerTypes;
 
 export interface ServerMessageBase {
   type: ServerMessageType;
