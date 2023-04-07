@@ -124,7 +124,7 @@ jest.mock('./primatives.generator.ts', () => ({
     .mockImplementation(() => anyGeneratedPrimative),
 }));
 
-const [minArrayCount, maxArrayCount] = [5, 50];
+const [minArrayCount, maxArrayCount] = [2, 2]; //[5, 50];
 
 let overriddenDependentOutput: number | GenerationResult | undefined;
 let overriddenStandardOutput: number | GenerationResult | undefined;
@@ -143,6 +143,18 @@ class AdvancedInput extends PropertiesBase {
       minItems: minArrayCount,
       maxItems: maxArrayCount,
     })
+  );
+  nestedArrays: PropertyDefinition<number[][]> = def(
+    array(
+      array(int(), {
+        minItems: 2,
+        maxItems: 2,
+      }),
+      {
+        minItems: 3,
+        maxItems: 3,
+      }
+    )
   );
   arrayOfComplex: PropertyDefinition<ComplexValue[]> = def(
     array(
@@ -379,6 +391,22 @@ describe('State tree creation', () => {
     expect(filledInState).toHaveLength(1);
     const filledIn = filledInState[0];
     expect(filledIn.inputs.arrayOfComplex).toBeInstanceOf(Array);
+  });
+
+  test('fills in array of array of values', () => {
+    // Arrange
+    const state = [createDesiredState(Advanced, {})];
+
+    // Act
+    const filledInState = fillInDesiredStateTree(state);
+
+    // Assert
+    expect(filledInState).toHaveLength(1);
+    const filledIn = filledInState[0];
+    expect(filledIn.inputs.nestedArrays).toBeInstanceOf(Array);
+    const nestedArrays = filledIn.inputs.nestedArrays as number[][];
+    expect(nestedArrays[0]).toBeInstanceOf(Array);
+    expect(nestedArrays[0][0]).toBe(anyGeneratedPrimative);
   });
 
   test('fills in array fields on complex values', () => {

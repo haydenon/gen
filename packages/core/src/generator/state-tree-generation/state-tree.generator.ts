@@ -94,7 +94,7 @@ function fillInType(
       )
     );
     return [
-      mapped.flatMap(([value]) => value),
+      mapped.map(([value]) => value),
       mapped.flatMap(([, items]) => items),
     ];
   }

@@ -1,7 +1,6 @@
 import { MockBase } from '../../../test';
 import { InputValues } from '../resource';
-import { RuntimeValue } from '../runtime-values';
-import { Literal } from '../runtime-values/ast/expressions';
+import { Expr, RuntimeValue } from '../runtime-values';
 import {
   array,
   bool,

@@ -89,6 +89,49 @@ describe('Generator', () => {
     );
   });
 
+  test('notifies plan for resources', async () => {
+    // Arrange
+    const successState = createDesiredState(MockResource, anyMockInputs);
+    const errorState = createDesiredState(ErrorResource, {});
+    const stallState = createDesiredState(StallResource, {});
+    const desiredState: ErasedDesiredState[] = [
+      successState,
+      errorState,
+      stallState,
+    ];
+    const onDesiredStatePlaned = jest.fn();
+    const generator = Generator.create(desiredState, { onDesiredStatePlaned });
+
+    // Act
+    await generator.generateState().catch(() => undefined);
+
+    // Assert
+    expect(onDesiredStatePlaned).toHaveBeenCalledTimes(1);
+  });
+
+  test('notifies starting for all resources', async () => {
+    // Arrange
+    const successState = createDesiredState(MockResource, anyMockInputs);
+    const errorState = createDesiredState(ErrorResource, {});
+    const stallState = createDesiredState(StallResource, {});
+    const desiredState: ErasedDesiredState[] = [
+      successState,
+      errorState,
+      stallState,
+    ];
+    const onCreateStarting = jest.fn();
+    const generator = Generator.create(desiredState, { onCreateStarting });
+
+    // Act
+    await generator.generateState().catch(() => undefined);
+
+    // Assert
+    expect(onCreateStarting).toHaveBeenCalledTimes(3);
+    expect(onCreateStarting).toHaveBeenCalledWith(successState);
+    expect(onCreateStarting).toHaveBeenCalledWith(errorState);
+    expect(onCreateStarting).toHaveBeenCalledWith(stallState);
+  });
+
   test('notifies successes when resources succeed', async () => {
     // Arrange
     const successState = createDesiredState(MockResource, anyMockInputs);
@@ -97,15 +140,15 @@ describe('Generator', () => {
       createDesiredState(ErrorResource, {}),
       createDesiredState(StallResource, {}),
     ];
-    const onCreate = jest.fn();
-    const generator = Generator.create(desiredState, { onCreate });
+    const onCreateFinished = jest.fn();
+    const generator = Generator.create(desiredState, { onCreateFinished });
 
     // Act
     await generator.generateState().catch(() => undefined);
 
     // Assert
-    expect(onCreate).toHaveBeenCalledTimes(1);
-    expect(onCreate).toHaveBeenCalledWith({
+    expect(onCreateFinished).toHaveBeenCalledTimes(1);
+    expect(onCreateFinished).toHaveBeenCalledWith({
       desiredState: successState,
       outputs: {
         id: expect.any(Number),
@@ -125,15 +168,15 @@ describe('Generator', () => {
       errorState,
       createDesiredState(MockResource, {}),
     ];
-    const onError = jest.fn();
-    const generator = Generator.create(desiredState, { onError });
+    const onErrored = jest.fn();
+    const generator = Generator.create(desiredState, { onErrored });
 
     // Act
     await generator.generateState().catch(() => undefined);
 
     // Assert
-    expect(onError).toHaveBeenCalledTimes(2);
-    expect(onError).toHaveBeenCalledWith(
+    expect(onErrored).toHaveBeenCalledTimes(2);
+    expect(onErrored).toHaveBeenCalledWith(
       new GenerationError(
         new Error(
           `Creating desired state item '${stalledState.name}' of resource 'StallDefinition' timed out`
@@ -141,7 +184,7 @@ describe('Generator', () => {
         stalledState
       )
     );
-    expect(onError).toHaveBeenCalledWith(
+    expect(onErrored).toHaveBeenCalledWith(
       new GenerationError(new Error('Failed to create'), errorState)
     );
   });
@@ -153,14 +196,14 @@ describe('Generator', () => {
       mockId: getRuntimeResourceValue(errorState, 'id'),
     });
     const desiredState: ErasedDesiredState[] = [errorState, successState];
-    const onCreate = jest.fn();
-    const generator = Generator.create(desiredState, { onCreate });
+    const onCreateFinished = jest.fn();
+    const generator = Generator.create(desiredState, { onCreateFinished });
 
     // Act
     await generator.generateState().catch(() => undefined);
 
     // Assert
-    expect(onCreate).not.toHaveBeenCalled();
+    expect(onCreateFinished).not.toHaveBeenCalled();
   });
 
   test('can handle creating many resources at once', async () => {
