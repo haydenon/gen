@@ -124,7 +124,7 @@ jest.mock('./primatives.generator.ts', () => ({
     .mockImplementation(() => anyGeneratedPrimative),
 }));
 
-const [minArrayCount, maxArrayCount] = [2, 2]; //[5, 50];
+const [minArrayCount, maxArrayCount] = [5, 50];
 
 let overriddenDependentOutput: number | GenerationResult | undefined;
 let overriddenStandardOutput: number | GenerationResult | undefined;
@@ -147,12 +147,12 @@ class AdvancedInput extends PropertiesBase {
   nestedArrays: PropertyDefinition<number[][]> = def(
     array(
       array(int(), {
-        minItems: 2,
-        maxItems: 2,
+        minItems: minArrayCount,
+        maxItems: maxArrayCount,
       }),
       {
-        minItems: 3,
-        maxItems: 3,
+        minItems: minArrayCount,
+        maxItems: maxArrayCount,
       }
     )
   );
