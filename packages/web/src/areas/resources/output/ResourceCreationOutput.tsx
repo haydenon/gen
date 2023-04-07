@@ -129,6 +129,10 @@ const ContextMessage = styled.div`
   padding-bottom: var(--spacing-small);
 `;
 
+const OutputWrapper = styled.div`
+  padding: var(--spacing-small) 0 var(--spacing-tiny);
+`;
+
 const ResourceOutput = ({ creatingState, name }: ResourceProps) => {
   const values = useMemo(() => {
     if (creatingState.value) {
@@ -153,7 +157,9 @@ const ResourceOutput = ({ creatingState, name }: ResourceProps) => {
     <ListItem>
       {createState === ItemState.Completed ? (
         <Disclosure label={header}>
-          <JSONPretty theme={theme} data={values} />
+          <OutputWrapper>
+            <JSONPretty theme={theme} data={values} />
+          </OutputWrapper>
         </Disclosure>
       ) : (
         <HeaderWrapper>{header(false)}</HeaderWrapper>
