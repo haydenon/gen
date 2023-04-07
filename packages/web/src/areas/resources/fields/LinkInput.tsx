@@ -71,10 +71,6 @@ interface ChooserProps {
   onFieldSelect: (desiredResourceId: string, field: string) => void;
 }
 
-const CustomMenu = styled(Menu)`
-  margin-right: -8px;
-`;
-
 const LinkValueChooser = ({
   currentResourceId,
   fieldType,
@@ -87,7 +83,6 @@ const LinkValueChooser = ({
     return null;
   }
 
-  // const selectedResource = resource && resources.find((r) => r.id === resource);
   const otherResources = resources.filter(
     (r) => r.id !== currentResourceId && r.type
   );
@@ -124,85 +119,63 @@ const LinkValueChooser = ({
     }, {} as { [type: string]: { typeDisplay: string; validFields: string[]; exprTypes: { [field: string]: ExprType } } });
 
   return (
-    // <Menu>
-    //   <LinkButton>
-    //     <Link size={18} />
-    //   </LinkButton>
-    //   <MenuList>
-    //     {!selectedResource ? (
-    //       <ResourceChooser
-    //         currentResourceId={currentResourceId}
-    //         resources={resources}
-    //         onResourceSelect={setResource}
-    //       />
-    //     ) : (
-    //       <FieldChooser
-    //         fieldType={fieldType}
-    //         selectedResource={selectedResource}
-    //         onFieldSelect={(field) => onFieldSelect(resource, field)}
-    //         onResourceDeselect={() => setResource(null)}
-    //       />
-    //     )}
-    //   </MenuList>
-    // </Menu>
-    <CustomMenu
-      $buttonStyle={ButtonStyle.Icon}
-      label={() => <Link size={18} />}
-    >
-      {namedResources.length === 0 ? (
-        <NoItems>No named resources</NoItems>
-      ) : null}
-      {namedResources.map((r) => (
-        <Menu
-          label={(submenu) =>
-            submenu ? (
-              <ChosenResource>
-                <span>{r.name}</span>
-                <SmallText>{r.type}</SmallText>
-              </ChosenResource>
+    <div>
+      <Menu $buttonStyle={ButtonStyle.Icon} label={() => <Link size={18} />}>
+        {namedResources.length === 0 ? (
+          <NoItems>No named resources</NoItems>
+        ) : null}
+        {namedResources.map((r) => (
+          <Menu
+            label={(submenu) =>
+              submenu ? (
+                <ChosenResource>
+                  <span>{r.name}</span>
+                  <SmallText>{r.type}</SmallText>
+                </ChosenResource>
+              ) : (
+                r.name
+              )
+            }
+            key={'resource-' + r.id}
+            role="menuitem"
+          >
+            {resourceFields[r.type].validFields.length === 0 ? (
+              <AssignableToText>
+                Nothing assignable to{' '}
+                <CodeText>{resourceFields[r.type].typeDisplay}</CodeText>
+              </AssignableToText>
             ) : (
-              r.name
-            )
-          }
-          key={'resource-' + r.id}
-          role="menuitem"
-        >
-          {resourceFields[r.type].validFields.length === 0 ? (
-            <AssignableToText>
-              Nothing assignable to{' '}
-              <CodeText>{resourceFields[r.type].typeDisplay}</CodeText>
-            </AssignableToText>
-          ) : (
-            <AssignableToText>
-              Assignable to{' '}
-              <CodeText>{resourceFields[r.type].typeDisplay}</CodeText>
-            </AssignableToText>
-          )}
-          {resourceFields[r.type].validFields.map((key) => (
-            <MenuItem
-              label={
-                <>
-                  <div>{getFieldDisplayName(key)}</div>
-                  <SmallText>
-                    <CodeText>
-                      {getTypeDisplay(resourceFields[r.type].exprTypes[key])}
-                    </CodeText>
-                  </SmallText>
-                </>
-              }
-              key={key}
-              onClick={() => onFieldSelect(r.id, key)}
-            ></MenuItem>
-          ))}
-        </Menu>
-      ))}
-      {unnamedResourceCount > 0 ? (
-        <OtherResources>
-          {unnamedResourceCount} unnamed resource
-          {unnamedResourceCount > 1 ? 's' : ''}
-        </OtherResources>
-      ) : null}
-    </CustomMenu>
+              <AssignableToText>
+                Assignable to{' '}
+                <CodeText>{resourceFields[r.type].typeDisplay}</CodeText>
+              </AssignableToText>
+            )}
+            {resourceFields[r.type].validFields.map((key) => (
+              <MenuItem
+                label={
+                  <>
+                    <div>{getFieldDisplayName(key)}</div>
+                    <SmallText>
+                      <CodeText>
+                        {getTypeDisplay(resourceFields[r.type].exprTypes[key])}
+                      </CodeText>
+                    </SmallText>
+                  </>
+                }
+                key={key}
+                onClick={() => onFieldSelect(r.id, key)}
+              ></MenuItem>
+            ))}
+          </Menu>
+        ))}
+        {unnamedResourceCount > 0 ? (
+          <OtherResources>
+            {unnamedResourceCount} unnamed resource
+            {unnamedResourceCount > 1 ? 's' : ''}
+          </OtherResources>
+        ) : null}
+      </Menu>
+    </div>
   );
 };
 
