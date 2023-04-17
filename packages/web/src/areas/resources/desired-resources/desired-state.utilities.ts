@@ -13,7 +13,7 @@ import {
   FunctionValue,
   GetProp,
 } from '@haydenon/gen-core';
-import { FormRuntimeValue } from '../runtime-value';
+import { FormRuntimeValue, isFormRuntimeValue } from '../runtime-value';
 import { DesiredResource } from './desired-resource';
 
 /* eslint-disable no-template-curly-in-string */
@@ -59,7 +59,7 @@ function transformValue(value: any, context: TransformationContext): any {
     return '${date(2000,1,1)}';
   }
 
-  if (value instanceof FormRuntimeValue) {
+  if (isFormRuntimeValue(value)) {
     return `\${${transformRuntimeValue(value, context)}}`;
   }
 

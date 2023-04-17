@@ -5,7 +5,6 @@ import {
   createErrored,
   createLoading,
   createUninitialised,
-  isUninitialisedOrLoading,
   ItemState,
 } from '../../../data';
 
@@ -229,7 +228,13 @@ export const useDesiredResources = () => {
               ),
             });
             break;
-          case 'StateCreationErrored':
+          case 'StateCreationErrored': {
+            if (process.env.NODE_ENV !== 'production') {
+              console.error(
+                'Encountered errors on state creation',
+                message.errors
+              );
+            }
             setCreatingState({
               ...createState,
               requestState: createErrored(
@@ -240,6 +245,7 @@ export const useDesiredResources = () => {
               ),
             });
             break;
+          }
         }
       };
       ws.addMessageHandler(handler);

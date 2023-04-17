@@ -1,20 +1,31 @@
-import { Call, Expr, identifier, Literal, Variable } from '@haydenon/gen-core';
+import { Expr, identifier } from '@haydenon/gen-core';
 
-export class FormRuntimeValue {
-  constructor(
-    public textInput: string | undefined,
-    public expression: Expr,
-    public dependentResourceIds: string[]
-  ) {}
+export interface FormRuntimeValue {
+  textInput: string | undefined;
+  expression: Expr;
+  dependentResourceIds: string[];
 }
 
+export const createFormRuntimeValue = (
+  textInput: string | undefined,
+  expression: Expr,
+  dependentResourceIds: string[]
+): FormRuntimeValue => ({
+  textInput,
+  expression,
+  dependentResourceIds,
+});
+
+export const isFormRuntimeValue = (value: any): value is FormRuntimeValue =>
+  value && value.expression && value.dependentResourceIds;
+
 export const WELL_KNOWN_RUNTIME_VALUES = {
-  undefined: new FormRuntimeValue(
+  undefined: createFormRuntimeValue(
     undefined,
     Expr.Variable(identifier('undefined')),
     []
   ),
-  minDate: new FormRuntimeValue(
+  minDate: createFormRuntimeValue(
     undefined,
     Expr.Call(Expr.Variable(identifier('date')), [
       Expr.Literal(1970),

@@ -17,7 +17,11 @@ import { mapPropTypeRespToExprType } from '../../../utilities/property-type-expr
 import { useDesiredResources } from '../desired-resources/desired-resource.hook';
 import { useResources } from '../resource.hook';
 import { DesiredStateFormError } from '../desired-resources/desired-resource';
-import { FormRuntimeValue } from '../runtime-value';
+import {
+  createFormRuntimeValue,
+  FormRuntimeValue,
+  isFormRuntimeValue,
+} from '../runtime-value';
 import { getFieldDisplayName } from './field.utils';
 
 import { BaseInputProps } from './props';
@@ -240,7 +244,7 @@ const LinkInput = ({
 }: Props) => {
   const onFieldChoose = (desiredResourceId: string, fieldName: string) => {
     onChange(
-      new FormRuntimeValue(
+      createFormRuntimeValue(
         undefined,
         Expr.GetProp(
           Expr.Variable(identifier(desiredResourceId)),
@@ -252,7 +256,7 @@ const LinkInput = ({
   };
   return (
     <>
-      {value instanceof FormRuntimeValue && value.textInput === undefined ? (
+      {isFormRuntimeValue(value) && value.textInput === undefined ? (
         <>
           <LinkedRuntimeValueDisplay
             name={baseProps.name}

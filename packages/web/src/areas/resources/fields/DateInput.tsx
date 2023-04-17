@@ -3,7 +3,7 @@ import { BasicTypeResponse } from '@haydenon/gen-server';
 import { useMemo } from 'react';
 import styled from 'styled-components';
 import { InputType } from '../../../components/Input/Input';
-import { FormRuntimeValue } from '../runtime-value';
+import { createFormRuntimeValue, FormRuntimeValue } from '../runtime-value';
 import FieldInput, { OffsetWrapper } from './FieldInput';
 import { BaseInputProps } from './props';
 
@@ -39,7 +39,7 @@ const DateInput = ({ type, value, name, onChange, parentActions }: Props) => {
             const seconds = date.getUTCSeconds();
             const args = [year, month, day, hour, minutes, seconds];
             onChange(
-              new FormRuntimeValue(
+              createFormRuntimeValue(
                 undefined,
                 Expr.Call(
                   Expr.Variable(identifier('date')),

@@ -1,7 +1,7 @@
 import { validateResourceName } from '@haydenon/gen-core';
 import { useCallback } from 'react';
 import { useRecoilState } from 'recoil';
-import { FormRuntimeValue } from '../runtime-value';
+import { isFormRuntimeValue } from '../runtime-value';
 
 import {
   DesiredResource,
@@ -24,7 +24,7 @@ const getDependencies = (value: any, path: string[]): [string, string[]][] => {
     return [];
   }
 
-  if (value instanceof FormRuntimeValue) {
+  if (isFormRuntimeValue(value)) {
     return value.dependentResourceIds.map((id) => [id, path]);
   }
 
