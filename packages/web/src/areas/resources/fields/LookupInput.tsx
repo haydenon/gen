@@ -39,7 +39,7 @@ const LookupInput = ({
   );
   return (
     <>
-      <OffsetWrapper offset={true}>
+      <OffsetWrapper offset={name !== null}>
         <Select
           label={name ?? ''}
           value={value.toString()}
