@@ -270,12 +270,16 @@ export function date(constraint?: Constraint<Date>): DateType {
 
 export function array<Prop extends PropertyType>(
   prop: Prop,
-  constraint?: Constraint<Prop[]>
-): { type: Type.Array; inner: Prop; constraint?: ArrayConstraint<unknown> } {
+  constraint?: ArrayConstraint<TypeForPropertyType<Prop>>
+): {
+  type: Type.Array;
+  inner: Prop;
+  constraint?: ArrayConstraint<TypeForPropertyType<Prop>>;
+} {
   return {
     type: Type.Array,
     inner: prop,
-    constraint: constraint as ArrayConstraint<unknown>,
+    constraint: constraint as ArrayConstraint<TypeForPropertyType<Prop>>,
   };
 }
 

@@ -81,6 +81,13 @@ function fillInType(
     );
   }
 
+  if (type.constraint?.generateConstrainedValue) {
+    const value = type.constraint.generateConstrainedValue(inputs);
+    if (value !== GenerationResult.ValueNotGenerated) {
+      return [value, []];
+    }
+  }
+
   if (isArray(type)) {
     const min = type.constraint?.minItems ?? 0;
     const max = type.constraint?.maxItems ?? 10;
@@ -97,13 +104,6 @@ function fillInType(
       mapped.map(([value]) => value),
       mapped.flatMap(([, items]) => items),
     ];
-  }
-
-  if (type.constraint?.generateConstrainedValue) {
-    const value = type.constraint.generateConstrainedValue(inputs);
-    if (value !== GenerationResult.ValueNotGenerated) {
-      return [value, []];
-    }
   }
 
   if (isLinkType(type)) {
