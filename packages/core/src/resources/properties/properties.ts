@@ -58,7 +58,7 @@ export interface DateType extends PropertyTypeBase {
 export interface ArrayType extends PropertyTypeBase {
   type: Type.Array;
   inner: PropertyType;
-  constraint?: ArrayConstraint<unknown>;
+  constraint?: ArrayConstraint<any>;
 }
 
 export interface Nullable extends PropertyTypeBase {

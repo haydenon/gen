@@ -65,6 +65,13 @@ function fillInType(
     }
   }
 
+  if (type.constraint?.generateConstrainedValue) {
+    const value = type.constraint.generateConstrainedValue(inputs);
+    if (value !== GenerationResult.ValueNotGenerated) {
+      return [value, []];
+    }
+  }
+
   if (isComplex(type)) {
     return Object.keys(type.fields).reduce(
       ([acc, states], field) => {
@@ -79,13 +86,6 @@ function fillInType(
       },
       [{}, []] as [any, StateAndConstraints[]]
     );
-  }
-
-  if (type.constraint?.generateConstrainedValue) {
-    const value = type.constraint.generateConstrainedValue(inputs);
-    if (value !== GenerationResult.ValueNotGenerated) {
-      return [value, []];
-    }
   }
 
   if (isArray(type)) {
