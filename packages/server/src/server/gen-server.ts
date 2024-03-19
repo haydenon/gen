@@ -1,5 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import path from 'path';
 import ws from 'ws';
 
 import {
@@ -102,6 +103,11 @@ export class GenServer {
         res.status(status);
         res.send(createErrorResponse(resp.errors));
       }
+    });
+
+    app.use(express.static(path.resolve(__dirname, './client')));
+    app.get('/*', (req, res) => {
+      res.sendFile(path.resolve(__dirname, './client/index.html'));
     });
   }
 
