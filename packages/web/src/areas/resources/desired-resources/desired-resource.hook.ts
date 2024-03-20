@@ -22,10 +22,12 @@ import {
   CreateStateMessage,
   CreateStateServerTypes,
 } from '@haydenon/gen-server';
+import type { ErrorMessage } from '@haydenon/gen-server';
 import { getAnonymousName } from '@haydenon/gen-core';
 import { useWebsocket } from '../../../data/ws.hook';
+import { useEnvironments } from '../../environments/environment.hook';
 
-class ResourceCreationError extends Error {
+export class ResourceCreationError extends Error {
   constructor(message: string, public errors: string[]) {
     super(message);
   }
@@ -36,6 +38,8 @@ export const useDesiredResources = () => {
   const [createState, setCreatingState] = useRecoilState(creatingState);
   const { validateField, validateNames, validateResourceRemoval, formErrors } =
     useResourceValidation();
+
+  const { currentEnvironment } = useEnvironments();
 
   const websocket = useWebsocket();
 
@@ -173,7 +177,21 @@ export const useDesiredResources = () => {
       ];
       const isCreateMessage = (message: any): message is CreateServerMessage =>
         message && message.type && validMessages.includes(message.type);
+      const isErrorMessage = (message: any): message is ErrorMessage =>
+        message && message.errors && message.errors instanceof Array;
       const handler = (message: any) => {
+        if (isErrorMessage(message)) {
+          setCreatingState({
+            resources: {},
+            requestState: createErrored(
+              new ResourceCreationError(
+                'Create state request failed',
+                message.errors.map((err) => err.message)
+              )
+            ),
+          });
+        }
+
         if (!isCreateMessage(message)) {
           return;
         }
@@ -281,32 +299,18 @@ export const useDesiredResources = () => {
     });
 
     const ws = websocket.value;
-    // TODO:
     ws.sendMessage({
       type: 'CreateState',
       body: stateBody,
+      environment: currentEnvironment,
     } as CreateStateMessage);
-    // fetch<StateCreateResponse>('/v1/state', {
-    //   method: 'POST',
-    //   body: JSON.stringify(stateBody),
-    // })
-    //   .then((response) =>
-    //     setCreatingState(
-    //       response.createdState.reduce(
-    //         (acc, res) => ({ ...acc, [res._name]: createCompleted(res) }),
-    //         {} as CreatingState
-    //       )
-    //     )
-    //   )
-    //   .catch((error) =>
-    //     setCreatingState(
-    //       stateBody.state.reduce(
-    //         (acc, res) => ({ ...acc, [res._name]: createErrored(error) }),
-    //         {} as CreatingState
-    //       )
-    //     )
-    //   );
-  }, [resourceValues, isCreating, setCreatingState, websocket]);
+  }, [
+    resourceValues,
+    isCreating,
+    setCreatingState,
+    websocket,
+    currentEnvironment,
+  ]);
 
   return {
     desiredResources,

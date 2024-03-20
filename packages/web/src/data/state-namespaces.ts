@@ -1,6 +1,7 @@
 export enum StateNamespace {
   Resource,
-  DesiredResource
+  DesiredResource,
+  Environment,
 }
 
 export const getKeyGenerator = (namespace: StateNamespace) => (key: string) =>

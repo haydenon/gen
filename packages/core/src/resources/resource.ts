@@ -1,3 +1,4 @@
+import { GenerationContext } from '../generator';
 import { PropertyDefinition } from './properties/properties';
 import { RuntimeValue } from './runtime-values';
 import { BASE_CONTEXT } from './runtime-values/context/base-context';
@@ -50,7 +51,7 @@ export interface ResourceGroupItem<
   inputs: Inputs;
   outputs: Outputs;
 
-  create(inputs: any): Promise<any>;
+  create(inputs: any, context: GenerationContext): Promise<any>;
 }
 
 export abstract class Resource<
@@ -62,7 +63,8 @@ export abstract class Resource<
     this.name = name ?? this.constructor.name;
   }
   abstract create(
-    inputs: ResolvedValues<Inputs>
+    inputs: ResolvedValues<Inputs>,
+    context?: GenerationContext
   ): Promise<OutputValues<Outputs>>;
   createTimeoutMillis?: number;
 }

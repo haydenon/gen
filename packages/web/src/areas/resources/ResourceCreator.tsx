@@ -6,6 +6,7 @@ import { useDesiredResources } from './desired-resources/desired-resource.hook';
 import ResourceList from './ResourceList';
 import ResourceCreationOutput from './output/ResourceCreationOutput';
 import Loader from '../../components/Loader';
+import { useEnvironments } from '../environments/environment.hook';
 
 const Wrapper = styled.div`
   flex: 1;
@@ -113,6 +114,7 @@ const ContentWrapper = styled(FullWidthWrapper)`
 `;
 
 const ResourceCreator = () => {
+  const { currentEnvironment } = useEnvironments();
   const { desiredResources, createDesiredState, isCreating, creatingState } =
     useDesiredResources();
   const [maximised, setMaximised] = useState(false);
@@ -130,7 +132,7 @@ const ResourceCreator = () => {
             <CreateButton
               onClick={createDesiredState}
               colour={ButtonColour.Success}
-              disabled={isCreating}
+              disabled={isCreating || currentEnvironment === undefined}
             >
               Create
               {isCreating ? <Loader /> : null}

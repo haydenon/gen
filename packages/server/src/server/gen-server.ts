@@ -10,6 +10,8 @@ import {
   Generator,
   ErasedDesiredState,
   GeneratorOptions,
+  GenerationContext,
+  Environment,
 } from '@haydenon/gen-core';
 import { isStateRequest, StateRequest } from './models/state-requests';
 import {
@@ -32,9 +34,10 @@ import {
 
 interface ServerOptions {
   port?: number;
+  environments: Environment[];
 }
 
-const defaultOptions: Required<ServerOptions> = {
+const defaultOptions: Required<Omit<ServerOptions, 'environments'>> = {
   port: 8000,
 };
 
@@ -44,8 +47,11 @@ export class GenServer {
 
   constructor(
     private resources: Resource<PropertiesBase, PropertiesBase>[],
-    serverOptions?: ServerOptions
+    serverOptions: ServerOptions
   ) {
+    if (!serverOptions?.environments.length) {
+      throw new Error('Must provide environment details for server');
+    }
     this.options = { ...defaultOptions, ...(serverOptions || {}) };
     this.mapper = getMapper(resources);
   }
@@ -92,6 +98,14 @@ export class GenServer {
       });
     });
 
+    app.get('/v1/environment', (_, res) => {
+      res.send({
+        environments: this.options.environments.map(({ name }) => ({
+          name,
+        })),
+      });
+    });
+
     app.post('/v1/state', async (req, res) => {
       const body = req.body;
 
@@ -123,9 +137,17 @@ export class GenServer {
         return;
       }
 
+      const environment = this.options.environments.find(
+        (env) => env.name === message.environment
+      );
+      if (!environment) {
+        send(createErrorResponse('Invalid environment provided'));
+        return;
+      }
+
       switch (message.type) {
         case CreateStateClientTypes.CreateState:
-          this.handleCreateMessage(message.body, send);
+          this.handleCreateMessage(message.body, { environment }, send);
           break;
       }
     } catch {
@@ -139,6 +161,7 @@ export class GenServer {
 
   private async handleCreateMessage(
     body: StateRequest,
+    context: GenerationContext,
     send: (data: CreateServerMessage) => void
   ) {
     const options: GeneratorOptions = {
@@ -163,6 +186,7 @@ export class GenServer {
           type: CreateStateServerTypes.ResourceCreateFinished,
           createdState: mapResourceInstanceToResponse(item),
         }),
+      generationContext: context,
     };
     const result = await this.handleStateCreation(body, options);
     if (result.success) {

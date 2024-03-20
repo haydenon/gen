@@ -24,7 +24,7 @@ interface Option {
 }
 
 interface SelectProps {
-  label: string;
+  label: string | undefined;
   options: Option[] | string[];
   value?: string;
   onChange: (value: string) => void;
@@ -143,14 +143,23 @@ const Select = ({
 
   return (
     <>
-      <Label label={label}>
+      {label !== undefined ? (
+        <Label label={label}>
+          <ComboboxInput
+            state={combobox}
+            onChange={handleChange}
+            onFocus={handleInteraction}
+            onBlur={handleInteraction}
+          />
+        </Label>
+      ) : (
         <ComboboxInput
           state={combobox}
           onChange={handleChange}
           onFocus={handleInteraction}
           onBlur={handleInteraction}
         />
-      </Label>
+      )}
       <ComboboxList state={combobox}>
         {hasEdited ? (
           combobox.matches.length ? (

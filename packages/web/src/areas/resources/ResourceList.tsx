@@ -10,6 +10,7 @@ import { useDesiredResources } from './desired-resources/desired-resource.hook';
 import { useResources } from './resource.hook';
 import ResourceAdd from './ResourceAdd';
 import ResourceCard from './ResourceCard';
+import { useEnvironments } from '../environments/environment.hook';
 
 interface MaximiseProps {
   open: boolean;
@@ -108,6 +109,7 @@ interface Props {
 }
 
 const ResourceList = ({ onMaximise }: Props) => {
+  const { currentEnvironment } = useEnvironments();
   const { desiredResources, updateResource, deleteResource, addResource } =
     useDesiredResources();
   const [maximised, setMaximised] = useState<number | undefined>(undefined);
@@ -190,6 +192,7 @@ const ResourceList = ({ onMaximise }: Props) => {
   }, [maximised]);
 
   if (
+    currentEnvironment === undefined ||
     resources.state !== ItemState.Completed ||
     desiredResources.state !== ItemState.Completed
   ) {

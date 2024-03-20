@@ -17,4 +17,5 @@ export type {
   CreateStateServerTypes,
   CreateStateMessage,
   CreateServerMessage,
+  ErrorMessage,
 } from './messages/create-state';

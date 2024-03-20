@@ -16,6 +16,7 @@ import {
   isRuntimeValue,
   RuntimeValue,
 } from '../resources/runtime-values/runtime-values';
+import { Environment } from './environment';
 
 const DEFAULT_CREATE_TIMEOUT = 30 * 1000;
 
@@ -30,11 +31,16 @@ interface StateNode {
 
 const CONCURRENT_CREATIONS = 10;
 
+export interface GenerationContext {
+  environment: Environment
+}
+
 export interface GeneratorOptions {
   onDesiredStatePlaned?: (desiredResources: ErasedDesiredState[]) => void;
   onCreateStarting?: (resource: ErasedDesiredState) => void;
   onCreateFinished?: (resource: ErasedResourceInstance) => void;
   onErrored?: (error: GenerationError) => void;
+  generationContext: GenerationContext;
 }
 
 const getNode =
@@ -207,7 +213,10 @@ export class Generator {
         );
       }, timeout);
       const created = state.resource
-        .create(this.fillInRuntimeValues(state.inputs, state.resource.inputs))
+        .create(
+          this.fillInRuntimeValues(state.inputs, state.resource.inputs),
+          this.options?.generationContext
+        )
         .then((outputs) => {
           const instance: ErasedResourceInstance = {
             desiredState: state,

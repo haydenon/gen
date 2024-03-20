@@ -17,6 +17,7 @@ export enum CreateStateClientTypes {
 export interface CreateStateMessage extends ClientMessageBase {
   type: CreateStateClientTypes.CreateState;
   body: StateRequest;
+  environment: string;
 }
 
 export const enum CreateStateServerTypes {
@@ -61,3 +62,7 @@ export type CreateServerMessage =
   | ResourceCreateErroredMessage
   | StateCreationFinishedMessage
   | StateCreationErroredMessage;
+
+export interface ErrorMessage {
+  errors: { message: string }[];
+}

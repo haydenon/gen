@@ -13,6 +13,7 @@ import Loader from '../../../components/Loader';
 import { createUninitialised, Item, ItemState } from '../../../data';
 import { DesiredResource } from '../desired-resources/desired-resource';
 import { CreatingState } from '../desired-resources/desired-resource.state';
+import { ResourceCreationError } from '../desired-resources/desired-resource.hook';
 
 const COLOURS = {
   background: 'var(--code-background)',
@@ -187,8 +188,23 @@ const ResourceCreationOutput = ({ creatingState }: Props) => {
       ),
     [creatingState, resourceNames]
   );
+  const error = creatingState.requestState.error
+    ? (creatingState.requestState.error as ResourceCreationError)
+    : undefined;
   return (
     <Wrapper>
+      {error ? (
+        <>
+          <ContextMessage>
+            {error.message}:
+            <ul>
+              {error.errors.map((err) => (
+                <li key={err}>{err}</li>
+              ))}
+            </ul>
+          </ContextMessage>
+        </>
+      ) : null}
       {resourceNames.map((name) => (
         <ResourceOutput
           key={name}
