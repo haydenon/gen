@@ -34,6 +34,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           scope: "@haydenon"
       - run: yarn
+      - run: yarn workspace @haydenon/gen-core build
       - run: yarn workspace @haydenon/gen-server build
       - run: yarn workspace @haydenon/gen-server npm publish --access public
         env:
