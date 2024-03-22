@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from 'react';
-import CodeText from '../../../components/CodeText';
 import Select from '../../../components/Select';
 import { OffsetWrapper } from './FieldInput';
 
