@@ -18,7 +18,7 @@ jobs:
           scope: "@haydenon"
       - run: yarn
       - run: yarn workspace @haydenon/gen-core build
-      - run: yarn workspace @haydenon/gen-core npm publish
+      - run: yarn workspace @haydenon/gen-core npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
