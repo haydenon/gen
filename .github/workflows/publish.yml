@@ -14,12 +14,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20.x"
-          registry-url: "https://npm.pkg.github.com"
           scope: "@haydenon"
       - run: yarn
       - run: yarn workspace @haydenon/gen-core build
       - run: yarn workspace @haydenon/gen-core npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          YARN_NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          YARN_NPM_PUBLISH_REGISTRY: "https://npm.pkg.github.com"
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
