@@ -1,7 +1,6 @@
 {
   "name": "@haydenon/gen-core",
   "packageManager": "yarn@3.3.0",
-  "private": true,
   "version": "0.0.1",
   "description": "A library for easily setting up data generation",
   "main": "dist/index.js",
