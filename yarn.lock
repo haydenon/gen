@@ -1873,7 +1873,6 @@ __metadata:
   resolution: "@haydenon/gen-server@workspace:packages/server"
   dependencies:
     "@faker-js/faker": ^7.5.0
-    "@haydenon/gen-core": "workspace:*"
     "@types/express": ^4.17.14
     "@types/jest": ^29.2.3
     "@types/ws": ^8.5.3
