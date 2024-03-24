@@ -1,13 +1,15 @@
 {
   "name": "@haydenon/gen-server",
   "packageManager": "yarn@3.3.0",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A library for easily setting up data generation",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "typings": "dist/index.d.ts",
   "files": [
-    "dist/*"
+    "dist/*",
+    "src/**/*",
+    "tsconfig.json"
   ],
   "scripts": {
     "prepare": "npm run build",
