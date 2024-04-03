@@ -31,7 +31,7 @@ export const useWebsocket = () => {
       const handlers: ((payload: any) => void)[] = [];
       const createWebsocket = () => {
         /* eslint-disable no-restricted-globals */
-        const isSecure = location.protocol === 'https';
+        const isSecure = location.protocol.startsWith('https');
         const host = `${location.hostname}${
           location.port ? ':' + location.port : ''
         }`;
