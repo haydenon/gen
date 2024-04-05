@@ -9,6 +9,9 @@ import {
   OutputValues,
   getLink,
   ResolvedValues,
+  dependentGenerator,
+  lookup,
+  resolve,
 } from '../src/resources';
 
 export class MockBase extends PropertiesBase {
@@ -78,6 +81,13 @@ let subId = 1;
 class SubBase extends PropertiesBase {
   mockId: PropertyDefinition<number> = def(getLink(MockResource, (r) => r.id));
   text: PropertyDefinition<string> = def(string());
+  inheritedMockText: PropertyDefinition<string> = def(
+    string(
+      dependentGenerator(this, (values) =>
+        resolve(MockDefinition, values.mockId, (mock) => mock.text)
+      )
+    )
+  );
 }
 class SubOutputs extends SubBase {
   id: PropertyDefinition<number> = def(int());

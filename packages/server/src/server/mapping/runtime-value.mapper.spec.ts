@@ -2,6 +2,7 @@ import { RuntimeValue } from '@haydenon/gen-core/src/resources';
 import {
   Literal,
   FormatString,
+  Expr,
 } from '@haydenon/gen-core/src/resources/runtime-values/ast/expressions';
 import { replaceRuntimeValueTemplates } from './runtime-value.mapper';
 
@@ -54,7 +55,7 @@ describe('Mapping expression strings', () => {
         // Assert
         expect(errors).toHaveLength(0);
         expect(result).toBeInstanceOf(RuntimeValue);
-        expect(result.expression).toBeInstanceOf(FormatString);
+        expect(result.expression.type).toBe('FormatString');
         const formatString = result.expression as FormatString;
         expect(formatString.strings.map((s) => s.value)).toEqual(formatStrings);
 
@@ -102,7 +103,7 @@ describe('Mapping expression strings', () => {
     expect(result).toBeInstanceOf(RuntimeValue);
     const runtimeVal = result as RuntimeValue<any>;
     expect(runtimeVal.depdendentStateNames).toEqual([]);
-    expect(runtimeVal.expression).toBeInstanceOf(FormatString);
+    expect(runtimeVal.expression.type).toBeInstanceOf('FormatString');
     const formatString = runtimeVal.expression as FormatString;
     expect(formatString.strings.map((s) => s.value)).toEqual([
       'This is ${not an expression}, but ',
@@ -136,7 +137,7 @@ describe('Mapping expression strings', () => {
     expect(result).toBeInstanceOf(RuntimeValue);
     const runtimeVal = result as RuntimeValue<any>;
     expect(runtimeVal.depdendentStateNames).toEqual(['first', 'second']);
-    expect(runtimeVal.expression).toBeInstanceOf(FormatString);
+    expect(runtimeVal.expression.type).toBe('FormatString');
     const formatString = runtimeVal.expression as FormatString;
     expect(formatString.strings.map((s) => s.value)).toEqual(['', ' ', '']);
     expect(formatString.expressions).toEqual([firstLiteral, secondLiteral]);

@@ -22,15 +22,13 @@ import {
   ParentCreationMode,
 } from '../../resources/properties/links';
 import {
-  arrayIndexAccess,
   NewStateAndConstraints,
   pathMatches,
-  propAccess,
-  PropertyPathSegment,
   StateAndConstraints,
   StateConstraint,
 } from '../../resources/state-constraints';
 import { LinkConstraint } from '../../resources/properties/constraints';
+import { PropertyPathSegment, arrayIndexAccess, propAccess } from '../../resources/utilities/proxy-path';
 
 function fillInType(
   current: NewStateAndConstraints,

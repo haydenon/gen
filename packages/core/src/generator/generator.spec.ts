@@ -2,7 +2,12 @@ import {
   createDesiredState,
   ErasedDesiredState,
 } from '../resources/desired-state';
-import { GenerationError, GenerationResultError, Generator } from './generator';
+import {
+  GenerationContext,
+  GenerationError,
+  GenerationResultError,
+  Generator,
+} from './generator';
 import {
   MockResource,
   StallResource,
@@ -13,6 +18,13 @@ import {
 import { getRuntimeResourceValue } from '../resources/runtime-values';
 
 const anyMockInputs = { boolean: true, text: 'hello', number: 3 };
+
+const generationContext: GenerationContext = {
+  environment: {
+    name: 'testEnv',
+    properties: {},
+  },
+};
 
 let explicitReturnState: ErasedDesiredState[] | undefined;
 jest.mock('./state-tree-generation/state-tree.generator.ts', () => ({
@@ -100,7 +112,10 @@ describe('Generator', () => {
       stallState,
     ];
     const onDesiredStatePlaned = jest.fn();
-    const generator = Generator.create(desiredState, { onDesiredStatePlaned });
+    const generator = Generator.create(desiredState, {
+      onDesiredStatePlaned,
+      generationContext,
+    });
 
     // Act
     await generator.generateState().catch(() => undefined);
@@ -120,7 +135,10 @@ describe('Generator', () => {
       stallState,
     ];
     const onCreateStarting = jest.fn();
-    const generator = Generator.create(desiredState, { onCreateStarting });
+    const generator = Generator.create(desiredState, {
+      onCreateStarting,
+      generationContext,
+    });
 
     // Act
     await generator.generateState().catch(() => undefined);
@@ -141,7 +159,10 @@ describe('Generator', () => {
       createDesiredState(StallResource, {}),
     ];
     const onCreateFinished = jest.fn();
-    const generator = Generator.create(desiredState, { onCreateFinished });
+    const generator = Generator.create(desiredState, {
+      onCreateFinished,
+      generationContext,
+    });
 
     // Act
     await generator.generateState().catch(() => undefined);
@@ -169,7 +190,10 @@ describe('Generator', () => {
       createDesiredState(MockResource, {}),
     ];
     const onErrored = jest.fn();
-    const generator = Generator.create(desiredState, { onErrored });
+    const generator = Generator.create(desiredState, {
+      onErrored,
+      generationContext,
+    });
 
     // Act
     await generator.generateState().catch(() => undefined);
@@ -197,7 +221,10 @@ describe('Generator', () => {
     });
     const desiredState: ErasedDesiredState[] = [errorState, successState];
     const onCreateFinished = jest.fn();
-    const generator = Generator.create(desiredState, { onCreateFinished });
+    const generator = Generator.create(desiredState, {
+      onCreateFinished,
+      generationContext,
+    });
 
     // Act
     await generator.generateState().catch(() => undefined);
@@ -263,6 +290,7 @@ describe('Generator', () => {
     const text = 'this is the mock value';
     const successState = createDesiredState(MockResource, { text });
     const subState = createDesiredState(SubResource, {
+      mockId: getRuntimeResourceValue(successState, 'id'),
       text: getRuntimeResourceValue(successState, 'text'),
     });
     const desiredState: ErasedDesiredState[] = [successState, subState];

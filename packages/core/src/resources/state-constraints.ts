@@ -1,6 +1,7 @@
 import { ErasedDesiredState } from './desired-state';
 import type { Value } from './properties/properties';
 import { ParentCreationMode } from './properties/links';
+import { PropertyPathSegment, PropertyPathType } from './utilities/proxy-path';
 
 interface BaseConstraint {
   path: PropertyPathSegment[];
@@ -51,30 +52,6 @@ export interface ExistingStateAndConstraints extends BaseStateAndConstraints {
 export type StateAndConstraints =
   | NewStateAndConstraints
   | ExistingStateAndConstraints;
-
-enum PropertyPathType {
-  PropertyAccess,
-  ArrayIndexAccess,
-}
-interface PropertyAccess {
-  type: PropertyPathType.PropertyAccess;
-  propertyName: string;
-}
-export const propAccess = (prop: string | symbol): PropertyAccess => ({
-  type: PropertyPathType.PropertyAccess,
-  propertyName: prop.toString(),
-});
-interface ArrayIndexAccess {
-  type: PropertyPathType.ArrayIndexAccess;
-  indexAccess: number | 'all';
-}
-export const arrayIndexAccess = (
-  indexAccess: number | 'all'
-): ArrayIndexAccess => ({
-  type: PropertyPathType.ArrayIndexAccess,
-  indexAccess,
-});
-export type PropertyPathSegment = PropertyAccess | ArrayIndexAccess;
 
 export const pathMatches = (
   p1: PropertyPathSegment[],

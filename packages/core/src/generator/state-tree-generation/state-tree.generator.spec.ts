@@ -249,6 +249,22 @@ describe('State tree creation', () => {
       inputs: {
         mockId: expect.any(RuntimeValue),
         text: expect.anything(),
+        inheritedMockText: expect.objectContaining({
+          depdendentStateNames: [mockResource?.name],
+          expression: {
+            indexer: {
+              type: 'Literal',
+              value: 'text',
+            },
+            obj: {
+              name: expect.objectContaining({
+                lexeme: mockResource?.name,
+              }),
+              type: 'Variable',
+            },
+            type: 'GetProp',
+          },
+        }),
       },
     });
 

@@ -49,6 +49,7 @@ export {
   identifier,
   BASE_CONTEXT_TYPES,
   evaluate,
+  resolve
 } from './runtime-values';
 export type {
   ExprType,

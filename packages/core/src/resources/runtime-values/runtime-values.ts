@@ -7,6 +7,11 @@ import {
   PropertyValueType,
 } from '../resource';
 import {
+  PropertyPathSegment,
+  PropertyPathType,
+  getPathFromAccessor,
+} from '../utilities/proxy-path';
+import {
   FunctionValue,
   Call,
   Expr,
@@ -93,5 +98,44 @@ export function getRuntimeResourceValue<
       Expr.Variable(identifier(item.name)),
       Expr.Literal(key.toString())
     )
+  );
+}
+
+type OutputsForResource<T> = T extends Resource<PropertyMap, infer Outputs>
+  ? OutputValues<Outputs>
+  : never;
+
+export function resolve<
+  ResConstructor extends abstract new (...args: any) => any,
+  T
+>(
+  resourceType: ResConstructor,
+  value: Value<any>,
+  accessor: (outputs: OutputsForResource<InstanceType<ResConstructor>>) => T
+): RuntimeValue<T> {
+  if (value instanceof RuntimeValue) {
+    if (value.depdendentStateNames.length !== 1) {
+      throw new Error(
+        'lookup(...) currently only supports simple runtime values from a single resource'
+      );
+    }
+
+    const path = getPathFromAccessor(accessor);
+    const getProp = (segment: PropertyPathSegment): any =>
+      segment.type === PropertyPathType.ArrayIndexAccess
+        ? (segment.indexAccess as number)
+        : segment.propertyName;
+    let propExpr = Expr.GetProp(
+      Expr.Variable(identifier(value.depdendentStateNames[0])),
+      Expr.Literal(getProp(path[0]))
+    );
+    for (let i = 1; i < path.length; i++) {
+      propExpr = Expr.GetProp(propExpr, Expr.Literal(getProp(path[i])));
+    }
+    return new RuntimeValue<T>(value.depdendentStateNames, propExpr);
+  }
+
+  throw new Error(
+    'lookup(...) currently has to be used on a runtime value lookup'
   );
 }

@@ -4,12 +4,8 @@ import {
   ResourceGroup,
   ResourceOrGroupItem,
 } from '../resource';
-import {
-  PropertyPathSegment,
-  arrayIndexAccess,
-  propAccess,
-  StateConstraint,
-} from '../state-constraints';
+import { StateConstraint } from '../state-constraints';
+import { getPathFromAccessor } from '../utilities/proxy-path';
 import { LinkConstraint, ParentConstraints } from './constraints';
 import {
   IntType,
@@ -33,7 +29,7 @@ export enum ParentCreationMode {
   MaybeCreate = 'MaybeCreate',
 }
 
-const isProxy = Symbol('__isProxy');
+export const isProxy = Symbol('__isProxy');
 
 export const constrainAll = <T>(value: T[]): T => {
   if (value && (value as any)[isProxy]) {
@@ -44,72 +40,17 @@ export const constrainAll = <T>(value: T[]): T => {
   throw new Error('Expected a valid parent value to be passed in');
 };
 
-class ParentProxyHandler {
-  public proxy?: typeof Proxy;
-  public paths: (string | number | symbol | AllIndexMarker)[] = [];
-
-  get(_: any, property: string | number | symbol): typeof Proxy {
-    if (property === isProxy) {
-      return true as any;
-    }
-
-    const asInt =
-      typeof property === 'string'
-        ? parseInt(property)
-        : typeof property === 'number'
-        ? property
-        : NaN;
-    if (!isNaN(asInt)) {
-      this.paths.push(asInt);
-    } else {
-      this.paths.push(property);
-    }
-    if (!this.proxy) {
-      throw new Error('Proxy incorrectly configured');
-    }
-
-    return this.proxy;
-  }
-
-  set(
-    target: any,
-    prop: string,
-    value: string | number | symbol | AllIndexMarker
-  ) {
-    if (prop === '__setPathValue__') {
-      this.paths.push(value);
-      return true;
-    }
-
-    throw new Error('Invalid property accessor');
-  }
-}
-
-class AllIndexMarker {}
+export class AllIndexMarker {}
 
 export const getParentConstraintsUtilsAndResults = (): [
   ParentConstraints<any>,
   StateConstraint[]
 ] => {
   const results: StateConstraint[] = [];
-  const getPath = (accessor: (inputs: any) => any): PropertyPathSegment[] => {
-    const handler = new ParentProxyHandler();
-    const parentValueProxy = new Proxy({}, handler);
-    handler.proxy = parentValueProxy;
-    accessor(parentValueProxy as any);
-    return handler.paths.map((p) =>
-      // TODO: Support all indexes for arrays
-      typeof p === 'number'
-        ? arrayIndexAccess(p)
-        : p instanceof AllIndexMarker
-        ? arrayIndexAccess('all')
-        : propAccess(p)
-    ) as PropertyPathSegment[];
-  };
   return [
     {
       setValue(accessor, value) {
-        const path = getPath(accessor);
+        const path = getPathFromAccessor(accessor);
         results.push({
           path,
           value,
@@ -121,7 +62,7 @@ export const getParentConstraintsUtilsAndResults = (): [
       ) {
         const [parentConstraints, constraints] =
           getParentConstraintsUtilsAndResults();
-        const path = getPath(accessor);
+        const path = getPathFromAccessor(accessor);
         results.push({
           path,
           ancestorConstraints: constraints,

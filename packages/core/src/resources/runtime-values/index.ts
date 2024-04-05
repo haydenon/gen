@@ -4,6 +4,7 @@ export {
   mapValue,
   mapValues,
   getRuntimeResourceValue,
+  resolve,
 } from './runtime-values';
 
 export {
