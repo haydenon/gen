@@ -84,7 +84,7 @@ class SubBase extends PropertiesBase {
   inheritedMockText: PropertyDefinition<string> = def(
     string(
       dependentGenerator(this, (values) =>
-        resolve(MockDefinition, values.mockId, (mock) => mock.text)
+        resolve(MockResource, values.mockId, (mock) => mock.text)
       )
     )
   );

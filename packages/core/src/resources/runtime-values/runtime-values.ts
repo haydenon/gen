@@ -105,13 +105,10 @@ type OutputsForResource<T> = T extends Resource<PropertyMap, infer Outputs>
   ? OutputValues<Outputs>
   : never;
 
-export function resolve<
-  ResConstructor extends abstract new (...args: any) => any,
-  T
->(
-  resourceType: ResConstructor,
+export function resolve<Res extends Resource<PropertyMap, PropertyMap>, T>(
+  resourceType: Res,
   value: Value<any>,
-  accessor: (outputs: OutputsForResource<InstanceType<ResConstructor>>) => T
+  accessor: (outputs: OutputsForResource<Res>) => T
 ): RuntimeValue<T> {
   if (value instanceof RuntimeValue) {
     if (value.depdendentStateNames.length !== 1) {
