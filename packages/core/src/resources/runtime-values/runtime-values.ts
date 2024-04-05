@@ -110,7 +110,7 @@ export function resolve<Res extends Resource<PropertyMap, PropertyMap>, T>(
   value: Value<any>,
   accessor: (outputs: OutputsForResource<Res>) => T
 ): RuntimeValue<T> {
-  if (value instanceof RuntimeValue) {
+  if (isRuntimeValue(value)) {
     if (value.depdendentStateNames.length !== 1) {
       throw new Error(
         'lookup(...) currently only supports simple runtime values from a single resource'
