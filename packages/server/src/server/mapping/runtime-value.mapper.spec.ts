@@ -5,6 +5,7 @@ import {
   Expr,
 } from '@haydenon/gen-core/src/resources/runtime-values/ast/expressions';
 import { replaceRuntimeValueTemplates } from './runtime-value.mapper';
+import { isRuntimeValue } from '@haydenon/gen-core/src/resources/runtime-values';
 
 const validParserExpr = Expr.Literal(1);
 const validParserRuntimeValue = new RuntimeValue([], validParserExpr);
@@ -100,10 +101,10 @@ describe('Mapping expression strings', () => {
     ) as [RuntimeValue<any>, Error[]];
 
     // Assert
-    expect(result).toBeInstanceOf(RuntimeValue);
+    expect(isRuntimeValue(result)).toBe(true);
     const runtimeVal = result as RuntimeValue<any>;
     expect(runtimeVal.depdendentStateNames).toEqual([]);
-    expect(runtimeVal.expression.type).toBeInstanceOf('FormatString');
+    expect(runtimeVal.expression.type).toBe('FormatString');
     const formatString = runtimeVal.expression as FormatString;
     expect(formatString.strings.map((s) => s.value)).toEqual([
       'This is ${not an expression}, but ',

@@ -284,6 +284,31 @@ describe('State tree creation', () => {
       inputs: {
         subId: expect.any(RuntimeValue),
         text: expect.anything(),
+        inheritedMockText: expect.objectContaining({
+          depdendentStateNames: [subResource?.name],
+          expression: Expr.GetProp(
+            Expr.GetProp(
+              Expr.GetProp(
+                Expr.Variable(identifier(CREATED_STATE_KEY)),
+                Expr.Literal(MockResource.name)
+              ),
+              Expr.GetProp(
+                Expr.GetProp(
+                  Expr.GetProp(
+                    Expr.Variable(identifier(CREATED_STATE_KEY)),
+                    Expr.Literal(SubResource.name)
+                  ),
+                  Expr.GetProp(
+                    Expr.Variable(identifier(subResource?.name ?? '')),
+                    Expr.Literal('id')
+                  )
+                ),
+                Expr.Literal('mockId')
+              )
+            ),
+            Expr.Literal('text')
+          ),
+        }),
       },
     });
   });
