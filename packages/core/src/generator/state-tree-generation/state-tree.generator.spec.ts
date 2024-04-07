@@ -32,7 +32,9 @@ import { fillInDesiredStateTree } from './state-tree.generator';
 import type { Value } from '../../resources/properties/properties';
 import { ErasedDesiredState } from '../../resources/desired-state';
 import {
+  Expr,
   getRuntimeResourceValue,
+  identifier,
   mapValue,
   mapValues,
   RuntimeValue,
@@ -42,6 +44,9 @@ import {
   getOptionalLink,
   ParentCreationMode,
 } from '../../resources/properties/links';
+import { CREATED_STATE_KEY } from '../../resources/runtime-values/generator-context';
+
+let id = 0;
 
 const anyMockInputs = {
   text: expect.anything(),
@@ -49,7 +54,9 @@ const anyMockInputs = {
   boolean: expect.anything(),
 };
 
-class AnyOutput extends PropertiesBase {}
+class AnyOutput extends PropertiesBase {
+  id: PropertyDefinition<number> = def(int());
+}
 
 class ValidDependentInput extends PropertiesBase {
   a: PropertyDefinition<string> = def(string());
@@ -70,9 +77,9 @@ class ValidDependentInput extends PropertiesBase {
 }
 class ValidResource extends Resource<ValidDependentInput, AnyOutput> {
   constructor() {
-    super(new ValidDependentInput(), new AnyOutput());
+    super(new ValidDependentInput(), new AnyOutput(), 'id');
   }
-  create = () => Promise.resolve({});
+  create = () => Promise.resolve({ id: ++id });
 }
 const Valid = new ValidResource();
 
@@ -96,9 +103,9 @@ class CircularDependentInput extends PropertiesBase {
 }
 class CircularResource extends Resource<CircularDependentInput, AnyOutput> {
   constructor() {
-    super(new CircularDependentInput(), new AnyOutput());
+    super(new CircularDependentInput(), new AnyOutput(), 'id');
   }
-  create = () => Promise.resolve({});
+  create = () => Promise.resolve({ id: ++id });
 }
 const Circular = new CircularResource();
 
@@ -183,9 +190,9 @@ class AdvancedInput extends PropertiesBase {
 
 class AdvancedResource extends Resource<AdvancedInput, AnyOutput> {
   constructor() {
-    super(new AdvancedInput(), new AnyOutput());
+    super(new AdvancedInput(), new AnyOutput(), 'id');
   }
-  create = () => Promise.resolve({});
+  create = () => Promise.resolve({ id: ++id });
 }
 const Advanced = new AdvancedResource();
 
@@ -251,19 +258,19 @@ describe('State tree creation', () => {
         text: expect.anything(),
         inheritedMockText: expect.objectContaining({
           depdendentStateNames: [mockResource?.name],
-          expression: {
-            indexer: {
-              type: 'Literal',
-              value: 'text',
-            },
-            obj: {
-              name: expect.objectContaining({
-                lexeme: mockResource?.name,
-              }),
-              type: 'Variable',
-            },
-            type: 'GetProp',
-          },
+          expression: Expr.GetProp(
+            Expr.GetProp(
+              Expr.GetProp(
+                Expr.Variable(identifier(CREATED_STATE_KEY)),
+                Expr.Literal(MockResource.name)
+              ),
+              Expr.GetProp(
+                Expr.Variable(identifier(mockResource?.name ?? '')),
+                Expr.Literal('id')
+              )
+            ),
+            Expr.Literal('text')
+          ),
         }),
       },
     });
@@ -322,10 +329,9 @@ describe('State tree creation', () => {
     const runtimeValue = filledIn.inputs.b as RuntimeValue<string>;
     expect(
       runtimeValue.evaluate({
-        [dependentState.name]: {
-          desiredState: dependentState,
-          createdState: { text },
-        },
+        [dependentState.name]: Expr.ObjectConstructor([
+          [identifier('text'), Expr.Literal(text)],
+        ]),
       })
     ).toBe(text.toUpperCase());
   });
@@ -354,10 +360,9 @@ describe('State tree creation', () => {
     const runtimeValue = filledIn.inputs.c as RuntimeValue<string>;
     expect(
       runtimeValue.evaluate({
-        [dependentState.name]: {
-          desiredState: dependentState,
-          createdState: { text },
-        },
+        [dependentState.name]: Expr.ObjectConstructor([
+          [identifier('text'), Expr.Literal(text)],
+        ]),
       })
     ).toBe(`${text.split(' ')[0]}${text.length}`);
   });
@@ -516,7 +521,11 @@ describe('State tree creation', () => {
       GreatGrandparentOutputs
     > {
       constructor() {
-        super(new GreatGrandparentInputs(), new GreatGrandparentOutputs());
+        super(
+          new GreatGrandparentInputs(),
+          new GreatGrandparentOutputs(),
+          'id'
+        );
       }
       create({
         text,
@@ -550,7 +559,7 @@ describe('State tree creation', () => {
       GrandparentOutputs
     > {
       constructor() {
-        super(new GrandparentInputs(), new GrandparentOutputs());
+        super(new GrandparentInputs(), new GrandparentOutputs(), 'id');
       }
       create(
         inputs: ResolvedValues<GrandparentInputs>
@@ -611,7 +620,7 @@ describe('State tree creation', () => {
     }
     class ParentResource extends Resource<ParentInputs, ParentOutputs> {
       constructor() {
-        super(new ParentInputs(), new ParentOutputs());
+        super(new ParentInputs(), new ParentOutputs(), 'id');
       }
       create(
         inputs: ResolvedValues<ParentInputs>
@@ -747,7 +756,7 @@ describe('State tree creation', () => {
     }
     class ChildResource extends Resource<ChildInputs, ChildOutputs> {
       constructor() {
-        super(new ChildInputs(), new ChildOutputs());
+        super(new ChildInputs(), new ChildOutputs(), 'id');
       }
       create(
         inputs: ResolvedValues<ChildInputs>

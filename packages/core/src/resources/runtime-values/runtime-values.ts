@@ -1,5 +1,5 @@
 import { DesiredState } from '../desired-state';
-import { CreatedState, Value } from '../properties/properties';
+import { Value } from '../properties/properties';
 import {
   Resource,
   PropertyMap,
@@ -11,23 +11,18 @@ import {
   PropertyPathType,
   getPathFromAccessor,
 } from '../utilities/proxy-path';
-import {
-  FunctionValue,
-  Call,
-  Expr,
-  GetProp,
-  Variable,
-  Literal,
-} from './ast/expressions';
+import { Expr } from './ast/expressions';
 import { identifier } from './ast/tokens/token';
+import { Context } from './context';
 import { evaluate } from './evaluator/evaluator';
+import { CREATED_STATE_KEY } from './generator-context';
 import { getValueExpr } from './value-mapper';
 
 export class RuntimeValue<T> {
   constructor(public depdendentStateNames: string[], public expression: Expr) {}
 
-  evaluate(createdState: CreatedState): T {
-    return evaluate(this.expression, createdState);
+  evaluate(context: Context): T {
+    return evaluate(this.expression, context);
   }
 }
 
@@ -110,29 +105,25 @@ export function resolve<Res extends Resource<PropertyMap, PropertyMap>, T>(
   value: Value<any>,
   accessor: (outputs: OutputsForResource<Res>) => T
 ): RuntimeValue<T> {
-  if (isRuntimeValue(value)) {
-    if (value.depdendentStateNames.length !== 1) {
-      throw new Error(
-        'lookup(...) currently only supports simple runtime values from a single resource'
-      );
-    }
+  const idExpr = isRuntimeValue(value) ? value.expression : Expr.Literal(value);
+  const dependencies = isRuntimeValue(value) ? value.depdendentStateNames : [];
+  const path = getPathFromAccessor(accessor);
+  const getProp = (segment: PropertyPathSegment): any =>
+    segment.type === PropertyPathType.ArrayIndexAccess
+      ? (segment.indexAccess as number)
+      : segment.propertyName;
 
-    const path = getPathFromAccessor(accessor);
-    const getProp = (segment: PropertyPathSegment): any =>
-      segment.type === PropertyPathType.ArrayIndexAccess
-        ? (segment.indexAccess as number)
-        : segment.propertyName;
-    let propExpr = Expr.GetProp(
-      Expr.Variable(identifier(value.depdendentStateNames[0])),
-      Expr.Literal(getProp(path[0]))
-    );
-    for (let i = 1; i < path.length; i++) {
-      propExpr = Expr.GetProp(propExpr, Expr.Literal(getProp(path[i])));
-    }
-    return new RuntimeValue<T>(value.depdendentStateNames, propExpr);
-  }
-
-  throw new Error(
-    'lookup(...) currently has to be used on a runtime value lookup'
+  const createdStateExpr = Expr.GetProp(
+    Expr.Variable(identifier(CREATED_STATE_KEY)),
+    Expr.Literal(resourceType.name)
   );
+  const resourceForIdExpr = Expr.GetProp(createdStateExpr, idExpr);
+  let propExpr = Expr.GetProp(
+    resourceForIdExpr,
+    Expr.Literal(getProp(path[0]))
+  );
+  for (let i = 1; i < path.length; i++) {
+    propExpr = Expr.GetProp(propExpr, Expr.Literal(getProp(path[i])));
+  }
+  return new RuntimeValue(dependencies, propExpr);
 }

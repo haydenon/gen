@@ -27,7 +27,7 @@ class MockOutputs extends MockBase {
 
 class MockDefinition extends Resource<MockBase, MockOutputs> {
   constructor(private time?: number) {
-    super(new MockBase(), new MockOutputs());
+    super(new MockBase(), new MockOutputs(), 'id');
   }
 
   create(inputs: ResolvedValues<MockBase>): Promise<OutputValues<MockOutputs>> {
@@ -51,7 +51,7 @@ export const DelayResource = new MockDefinition(100);
 
 class StallDefinition extends Resource<MockBase, MockOutputs> {
   constructor() {
-    super(new MockBase(), new MockOutputs());
+    super(new MockBase(), new MockOutputs(), 'id');
   }
 
   create(): Promise<OutputValues<MockOutputs>> {
@@ -66,7 +66,7 @@ export const StallResource = new StallDefinition();
 
 class ErrorDefinition extends Resource<MockBase, MockOutputs> {
   constructor() {
-    super(new MockBase(), new MockOutputs());
+    super(new MockBase(), new MockOutputs(), 'id');
   }
 
   create(): Promise<OutputValues<MockOutputs>> {
@@ -96,7 +96,7 @@ class SubOutputs extends SubBase {
 }
 class SubDefinition extends Resource<SubBase, SubOutputs> {
   constructor() {
-    super(new SubBase(), new SubOutputs());
+    super(new SubBase(), new SubOutputs(), 'id');
   }
 
   create(inputs: ResolvedValues<SubBase>): Promise<OutputValues<SubOutputs>> {
@@ -112,6 +112,17 @@ let subSubId = 1;
 class SubSubBase extends PropertiesBase {
   subId: PropertyDefinition<number> = def(getLink(SubResource, (r) => r.id));
   text: PropertyDefinition<string> = def(string());
+  inheritedMockText: PropertyDefinition<string> = def(
+    string(
+      dependentGenerator(this, (values) =>
+        resolve(
+          MockResource,
+          resolve(SubResource, values.subId, (sub) => sub.mockId),
+          (mock) => mock.text
+        )
+      )
+    )
+  );
 }
 class SubSubOutputs extends SubSubBase {
   id: PropertyDefinition<number> = def(int());
@@ -119,7 +130,7 @@ class SubSubOutputs extends SubSubBase {
 }
 class SubSubDefinition extends Resource<SubSubBase, SubSubOutputs> {
   constructor() {
-    super(new SubSubBase(), new SubSubOutputs());
+    super(new SubSubBase(), new SubSubOutputs(), 'id');
   }
 
   create(

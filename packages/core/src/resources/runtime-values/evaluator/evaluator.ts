@@ -1,4 +1,3 @@
-import { CreatedState } from '../../properties/properties';
 import {
   FunctionValue,
   ArrayConstructor,
@@ -16,7 +15,7 @@ import { Context } from '../context';
 import { BASE_CONTEXT } from '../context/base-context';
 
 class EvalutorVisitor implements Visitor<any> {
-  constructor(private createdState: CreatedState, private context: Context) {}
+  constructor(private context: Context) {}
 
   visitLiteralExpr(expr: Literal) {
     return expr.value;
@@ -45,7 +44,7 @@ class EvalutorVisitor implements Visitor<any> {
       return acceptExpr(this, this.context[expr.name.lexeme]);
     }
 
-    return this.createdState[expr.name.lexeme].createdState;
+    throw new Error(`No variable '${expr.name.lexeme}'`);
   }
 
   visitGetExpr(expr: GetProp): any {
@@ -70,7 +69,7 @@ class EvalutorVisitor implements Visitor<any> {
   }
 }
 
-export function evaluate<T>(expression: Expr, createdState: CreatedState): T {
-  const visitor = new EvalutorVisitor(createdState, BASE_CONTEXT);
+export function evaluate<T>(expression: Expr, context: Context): T {
+  const visitor = new EvalutorVisitor({ ...BASE_CONTEXT, ...context });
   return acceptExpr(visitor, expression);
 }

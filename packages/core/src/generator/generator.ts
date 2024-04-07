@@ -1,12 +1,11 @@
-import { PropertyMap, PropertyValues } from '../resources/resource';
+import { PropertyMap, PropertyValues, Resource } from '../resources/resource';
 import {
   ArrayType,
   ComplexType,
-  CreatedState,
   PropertyType,
 } from '../resources/properties/properties';
 import { ErasedResourceInstance } from '../resources/instance';
-import { DesiredState, ErasedDesiredState } from '../resources/desired-state';
+import { ErasedDesiredState } from '../resources/desired-state';
 import { fillInDesiredStateTree } from './state-tree-generation/state-tree.generator';
 import {
   ValueAndPropertyVisitor,
@@ -17,6 +16,12 @@ import {
   RuntimeValue,
 } from '../resources/runtime-values/runtime-values';
 import { Environment } from './environment';
+import { Context } from '../resources';
+import {
+  addCreatedResourceToContext,
+  getNewContext,
+} from '../resources/runtime-values/generator-context';
+import { outputRuntimeValue } from '../resources/runtime-values/outputer/outputer';
 
 const DEFAULT_CREATE_TIMEOUT = 30 * 1000;
 
@@ -32,7 +37,7 @@ interface StateNode {
 const CONCURRENT_CREATIONS = 10;
 
 export interface GenerationContext {
-  environment: Environment
+  environment: Environment;
 }
 
 export interface GeneratorOptions {
@@ -151,11 +156,20 @@ export class Generator {
   private promise: Promise<GeneratedStateResponse>;
 
   private desiredState: ErasedDesiredState[];
+  private runtimeContext: Context;
 
   private constructor(
     private stateNodes: StateNode[],
     private options?: GeneratorOptions
   ) {
+    const resources = stateNodes.reduce((acc, node) => {
+      const resource = node.state.resource;
+      if (!acc.find((res) => res.name === resource.name)) {
+        acc.push(resource);
+      }
+      return acc;
+    }, [] as Resource<PropertyMap, PropertyMap>[]);
+    this.runtimeContext = getNewContext(resources);
     this.desiredState = stateNodes.map((n) => n.state);
     this.notifyItemsPlanned(this.desiredState);
     this.appendReadyNodesToQueue(stateNodes);
@@ -187,6 +201,11 @@ export class Generator {
       this.notifyItemCreateStart(stateItem);
       this.createDesiredState(stateItem)
         .then((instance) => {
+          this.runtimeContext = addCreatedResourceToContext(
+            this.runtimeContext,
+            stateItem,
+            instance
+          );
           this.notifyItemSuccess(instance);
           this.markCreated(stateItem, instance);
           this.runRound();
@@ -248,22 +267,7 @@ export class Generator {
   }
 
   private getRuntimeValue = (runtimeValue: RuntimeValue<any>): any => {
-    const dependentItems = runtimeValue.depdendentStateNames.map(
-      (outputValues) => this.getNodeForState(outputValues)
-    );
-
-    const createdState = dependentItems.reduce((acc, item) => {
-      if (!item.output) {
-        throw new Error('Dependent state should already be created');
-      }
-      acc[item.state.name] = {
-        desiredState: item.state,
-        createdState: item.output.outputs,
-      };
-      return acc;
-    }, {} as CreatedState);
-
-    return runtimeValue.evaluate(createdState);
+    return runtimeValue.evaluate(this.runtimeContext);
   };
 
   private notifyItemsPlanned(stateItems: ErasedDesiredState[]) {

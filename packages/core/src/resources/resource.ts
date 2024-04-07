@@ -59,7 +59,12 @@ export abstract class Resource<
   Outputs extends PropertyMap
 > {
   public name: string;
-  constructor(public inputs: Inputs, public outputs: Outputs, name?: string) {
+  constructor(
+    public inputs: Inputs,
+    public outputs: Outputs,
+    public identifierProperty: keyof Outputs,
+    name?: string
+  ) {
     this.name = name ?? this.constructor.name;
   }
   abstract create(
