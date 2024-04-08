@@ -8,6 +8,31 @@ export class GenerationResult {
   static ValueNotGenerated = new GenerationResult(true);
 }
 
+type Limit<T> = T | { prefer: T; actual: T };
+type NumLimit = Limit<number>;
+
+const hasPreference = <T>(limit: Limit<T>): limit is { prefer: T; actual: T } =>
+  (limit as any).prefer;
+export function getGenerationLimitValue<T>(limit: Limit<T>): T;
+export function getGenerationLimitValue<T>(
+  limit: Limit<T> | undefined
+): T | undefined {
+  if (limit === undefined) {
+    return undefined;
+  }
+  return hasPreference(limit) ? limit.prefer : limit;
+}
+export function getValidationLimitValue<T>(limit: Limit<T>): T;
+export function getValidationLimitValue<T>(
+  limit: Limit<T> | undefined
+): T | undefined {
+  if (limit === undefined) {
+    return undefined;
+  }
+
+  return hasPreference(limit) ? limit.actual : limit;
+}
+
 export interface BaseConstraint<T> {
   validValues?: T[];
   isValid?: (value: T) => boolean;
@@ -17,31 +42,31 @@ export interface BaseConstraint<T> {
 }
 
 export interface IntConstraint extends BaseConstraint<number> {
-  min?: number;
-  max?: number;
+  min?: NumLimit;
+  max?: NumLimit;
   float?: boolean;
   precision?: number;
 }
 
 export interface FloatConstraint extends BaseConstraint<number> {
-  min?: number;
-  max?: number;
+  min?: NumLimit;
+  max?: NumLimit;
   precision?: number;
 }
 
 export interface DateConstraint extends BaseConstraint<Date> {
-  minDate?: Date;
-  maxDate?: Date;
+  minDate?: Limit<Date>;
+  maxDate?: Limit<Date>;
 }
 
 export interface StringConstraint extends BaseConstraint<string> {
-  minLength?: number;
-  maxLength?: number;
+  minLength?: NumLimit;
+  maxLength?: NumLimit;
 }
 
 export interface ArrayConstraint<T> extends BaseConstraint<T[]> {
-  minItems?: number;
-  maxItems?: number;
+  minItems?: NumLimit;
+  maxItems?: NumLimit;
 }
 
 export type StringOrIntLink<

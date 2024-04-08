@@ -1,6 +1,10 @@
 import { InputValues, PropertyMap, PropertyValues } from '../resource';
 import { isRuntimeValue, RuntimeValue } from '../runtime-values';
-import { BaseConstraint, Constraint } from './constraints';
+import {
+  BaseConstraint,
+  Constraint,
+  getValidationLimitValue,
+} from './constraints';
 import {
   ArrayType,
   BooleanType,
@@ -126,8 +130,8 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
         return value;
       case Type.Int: {
         const numConstraint = unknownConstraint as Constraint<number>;
-        min = numConstraint.min;
-        max = numConstraint.max;
+        min = getValidationLimitValue(numConstraint.min);
+        max = getValidationLimitValue(numConstraint.max);
         break;
       }
       case Type.Float: {
@@ -141,26 +145,26 @@ class ValidateInputVisitor extends ValueAndPropertyVisitor<any> {
             );
           }
         }
-        min = numConstraint.min;
-        max = numConstraint.max;
+        min = getValidationLimitValue(numConstraint.min);
+        max = getValidationLimitValue(numConstraint.max);
         break;
       }
       case Type.String: {
         const strConstraint = unknownConstraint as Constraint<string>;
-        min = strConstraint.minLength;
-        max = strConstraint.maxLength;
+        min = getValidationLimitValue(strConstraint.minLength);
+        max = getValidationLimitValue(strConstraint.maxLength);
         break;
       }
       case Type.Date: {
         const dateConstraint = unknownConstraint as Constraint<Date>;
-        min = dateConstraint.minDate?.getTime();
-        max = dateConstraint.maxDate?.getTime();
+        min = getValidationLimitValue(dateConstraint.minDate)?.getTime();
+        max = getValidationLimitValue(dateConstraint.maxDate)?.getTime();
         break;
       }
       case Type.Array: {
         const arrConstraint = unknownConstraint as Constraint<any[]>;
-        min = arrConstraint.minItems;
-        max = arrConstraint.maxItems;
+        min = getValidationLimitValue(arrConstraint.minItems);
+        max = getValidationLimitValue(arrConstraint.maxItems);
         break;
       }
     }

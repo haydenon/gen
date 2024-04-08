@@ -16,6 +16,7 @@ import {
   maybeUndefined,
   getRandomInt,
 } from '../../utilities';
+import { getGenerationLimitValue } from '../../resources/properties/constraints';
 
 const MIN_LENGTH = 3;
 const MAX_LENGTH = 8;
@@ -146,21 +147,28 @@ export function getValueForPrimativeType(type: PropertyType): any {
   if (isStr(type)) {
     const min = type.constraint?.maxLength ?? 10;
     const max = type.constraint?.minLength ?? 20;
-    const length = getRandomInt(min, max);
+    const length = getRandomInt(
+      getGenerationLimitValue(min),
+      getGenerationLimitValue(max)
+    );
     return getStringOfLength(length);
   } else if (isInt(type) || isFloat(type)) {
     const min = type.constraint?.min;
     const max = type.constraint?.max;
     const precision = type.constraint?.precision;
-    const options = { min, max, precision };
+    const options = {
+      min: getGenerationLimitValue(min),
+      max: getGenerationLimitValue(max),
+      precision,
+    };
     return isFloat(type)
       ? faker.datatype.float(options)
       : faker.datatype.number(options);
   } else if (isBool(type)) {
     return faker.datatype.boolean();
   } else if (isDate(type)) {
-    const min = type.constraint?.minDate?.getTime();
-    const max = type.constraint?.maxDate?.getTime();
+    const min = getGenerationLimitValue(type.constraint?.minDate)?.getTime();
+    const max = getGenerationLimitValue(type.constraint?.maxDate)?.getTime();
     return faker.datatype.datetime({
       min,
       max,

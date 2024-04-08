@@ -27,8 +27,15 @@ import {
   StateAndConstraints,
   StateConstraint,
 } from '../../resources/state-constraints';
-import { LinkConstraint } from '../../resources/properties/constraints';
-import { PropertyPathSegment, arrayIndexAccess, propAccess } from '../../resources/utilities/proxy-path';
+import {
+  LinkConstraint,
+  getGenerationLimitValue,
+} from '../../resources/properties/constraints';
+import {
+  PropertyPathSegment,
+  arrayIndexAccess,
+  propAccess,
+} from '../../resources/utilities/proxy-path';
 
 function fillInType(
   current: NewStateAndConstraints,
@@ -89,7 +96,10 @@ function fillInType(
   if (isArray(type)) {
     const min = type.constraint?.minItems ?? 0;
     const max = type.constraint?.maxItems ?? 10;
-    const count = getRandomInt(min, max);
+    const count = getRandomInt(
+      getGenerationLimitValue(min),
+      getGenerationLimitValue(max)
+    );
     const mapped = [...Array(count).keys()].map((_, i) =>
       fillInType(
         current,

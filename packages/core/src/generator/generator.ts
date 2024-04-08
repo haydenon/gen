@@ -21,7 +21,6 @@ import {
   addCreatedResourceToContext,
   getNewContext,
 } from '../resources/runtime-values/generator-context';
-import { outputRuntimeValue } from '../resources/runtime-values/outputer/outputer';
 
 const DEFAULT_CREATE_TIMEOUT = 30 * 1000;
 
@@ -29,7 +28,7 @@ interface StateNode {
   state: ErasedDesiredState;
   depth: number;
   dependencies: StateNode[];
-  depedendents: StateNode[];
+  depedendents: Set<StateNode>;
   output?: ErasedResourceInstance;
   error?: GenerationError;
 }
@@ -368,7 +367,7 @@ export class Generator {
 
     node.output = output;
     this.inProgressCount--;
-    this.appendReadyNodesToQueue(node.depedendents);
+    this.appendReadyNodesToQueue(Array.from(node.depedendents));
   }
 
   private markFailed(state: ErasedDesiredState, error: Error): void {
@@ -415,7 +414,7 @@ export class Generator {
       depth: 0,
       created: false,
       dependencies: [],
-      depedendents: [],
+      depedendents: new Set(),
     }));
 
     for (const node of nodes) {
@@ -433,7 +432,7 @@ export class Generator {
         )) {
           const runtimeValueNode = getNode(nodes)(item);
           node.dependencies.push(runtimeValueNode);
-          runtimeValueNode.depedendents.push(node);
+          runtimeValueNode.depedendents.add(node);
         }
       }
     }
