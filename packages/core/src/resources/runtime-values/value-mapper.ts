@@ -49,8 +49,13 @@ export const getValueExpr = (value: any): Expr => {
     return Expr.ArrayConstructor(value.map(getValueExpr));
   }
   if (typeof value === 'object') {
-    return Expr.ArrayConstructor(value.map(getValueExpr));
+    return Expr.ObjectConstructor(
+      Object.keys(value).map((key) => [
+        identifier(key),
+        getValueExpr(value[key]),
+      ])
+    );
   }
 
-  throw new Error('Invalid expression');
+  throw new Error('Invalid expression: ' + JSON.stringify(value));
 };

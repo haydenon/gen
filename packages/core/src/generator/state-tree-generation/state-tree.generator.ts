@@ -49,7 +49,23 @@ function fillInType(
   if (matchingConstraints.length > 0) {
     const valueConstraint = matchingConstraints.find((c) => 'value' in c);
     if (valueConstraint) {
-      const value = valueConstraint.value;
+      let value = valueConstraint.value;
+      const constraintsAndState = [];
+      if (value instanceof Function) {
+        const [baseGeneratedValue, baseConstraintsAndState] = fillInType(
+          {
+            ...current,
+            constraints: current.constraints.filter(
+              (c) => !matchingConstraints.includes(c)
+            ),
+          },
+          currentPath,
+          type,
+          inputs
+        );
+        value = value(baseGeneratedValue);
+        constraintsAndState.push(...baseConstraintsAndState);
+      }
       // TODO: Better access and modeling for links
 
       if (isRuntimeValue(value) && value.depdendentStateNames.length > 0) {
@@ -59,6 +75,7 @@ function fillInType(
         return [
           value,
           [
+            ...constraintsAndState,
             {
               name: value.depdendentStateNames[0],
               constraints: ancestorConstraints,
@@ -66,7 +83,7 @@ function fillInType(
           ],
         ];
       }
-      return [value, []];
+      return [value, constraintsAndState];
     }
   }
 

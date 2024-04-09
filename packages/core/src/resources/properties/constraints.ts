@@ -81,7 +81,7 @@ export interface ParentConstraints<
 > {
   setValue<V>(
     accessor: (parentInputs: ResolvedValues<T['inputs']>) => V,
-    value: Value<V>
+    value: Value<V> | ((val: Value<V>) => Value<V>)
   ): void;
   ancestor<Ancestor extends ResourceOrGroupItem<PropertyMap, PropertyMap>>(
     accessor: (parentInputs: ResolvedValues<T['inputs']>) => string | number

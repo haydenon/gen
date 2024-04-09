@@ -2,6 +2,7 @@ import { GenerationContext } from '../generator';
 import { PropertyDefinition } from './properties/properties';
 import { RuntimeValue } from './runtime-values';
 import { BASE_CONTEXT } from './runtime-values/context/base-context';
+import { PropertyPathType, getPathFromAccessor } from './utilities/proxy-path';
 
 export interface PropertyMap {
   [name: string]: PropertyDefinition<unknown>;
@@ -59,13 +60,23 @@ export abstract class Resource<
   Outputs extends PropertyMap
 > {
   public name: string;
+  public identifierProperty: string;
   constructor(
     public inputs: Inputs,
     public outputs: Outputs,
-    public identifierProperty: keyof Outputs,
+    identifierAccessor: (outputs: OutputValues<Outputs>) => any,
     name?: string
   ) {
     this.name = name ?? this.constructor.name;
+    const identifierPath = getPathFromAccessor(identifierAccessor);
+    if (
+      identifierPath.length != 1 ||
+      identifierPath[0].type !== PropertyPathType.PropertyAccess
+    ) {
+      throw new Error('Identifier should be direct property on outputs');
+    }
+
+    this.identifierProperty = identifierPath[0].propertyName;
   }
   abstract create(
     inputs: ResolvedValues<Inputs>,
