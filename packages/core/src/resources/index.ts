@@ -49,7 +49,7 @@ export {
   identifier,
   BASE_CONTEXT_TYPES,
   evaluate,
-  resolve
+  resolve,
 } from './runtime-values';
 export type {
   ExprType,
@@ -70,5 +70,6 @@ export {
   dependentGenerator,
   generator,
   parentConstraint,
+  isProvided,
 } from './properties/constraints';
 export type { Constraint } from './properties/constraints';

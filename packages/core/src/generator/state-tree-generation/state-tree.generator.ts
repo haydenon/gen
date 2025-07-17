@@ -3,13 +3,20 @@ import {
   PropertyType,
   isComplex,
   isArray,
+  isNullable,
+  isUndefinable,
 } from '../../resources/properties/properties';
 import {
   ErasedDesiredState,
   createDesiredState,
 } from '../../resources/desired-state';
 import { PropertyValues, PropertyMap } from '../../resources/resource';
-import { getRandomInt, maybeUndefined } from '../../utilities';
+import {
+  getRandomInt,
+  maybeNull,
+  maybeNullOrUndefined,
+  maybeUndefined,
+} from '../../utilities';
 import { getValueForPrimativeType } from './primatives.generator';
 import {
   getRuntimeResourceValue,
@@ -28,6 +35,7 @@ import {
   StateConstraint,
 } from '../../resources/state-constraints';
 import {
+  CHECKING_PROVISION,
   LinkConstraint,
   getGenerationLimitValue,
 } from '../../resources/properties/constraints';
@@ -173,6 +181,32 @@ function fillInType(
     return [link, [{ state: parentState, constraints: parentConstraints }]];
   }
 
+  const handleMaybeReturn = (
+    func: <T>(value: () => T) => null | undefined | T,
+    innerType: PropertyType
+  ): [any, StateAndConstraints[]] => {
+    const res = func(() => fillInType(current, currentPath, innerType, inputs));
+
+    if (res === undefined || res === null) {
+      return [res, []];
+    } else {
+      return res;
+    }
+  };
+
+  if (isNullable(type)) {
+    if (isUndefinable(type.inner)) {
+      const innerType = type.inner.inner;
+      return handleMaybeReturn(maybeNullOrUndefined, innerType);
+    }
+
+    return handleMaybeReturn(maybeNull, type.inner);
+  }
+
+  if (isUndefinable(type)) {
+    return handleMaybeReturn(maybeUndefined, type.inner);
+  }
+
   return [getValueForPrimativeType(type), []];
 }
 
@@ -208,10 +242,15 @@ function fillInInput(
     return (values[key] = value);
   };
 
+  const checkForKey = (key: string) => key in values;
+
   const inputProxy: PropertyValues<PropertyMap> = {};
   for (const prop of Object.keys(stateAndConstraints.state.resource.inputs)) {
     Object.defineProperty(inputProxy, prop, {
-      get: () => getForKey(prop),
+      get: () =>
+        (inputProxy as any)[CHECKING_PROVISION] !== true
+          ? getForKey(prop)
+          : checkForKey(prop),
     });
   }
 

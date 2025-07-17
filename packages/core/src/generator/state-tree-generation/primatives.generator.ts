@@ -2,8 +2,6 @@ import { faker } from '@faker-js/faker';
 import { paragraph } from 'txtgen';
 import {
   PropertyType,
-  isNullable,
-  isUndefinable,
   isStr,
   isInt,
   isFloat,
@@ -11,9 +9,6 @@ import {
   isDate,
 } from '../../resources/properties/properties';
 import {
-  maybeNullOrUndefined,
-  maybeNull,
-  maybeUndefined,
   getRandomInt,
 } from '../../utilities';
 import { getGenerationLimitValue } from '../../resources/properties/constraints';
@@ -131,19 +126,6 @@ function generateLongText(length: number): string {
 }
 
 export function getValueForPrimativeType(type: PropertyType): any {
-  if (isNullable(type)) {
-    if (isUndefinable(type.inner)) {
-      const innerType = type.inner.inner;
-      return maybeNullOrUndefined(() => getValueForPrimativeType(innerType));
-    }
-
-    return maybeNull(() => getValueForPrimativeType(type.inner));
-  }
-
-  if (isUndefinable(type)) {
-    return maybeUndefined(() => getValueForPrimativeType(type.inner));
-  }
-
   if (isStr(type)) {
     const min = type.constraint?.maxLength ?? 10;
     const max = type.constraint?.minLength ?? 20;
