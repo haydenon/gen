@@ -262,14 +262,14 @@ function fillInInput(
   let checkingProvidedProperties = false;
   Object.defineProperty(inputProxy, CHECKING_PROVISION, {
     get: () => checkingProvidedProperties,
-    set: (value: boolean) => (checkingProvidedProperties = value),
+    set: (value: boolean) => {
+      checkingProvidedProperties = value;
+    },
   });
   for (const prop of Object.keys(stateAndConstraints.state.resource.inputs)) {
     Object.defineProperty(inputProxy, prop, {
       get: () => {
-        return (inputProxy as any)[CHECKING_PROVISION]
-          ? checkForKey(prop)
-          : getForKey(prop);
+        return checkingProvidedProperties ? checkForKey(prop) : getForKey(prop);
       },
     });
   }
