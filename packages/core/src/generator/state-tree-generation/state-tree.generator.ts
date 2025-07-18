@@ -228,11 +228,14 @@ function fillInInput(
   visitedFields.push(fieldName);
 
   const getForKey = (key: string) => {
+    // If it's set, just return the value
+    if (key in values) {
+      return values[key];
+    }
+
     if (visitedFields.includes(key)) {
       throw new Error(
-        `Circular property generation from property '${
-          visitedFields[0]
-        }' on resource '${
+        `Circular property generation from property '${key}' on resource '${
           stateAndConstraints.state.resource.name
         }'. Path: [${visitedFields.join(', ')}]`
       );
@@ -240,10 +243,6 @@ function fillInInput(
     visitedFields.push(key);
 
     const inputDef = stateAndConstraints.state.resource.inputs[key];
-
-    if (key in values) {
-      return values[key];
-    }
 
     const [value, parentStates] = fillInType(
       stateAndConstraints,
