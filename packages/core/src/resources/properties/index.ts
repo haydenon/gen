@@ -15,4 +15,5 @@ export {
 } from './properties';
 export { validateInputValue, validateInputValues } from './validation';
 export { dependentGenerator, generator, GenerationResult } from './constraints';
+export { isProvided } from './utilities';
 export type { Constraint } from './constraints';
