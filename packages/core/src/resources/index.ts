@@ -70,6 +70,6 @@ export {
   dependentGenerator,
   generator,
   parentConstraint,
-  isProvided,
 } from './properties/constraints';
+export { isProvided } from './properties/utilities';
 export type { Constraint } from './properties/constraints';

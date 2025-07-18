@@ -35,7 +35,6 @@ import {
   StateConstraint,
 } from '../../resources/state-constraints';
 import {
-  CHECKING_PROVISION,
   LinkConstraint,
   getGenerationLimitValue,
 } from '../../resources/properties/constraints';
@@ -44,12 +43,14 @@ import {
   arrayIndexAccess,
   propAccess,
 } from '../../resources/utilities/proxy-path';
+import { CHECKING_PROVISION } from '../../resources/properties/utilities';
 
 function fillInType(
   current: NewStateAndConstraints,
   currentPath: PropertyPathSegment[],
   type: PropertyType,
-  inputs: PropertyValues<PropertyMap>
+  inputs: PropertyValues<PropertyMap>,
+  visitedFields: string[]
 ): [any, StateAndConstraints[]] {
   const matchingConstraints = current.constraints.filter(({ path }) =>
     pathMatches(currentPath, path)
@@ -69,7 +70,8 @@ function fillInType(
           },
           currentPath,
           type,
-          inputs
+          inputs,
+          visitedFields
         );
         value = value(baseGeneratedValue);
         constraintsAndState.push(...baseConstraintsAndState);
@@ -109,7 +111,8 @@ function fillInType(
           current,
           [...currentPath, propAccess(field)],
           type.fields[field],
-          inputs
+          inputs,
+          visitedFields
         );
         acc[field] = value;
         return [acc, [...states, ...newStates]];
@@ -130,7 +133,8 @@ function fillInType(
         current,
         [...currentPath, arrayIndexAccess(i)],
         type.inner,
-        inputs
+        inputs,
+        visitedFields
       )
     );
     return [
@@ -185,7 +189,9 @@ function fillInType(
     func: <T>(value: () => T) => null | undefined | T,
     innerType: PropertyType
   ): [any, StateAndConstraints[]] => {
-    const res = func(() => fillInType(current, currentPath, innerType, inputs));
+    const res = func(() =>
+      fillInType(current, currentPath, innerType, inputs, visitedFields)
+    );
 
     if (res === undefined || res === null) {
       return [res, []];
@@ -215,16 +221,23 @@ function fillInInput(
   input: PropertyDefinition<any>,
   fieldName: string
 ): [any, StateAndConstraints[]] {
-  let currentInput: string | undefined;
+  const visitedFields: string[] = [];
+
   const values = stateAndConstraints.state.inputs;
   let newState: StateAndConstraints[] = [];
+  visitedFields.push(fieldName);
+
   const getForKey = (key: string) => {
-    // TODO: Make sure error is reported correctly
-    if (currentInput === key) {
+    if (visitedFields.includes(key)) {
       throw new Error(
-        `Circular property generation from property '${currentInput}' on resource '${stateAndConstraints.state.resource.name}'`
+        `Circular property generation from property '${
+          visitedFields[0]
+        }' on resource '${
+          stateAndConstraints.state.resource.name
+        }'. Path: [${visitedFields.join(', ')}]`
       );
     }
+    visitedFields.push(key);
 
     const inputDef = stateAndConstraints.state.resource.inputs[key];
 
@@ -236,7 +249,8 @@ function fillInInput(
       stateAndConstraints,
       [propAccess(key)],
       inputDef.type,
-      inputProxy
+      inputProxy,
+      visitedFields
     );
     newState = [...newState, ...parentStates];
     return (values[key] = value);
@@ -245,12 +259,18 @@ function fillInInput(
   const checkForKey = (key: string) => key in values;
 
   const inputProxy: PropertyValues<PropertyMap> = {};
+  let checkingProvidedProperties = false;
+  Object.defineProperty(inputProxy, CHECKING_PROVISION, {
+    get: () => checkingProvidedProperties,
+    set: (value: boolean) => (checkingProvidedProperties = value),
+  });
   for (const prop of Object.keys(stateAndConstraints.state.resource.inputs)) {
     Object.defineProperty(inputProxy, prop, {
-      get: () =>
-        (inputProxy as any)[CHECKING_PROVISION] !== true
-          ? getForKey(prop)
-          : checkForKey(prop),
+      get: () => {
+        return (inputProxy as any)[CHECKING_PROVISION]
+          ? checkForKey(prop)
+          : getForKey(prop);
+      },
     });
   }
 
@@ -258,7 +278,8 @@ function fillInInput(
     stateAndConstraints,
     [propAccess(fieldName)],
     input.type,
-    inputProxy
+    inputProxy,
+    visitedFields
   );
   newState = [...newState, ...parentStates];
   return [value, newState];
