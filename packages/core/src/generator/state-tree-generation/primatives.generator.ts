@@ -8,10 +8,14 @@ import {
   isBool,
   isDate,
 } from '../../resources/properties/properties';
+import { getRandomInt } from '../../utilities';
 import {
-  getRandomInt,
-} from '../../utilities';
-import { getGenerationLimitValue } from '../../resources/properties/constraints';
+  DateConstraint,
+  FloatConstraint,
+  getGenerationLimitValue,
+  IntConstraint,
+  StringConstraint,
+} from '../../resources/properties/constraints';
 
 const MIN_LENGTH = 3;
 const MAX_LENGTH = 8;
@@ -125,35 +129,63 @@ function generateLongText(length: number): string {
   return `${shortenedText} ${getStringOfLength(remainingLength, false)}.`;
 }
 
+export function createString(constraint?: StringConstraint): string {
+  const min = constraint?.maxLength ?? 10;
+  const max = constraint?.minLength ?? 20;
+  const length = getRandomInt(
+    getGenerationLimitValue(min),
+    getGenerationLimitValue(max)
+  );
+  return getStringOfLength(length);
+}
+
+export function createFloat(constraint?: FloatConstraint): number {
+  const min = constraint?.min;
+  const max = constraint?.max;
+  const precision = constraint?.precision;
+  const options = {
+    min: getGenerationLimitValue(min),
+    max: getGenerationLimitValue(max),
+    precision,
+  };
+  return faker.datatype.float(options);
+}
+
+export function createInt(constraint?: IntConstraint): number {
+  const min = constraint?.min;
+  const max = constraint?.max;
+  const precision = constraint?.precision;
+  const options = {
+    min: getGenerationLimitValue(min),
+    max: getGenerationLimitValue(max),
+    precision,
+  };
+  return faker.datatype.number(options);
+}
+
+export function createBoolean(): boolean {
+  return faker.datatype.boolean();
+}
+
+export function createDate(constraint?: DateConstraint): Date {
+  const min = getGenerationLimitValue(constraint?.minDate)?.getTime();
+  const max = getGenerationLimitValue(constraint?.maxDate)?.getTime();
+  return faker.datatype.datetime({
+    min,
+    max,
+  });
+}
+
 export function getValueForPrimativeType(type: PropertyType): any {
   if (isStr(type)) {
-    const min = type.constraint?.maxLength ?? 10;
-    const max = type.constraint?.minLength ?? 20;
-    const length = getRandomInt(
-      getGenerationLimitValue(min),
-      getGenerationLimitValue(max)
-    );
-    return getStringOfLength(length);
-  } else if (isInt(type) || isFloat(type)) {
-    const min = type.constraint?.min;
-    const max = type.constraint?.max;
-    const precision = type.constraint?.precision;
-    const options = {
-      min: getGenerationLimitValue(min),
-      max: getGenerationLimitValue(max),
-      precision,
-    };
-    return isFloat(type)
-      ? faker.datatype.float(options)
-      : faker.datatype.number(options);
+    return createString(type.constraint);
+  } else if (isFloat(type)) {
+    return createFloat(type.constraint);
+  } else if (isInt(type)) {
+    return createInt(type.constraint);
   } else if (isBool(type)) {
-    return faker.datatype.boolean();
+    return createBoolean();
   } else if (isDate(type)) {
-    const min = getGenerationLimitValue(type.constraint?.minDate)?.getTime();
-    const max = getGenerationLimitValue(type.constraint?.maxDate)?.getTime();
-    return faker.datatype.datetime({
-      min,
-      max,
-    });
+    return createDate(type.constraint);
   }
 }
