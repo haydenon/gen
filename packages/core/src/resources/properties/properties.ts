@@ -228,7 +228,8 @@ export function lookup<Prop extends PropertyType>(
     constraint: {
       validValues: getLookupValues(values),
       isValid: (value: TypeForPropertyType<Prop>) => isOneOf(values, value),
-      generateConstrainedValue: () => oneOf(values),
+      generateConstrainedValue:
+        property.constraint?.generateConstrainedValue ?? (() => oneOf(values)),
     },
   };
 }
@@ -276,7 +277,9 @@ export function tree<Prop extends PropertyType>(
       tree: values,
       validValues: allLeaves,
       isValid: (value: TypeForPropertyType<Prop>) => isOneOf(allLeaves, value),
-      generateConstrainedValue: () => oneOf(allLeaves),
+      generateConstrainedValue:
+        property.constraint?.generateConstrainedValue ??
+        (() => oneOf(allLeaves)),
     },
   };
 }
