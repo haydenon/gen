@@ -121,7 +121,13 @@ export class GenServer {
 
       if (!environment) {
         res.status(400);
-        res.send(createErrorResponse('Invalid environment provided'));
+        res.send(
+          createErrorResponse(
+            `Invalid environment provided. Valid environments are: ${this.options.environments
+              .map((e) => e.name)
+              .join(', ')}.`
+          )
+        );
         return;
       }
 
@@ -159,7 +165,13 @@ export class GenServer {
         (env) => env.name === message.environment
       );
       if (!environment) {
-        send(createErrorResponse('Invalid environment provided'));
+        send(
+          createErrorResponse(
+            `Invalid environment provided. Valid environments are: ${this.options.environments
+              .map((e) => e.name)
+              .join(', ')}.`
+          )
+        );
         return;
       }
 
