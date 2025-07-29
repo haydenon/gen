@@ -23,9 +23,16 @@ export {
   array,
   complex,
   lookup,
+  tree,
+  isParent,
+  isLeaf,
   Type,
 } from './properties/properties';
-export type { PropertyType, PropertyDefinition } from './properties/properties';
+export type {
+  PropertyType,
+  PropertyDefinition,
+  TreeNode,
+} from './properties/properties';
 export {
   getLink,
   ParentCreationMode,

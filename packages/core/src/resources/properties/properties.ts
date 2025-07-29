@@ -233,6 +233,54 @@ export function lookup<Prop extends PropertyType>(
   };
 }
 
+interface ParentNode<T> {
+  name: string;
+  children: TreeNode<T>[];
+  value: T;
+}
+
+interface LeafNode<T> {
+  name: string;
+  value: T;
+}
+
+export function isParent<T>(treeNode: TreeNode<T>): treeNode is ParentNode<T> {
+  return 'children' in treeNode;
+}
+
+export function isLeaf<T>(treeNode: TreeNode<T>): treeNode is LeafNode<T> {
+  return !isParent(treeNode);
+}
+
+export type TreeNode<T> = ParentNode<T> | LeafNode<T>;
+
+export function tree<Prop extends PropertyType>(
+  property: Prop,
+  values: TreeNode<TypeForPropertyType<Prop>>
+): Prop {
+  type PropType = TypeForPropertyType<Prop>;
+  const allLeaves: PropType[] = [];
+  const getLeaves = (node: TreeNode<PropType>): void => {
+    if (isParent(node)) {
+      for (const child of node.children) {
+        getLeaves(child);
+      }
+    } else {
+      allLeaves.push(node.value);
+    }
+  };
+  getLeaves(values);
+  return {
+    ...property,
+    constraint: {
+      tree: values,
+      validValues: allLeaves,
+      isValid: (value: TypeForPropertyType<Prop>) => isOneOf(allLeaves, value),
+      generateConstrainedValue: () => oneOf(allLeaves),
+    },
+  };
+}
+
 export function bool(constraint?: Constraint<boolean>): BooleanType {
   return {
     type: Type.Boolean,

@@ -5,6 +5,9 @@ import { WELL_KNOWN_RUNTIME_VALUES } from '../areas/resources/runtime-value';
 export const generateDefaultValue = (
   propertyType: PropertyTypeResponse
 ): any => {
+  if (propertyType.constraint?.tree) {
+    return undefined;
+  }
   if (propertyType.constraint?.validValues) {
     return propertyType.constraint?.validValues[0];
   }

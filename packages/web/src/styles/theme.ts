@@ -127,6 +127,7 @@ const darkTheme = css`
 export const ThemeStyle = createGlobalStyle`
 :root {
   /* Spacing */
+  --spacing-extraTiny: 4px;
   --spacing-tiny: 8px;
   --spacing-small: 16px;
   --spacing-base: 24px;

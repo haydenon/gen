@@ -21,6 +21,7 @@ import DateInput from './DateInput';
 import { DesiredStateFormError } from '../desired-resources/desired-resource';
 import { useMemo } from 'react';
 import LookupInput from './LookupInput';
+import TreeInput from './TreeInput';
 
 interface TypeProps extends BaseInputProps {
   type: PropertyTypeResponse;
@@ -36,7 +37,25 @@ export const InputForType = ({
   onChange,
   ...baseProps
 }: TypeProps) => {
-  if (type.constraint?.validValues !== undefined) {
+  if (type.type === Type.Undefinable || type.type === Type.Nullable) {
+    return (
+      <UndefinableNullableField
+        {...baseProps}
+        type={type}
+        value={value}
+        onChange={onChange}
+      />
+    );
+  } else if (type.constraint?.tree !== undefined) {
+    return (
+      <TreeInput
+        {...baseProps}
+        tree={type.constraint.tree}
+        value={value}
+        onChange={onChange}
+      />
+    );
+  } else if (type.constraint?.validValues !== undefined) {
     return (
       <LookupInput
         {...baseProps}
@@ -90,17 +109,6 @@ export const InputForType = ({
         <LinkInput
           type={type}
           {...baseProps}
-          value={value}
-          onChange={onChange}
-        />
-      );
-
-    case Type.Undefinable:
-    case Type.Nullable:
-      return (
-        <UndefinableNullableField
-          {...baseProps}
-          type={type}
           value={value}
           onChange={onChange}
         />

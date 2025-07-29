@@ -11,8 +11,12 @@ export {
   array,
   complex,
   lookup,
+  tree,
+  isParent,
+  isLeaf,
   Type,
 } from './properties';
+export type { TreeNode } from './properties';
 export { validateInputValue, validateInputValues } from './validation';
 export { dependentGenerator, generator, GenerationResult } from './constraints';
 export { isProvided } from './utilities';

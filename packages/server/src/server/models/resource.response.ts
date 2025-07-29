@@ -1,6 +1,7 @@
-import { Type } from '@haydenon/gen-core';
+import { TreeNode, Type } from '@haydenon/gen-core';
 
 export interface ConstraintResponse {
+  tree?: TreeNode<any>;
   validValues?: any[];
   hasValidator: boolean;
   hasGenerator: boolean;

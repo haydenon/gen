@@ -1,7 +1,7 @@
 import { ParentCreationMode, ResolvedValues } from '..';
 import { PropertyMap, PropertyValues, ResourceOrGroupItem } from '../resource';
 import { RuntimeValue } from '../runtime-values';
-import { IntType, LinkOfType, StringType, Value } from './properties';
+import { IntType, LinkOfType, StringType, TreeNode, Value } from './properties';
 
 export class GenerationResult {
   private constructor(public wasGenerated: boolean) {}
@@ -34,6 +34,7 @@ export function getValidationLimitValue<T>(
 }
 
 export interface BaseConstraint<T> {
+  tree?: TreeNode<T>;
   validValues?: T[];
   isValid?: (value: T) => boolean;
   generateConstrainedValue?: (
