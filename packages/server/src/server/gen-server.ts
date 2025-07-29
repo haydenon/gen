@@ -109,7 +109,25 @@ export class GenServer {
     app.post('/v1/state', async (req, res) => {
       const body = req.body;
 
-      const resp = await this.handleStateCreation(body);
+      let environment: Environment | undefined;
+      if ('environment' in body) {
+        const environmentName = body.environment;
+        environment = this.options.environments.find(
+          (env) => env.name === environmentName
+        );
+      } else if (this.options.environments.length === 1) {
+        environment = this.options.environments[0];
+      }
+
+      if (!environment) {
+        res.status(400);
+        res.send(createErrorResponse('Invalid environment provided'));
+        return;
+      }
+
+      const resp = await this.handleStateCreation(body, {
+        generationContext: { environment },
+      });
       if (resp.success) {
         res.send(resp.body);
       } else {
