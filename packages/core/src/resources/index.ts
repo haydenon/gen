@@ -9,6 +9,7 @@ export type {
   ResolvedValues,
   OutputValues,
   PropertyMap,
+  ResourceDependency,
 } from './resource';
 export {
   def,

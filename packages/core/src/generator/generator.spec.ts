@@ -16,6 +16,10 @@ import {
   SubResource,
   PassThroughResource,
   ConsumerResource,
+  DependsOnResource,
+  DelayedPassThroughResource,
+  WithoutDependsOnResource,
+  DependsOnPassThroughResource,
 } from '../../test/resources';
 import { getRuntimeResourceValue } from '../resources/runtime-values';
 import { isRuntimeValue } from '../resources/runtime-values/runtime-values';
@@ -464,6 +468,198 @@ describe('Generator', () => {
         (c) => c.desiredState.resource === ConsumerResource
       );
       expect(consumer?.outputs.consumedValue).toBe(staticValue);
+    });
+  });
+
+  describe('dependsOn() method', () => {
+    test('without dependsOn, both resources start simultaneously when pass-through value is static', async () => {
+      // Arrange
+      const staticValue = 'test-value';
+      const passThroughState = createDesiredState(DelayedPassThroughResource, {
+        value: staticValue,
+      });
+      const withoutDependsOnState = createDesiredState(
+        WithoutDependsOnResource,
+        {
+          passThroughValue: getRuntimeResourceValue(passThroughState, 'value'),
+          text: 'without-depends-on-text',
+        }
+      );
+
+      const desiredState: ErasedDesiredState[] = [
+        passThroughState,
+        withoutDependsOnState,
+      ];
+
+      const creationStartTimes: { [name: string]: number } = {};
+      const creationFinishTimes: { [name: string]: number } = {};
+
+      const generator = Generator.create(desiredState, {
+        generationContext,
+        onCreateStarting: (resource) => {
+          creationStartTimes[resource.name] = Date.now();
+        },
+        onCreateFinished: (resource) => {
+          creationFinishTimes[resource.desiredState.name] = Date.now();
+        },
+      });
+
+      // Act
+      const result = await generator.generateState();
+
+      // Assert
+      expect(result.createdState).toHaveLength(2);
+
+      // After processKnownOutputs optimizes the static pass-through value away,
+      // both resources should start at nearly the same time
+      const passThroughStartTime =
+        creationStartTimes[passThroughState.name] || 0;
+      const withoutDependsOnStartTime =
+        creationStartTimes[withoutDependsOnState.name] || 0;
+
+      // Both should start within 5ms of each other (simultaneous)
+      const startTimeDiff = Math.abs(
+        passThroughStartTime - withoutDependsOnStartTime
+      );
+      expect(startTimeDiff).toBeLessThan(5);
+
+      // WithoutDependsOn should finish first (it has 10ms delay vs 50ms)
+      const passThroughFinishTime =
+        creationFinishTimes[passThroughState.name] || 0;
+      const withoutDependsOnFinishTime =
+        creationFinishTimes[withoutDependsOnState.name] || 0;
+      expect(withoutDependsOnFinishTime).toBeLessThan(passThroughFinishTime);
+    });
+
+    test('with dependsOn, dependent resource waits for dependency to finish before starting', async () => {
+      // Arrange
+      const passThroughState = createDesiredState(DelayedPassThroughResource, {
+        value: 'test-value',
+      });
+      const dependsOnState = createDesiredState(DependsOnResource, {
+        passThroughId: getRuntimeResourceValue(passThroughState, 'id'),
+        text: 'depends-on-text',
+      });
+
+      const desiredState: ErasedDesiredState[] = [
+        passThroughState,
+        dependsOnState,
+      ];
+
+      const creationStartTimes: { [name: string]: number } = {};
+      const creationFinishTimes: { [name: string]: number } = {};
+
+      const generator = Generator.create(desiredState, {
+        generationContext,
+        onCreateStarting: (resource) => {
+          creationStartTimes[resource.name] = Date.now();
+        },
+        onCreateFinished: (resource) => {
+          creationFinishTimes[resource.desiredState.name] = Date.now();
+        },
+      });
+
+      // Act
+      const result = await generator.generateState();
+
+      // Assert
+      expect(result.createdState).toHaveLength(2);
+
+      const passThroughStartTime =
+        creationStartTimes[passThroughState.name] || 0;
+      const passThroughFinishTime =
+        creationFinishTimes[passThroughState.name] || 0;
+      const dependsOnStartTime = creationStartTimes[dependsOnState.name] || 0;
+
+      // Verify the dependency was declared
+      expect(DependsOnResource.dependencies).toHaveLength(1);
+      expect(DependsOnResource.dependencies[0].resource).toBe(
+        DelayedPassThroughResource
+      );
+
+      // PassThrough should start first
+      expect(passThroughStartTime).toBeLessThan(dependsOnStartTime);
+
+      // DependsOn should NOT start until PassThrough finishes
+      // PassThrough finishes at start + 50ms
+      // DependsOn should start after that
+      expect(dependsOnStartTime).toBeGreaterThanOrEqual(passThroughFinishTime);
+
+      // Verify outputs are correct
+      const passThrough = result.createdState.find(
+        (c) => c.desiredState.resource === DelayedPassThroughResource
+      );
+      const dependsOn = result.createdState.find(
+        (c) => c.desiredState.resource === DependsOnResource
+      );
+      expect(dependsOn?.outputs.passThroughId).toBe(passThrough?.outputs.id);
+    });
+
+    test('with dependsOn on pass-through, dependency preserved even with static value', async () => {
+      // Arrange - Create with static value that would normally be optimized
+      // This is the key difference: same setup as the first test, but with dependsOn()
+      const staticValue = 'static-test-value';
+      const passThroughState = createDesiredState(DelayedPassThroughResource, {
+        value: staticValue,
+      });
+      const dependsOnState = createDesiredState(DependsOnPassThroughResource, {
+        passThroughValue: getRuntimeResourceValue(passThroughState, 'value'),
+        text: 'depends-on-text',
+      });
+
+      const desiredState: ErasedDesiredState[] = [
+        passThroughState,
+        dependsOnState,
+      ];
+
+      const creationStartTimes: { [name: string]: number } = {};
+      const creationFinishTimes: { [name: string]: number } = {};
+
+      const generator = Generator.create(desiredState, {
+        generationContext,
+        onCreateStarting: (resource) => {
+          creationStartTimes[resource.name] = Date.now();
+        },
+        onCreateFinished: (resource) => {
+          creationFinishTimes[resource.desiredState.name] = Date.now();
+        },
+      });
+
+      // Act
+      const result = await generator.generateState();
+
+      // Assert
+      expect(result.createdState).toHaveLength(2);
+
+      const passThroughStartTime =
+        creationStartTimes[passThroughState.name] || 0;
+      const passThroughFinishTime =
+        creationFinishTimes[passThroughState.name] || 0;
+      const dependsOnStartTime = creationStartTimes[dependsOnState.name] || 0;
+
+      // Verify the dependency was declared
+      expect(DependsOnPassThroughResource.dependencies).toHaveLength(1);
+      expect(DependsOnPassThroughResource.dependencies[0].resource).toBe(
+        DelayedPassThroughResource
+      );
+
+      // Even though the pass-through has a static value, the explicit dependency
+      // should be preserved (unlike the first test where it was optimized away)
+      // PassThrough should start first
+      expect(passThroughStartTime).toBeLessThan(dependsOnStartTime);
+
+      // DependsOn should NOT start until PassThrough finishes
+      expect(dependsOnStartTime).toBeGreaterThanOrEqual(passThroughFinishTime);
+
+      // Verify outputs are correct
+      const passThrough = result.createdState.find(
+        (c) => c.desiredState.resource === DelayedPassThroughResource
+      );
+      const dependsOn = result.createdState.find(
+        (c) => c.desiredState.resource === DependsOnPassThroughResource
+      );
+      expect(dependsOn?.outputs.passThroughValue).toBe(staticValue);
+      expect(passThrough?.outputs.value).toBe(staticValue);
     });
   });
 });

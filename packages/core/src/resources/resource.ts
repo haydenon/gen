@@ -55,12 +55,19 @@ export interface ResourceGroupItem<
   create(inputs: any, context: GenerationContext): Promise<any>;
 }
 
+export interface ResourceDependency {
+  resource: Resource<PropertyMap, PropertyMap>;
+  inputPropertyAccessor: (inputs: any) => any;
+}
+
 export abstract class Resource<
   Inputs extends PropertyMap,
   Outputs extends PropertyMap
 > {
   public name: string;
   public identifierProperty: string;
+  public dependencies: ResourceDependency[] = [];
+
   constructor(
     public inputs: Inputs,
     public outputs: Outputs,
@@ -78,6 +85,28 @@ export abstract class Resource<
 
     this.identifierProperty = identifierPath[0].propertyName;
   }
+
+  /**
+   * Declare an explicit dependency on another resource type via an input property.
+   * This ensures the dependency is tracked even if processKnownOutputs replaces
+   * the runtime value with a static value.
+   *
+   * @param resource The resource type this resource depends on
+   * @param inputPropertyAccessor Accessor function to get the input property that links to the dependency
+   *
+   * @example
+   * this.dependsOn(Listing, (i) => i.listingId)
+   */
+  protected dependsOn(
+    resource: Resource<PropertyMap, PropertyMap>,
+    inputPropertyAccessor: (inputs: InputValues<Inputs>) => any
+  ): void {
+    this.dependencies.push({
+      resource,
+      inputPropertyAccessor: inputPropertyAccessor as (inputs: any) => any,
+    });
+  }
+
   abstract create(
     inputs: ResolvedValues<Inputs>,
     context?: GenerationContext

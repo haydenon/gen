@@ -22,6 +22,10 @@ import {
   addCreatedResourceToContext,
   getNewContext,
 } from '../resources/runtime-values/generator-context';
+import {
+  getPathFromAccessor,
+  PropertyPathType,
+} from '../resources/utilities/proxy-path';
 
 const DEFAULT_CREATE_TIMEOUT = 30 * 1000;
 
@@ -418,6 +422,54 @@ export class Generator {
       depedendents: new Set(),
     }));
 
+    // Step 1: Process explicit dependencies declared via dependsOn()
+    // These must be added BEFORE processKnownOutputs so they're preserved
+    for (const node of nodes) {
+      for (const dependency of node.state.resource.dependencies) {
+        // Get the property name from the accessor
+        const propertyPath = getPathFromAccessor(dependency.inputPropertyAccessor);
+        if (
+          propertyPath.length !== 1 ||
+          propertyPath[0].type !== PropertyPathType.PropertyAccess
+        ) {
+          throw new Error(
+            `dependsOn() property accessor must reference a direct property on inputs`
+          );
+        }
+        const propertyName = propertyPath[0].propertyName;
+
+        // Get the property value from inputs (before optimization)
+        const propertyValue = node.state.inputs[propertyName];
+
+        // If it's a RuntimeValue, extract dependent state names
+        if (isRuntimeValue(propertyValue)) {
+          for (const dependentStateName of propertyValue.depdendentStateNames) {
+            const dependentNode = getNode(nodes)(dependentStateName);
+
+            // Verify the dependent state is of the expected resource type
+            if (dependentNode.state.resource.name !== dependency.resource.name) {
+              throw new Error(
+                `Resource ${node.state.resource.name} declared dependency on ${dependency.resource.name} via property ${propertyName}, ` +
+                `but the runtime value points to ${dependentNode.state.resource.name}`
+              );
+            }
+
+            // Add to dependency graph
+            if (!node.dependencies.includes(dependentNode)) {
+              node.dependencies.push(dependentNode);
+              dependentNode.depedendents.add(node);
+            }
+          }
+        }
+      }
+    }
+
+    // Step 2: Resolve resource outputs to inputs (processKnownOutputs)
+    // This replaces RuntimeValues with static values for pass-through properties
+    processKnownOutputs(nodes);
+
+    // Step 3: Process implicit dependencies from RuntimeValues in inputs
+    // (After processKnownOutputs, so optimized dependencies won't be added)
     for (const node of nodes) {
       for (const inputKey of Object.keys(node.state.resource.inputs)) {
         const inputDef = node.state.resource.inputs[inputKey];
@@ -432,14 +484,14 @@ export class Generator {
           (l) => l.depdendentStateNames
         )) {
           const runtimeValueNode = getNode(nodes)(item);
-          node.dependencies.push(runtimeValueNode);
-          runtimeValueNode.depedendents.add(node);
+          // Only add if not already added by explicit dependencies
+          if (!node.dependencies.includes(runtimeValueNode)) {
+            node.dependencies.push(runtimeValueNode);
+            runtimeValueNode.depedendents.add(node);
+          }
         }
       }
     }
-
-    // Resolve resource outputs to inputs
-    processKnownOutputs(nodes);
 
     return nodes;
   }
