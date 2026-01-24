@@ -8,6 +8,7 @@ export type {
   PropertyValues,
   ResolvedValues,
   OutputValues,
+  CreateOutputs,
   PropertyMap,
   ResourceDependency,
 } from './resource';

@@ -40,6 +40,15 @@ export type OutputValues<Props extends PropertyMap> = RemoveIndex<
   ResolvedValues<Props>
 >;
 
+export type CreateOutputs<
+  Inputs extends PropertyMap,
+  Outputs extends PropertyMap
+> = RemoveIndex<{
+  [P in keyof Outputs as P extends keyof Inputs ? never : P]: PropertyValueType<
+    Outputs[P]
+  >;
+}>;
+
 export abstract class PropertiesBase implements PropertyMap {
   [name: string]: PropertyDefinition<any>;
 }
@@ -110,7 +119,7 @@ export abstract class Resource<
   abstract create(
     inputs: ResolvedValues<Inputs>,
     context?: GenerationContext
-  ): Promise<OutputValues<Outputs>>;
+  ): Promise<CreateOutputs<Inputs, Outputs>>;
   createTimeoutMillis?: number;
 }
 

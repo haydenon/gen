@@ -26,6 +26,7 @@ import {
   getPathFromAccessor,
   PropertyPathType,
 } from '../resources/utilities/proxy-path';
+import { outputRuntimeValue } from '../resources/runtime-values/outputer/outputer';
 
 const DEFAULT_CREATE_TIMEOUT = 30 * 1000;
 
@@ -235,15 +236,18 @@ export class Generator {
           )
         );
       }, timeout);
+      const resolvedInputs = this.fillInRuntimeValues(
+        state.inputs,
+        state.resource.inputs
+      );
       const created = state.resource
-        .create(
-          this.fillInRuntimeValues(state.inputs, state.resource.inputs),
-          this.options?.generationContext
-        )
-        .then((outputs) => {
+        .create(resolvedInputs, this.options?.generationContext)
+        .then((createOutputs) => {
+          // Merge inputs that exist as outputs with the new outputs from create
+          const fullOutputs = { ...resolvedInputs, ...createOutputs };
           const instance: ErasedResourceInstance = {
             desiredState: state,
-            outputs,
+            outputs: fullOutputs,
           };
           clearTimeout(timerId);
           res(instance);
@@ -427,7 +431,9 @@ export class Generator {
     for (const node of nodes) {
       for (const dependency of node.state.resource.dependencies) {
         // Get the property name from the accessor
-        const propertyPath = getPathFromAccessor(dependency.inputPropertyAccessor);
+        const propertyPath = getPathFromAccessor(
+          dependency.inputPropertyAccessor
+        );
         if (
           propertyPath.length !== 1 ||
           propertyPath[0].type !== PropertyPathType.PropertyAccess
@@ -447,10 +453,12 @@ export class Generator {
             const dependentNode = getNode(nodes)(dependentStateName);
 
             // Verify the dependent state is of the expected resource type
-            if (dependentNode.state.resource.name !== dependency.resource.name) {
+            if (
+              dependentNode.state.resource.name !== dependency.resource.name
+            ) {
               throw new Error(
                 `Resource ${node.state.resource.name} declared dependency on ${dependency.resource.name} via property ${propertyName}, ` +
-                `but the runtime value points to ${dependentNode.state.resource.name}`
+                  `but the runtime value points to ${dependentNode.state.resource.name}`
               );
             }
 
@@ -507,6 +515,29 @@ function processKnownOutputs(nodes: StateNode[]): void {
   // Map from state name -> property name -> value
   const knownOutputs = new Map<string, Map<string, any>>();
 
+  // Build internal dependency graph based on RuntimeValues in inputs
+  // Map from node -> set of nodes it depends on
+  const dependencies = new Map<StateNode, Set<StateNode>>();
+
+  for (const node of nodes) {
+    const nodeDeps = new Set<StateNode>();
+
+    // Extract RuntimeValue dependencies from inputs (similar to lines 473-493)
+    for (const inputKey of Object.keys(node.state.resource.inputs)) {
+      const inputValue = node.state.inputs[inputKey];
+      if (isRuntimeValue(inputValue)) {
+        for (const stateName of inputValue.depdendentStateNames) {
+          const dependentOnNode = nodes.find((n) => n.state.name === stateName);
+          if (dependentOnNode) {
+            nodeDeps.add(dependentOnNode);
+          }
+        }
+      }
+    }
+
+    dependencies.set(node, nodeDeps);
+  }
+
   // Track which nodes have been visited
   const visited = new Set<StateNode>();
 
@@ -529,12 +560,13 @@ function processKnownOutputs(nodes: StateNode[]): void {
     return null;
   };
 
-  // Function to process a single node
+  // Function to process a single node in topological order
   const processNode = (node: StateNode): void => {
     if (visited.has(node)) return;
 
-    // Process all dependencies first (topological order)
-    for (const dep of node.dependencies) {
+    // Process all dependencies first (topological order using calculated deps)
+    const nodeDeps = dependencies.get(node) || new Set();
+    for (const dep of nodeDeps) {
       processNode(dep);
     }
 
@@ -560,9 +592,8 @@ function processKnownOutputs(nodes: StateNode[]): void {
     for (const outputKey of Object.keys(node.state.resource.outputs)) {
       // Check if this output is also defined as an input (pass-through)
       if (outputKey in node.state.resource.inputs) {
-        const inputValue = node.state.inputs[outputKey];
-        if (inputValue !== undefined && !isRuntimeValue(inputValue)) {
-          // This is a pass-through with a known value
+        if (outputKey in node.state.inputs) {
+          const inputValue = node.state.inputs[outputKey];
           if (!knownOutputs.has(node.state.name)) {
             knownOutputs.set(node.state.name, new Map());
           }
