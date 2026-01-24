@@ -14,8 +14,11 @@ import {
   DelayResource,
   ErrorResource,
   SubResource,
+  PassThroughResource,
+  ConsumerResource,
 } from '../../test/resources';
 import { getRuntimeResourceValue } from '../resources/runtime-values';
+import { isRuntimeValue } from '../resources/runtime-values/runtime-values';
 
 const anyMockInputs = { boolean: true, text: 'hello', number: 3 };
 
@@ -309,6 +312,158 @@ describe('Generator', () => {
       outputs: {
         text,
       },
+    });
+  });
+
+  describe('processKnownOutputs', () => {
+    test('replaces runtime value with static value for simple pass-through property', () => {
+      // Arrange
+      const staticValue = 'static-value';
+      const passThroughState = createDesiredState(PassThroughResource, {
+        value: staticValue,
+      });
+      const consumerState = createDesiredState(ConsumerResource, {
+        consumedValue: getRuntimeResourceValue(passThroughState, 'value'),
+      });
+      const desiredState: ErasedDesiredState[] = [
+        passThroughState,
+        consumerState,
+      ];
+
+      // Act
+      const generator = Generator.create(desiredState);
+
+      // Assert - The runtime value should be replaced with the static value
+      expect(consumerState.inputs.consumedValue).toBe(staticValue);
+      expect(isRuntimeValue(consumerState.inputs.consumedValue)).toBe(false);
+    });
+
+    test('does not replace runtime value when output is not a pass-through', () => {
+      // Arrange
+      const mockState = createDesiredState(MockResource, {
+        text: 'test',
+        number: 42,
+        boolean: true,
+      });
+      const subState = createDesiredState(SubResource, {
+        mockId: getRuntimeResourceValue(mockState, 'id'),
+      });
+      const desiredState: ErasedDesiredState[] = [mockState, subState];
+
+      // Act
+      const generator = Generator.create(desiredState);
+
+      // Assert - The runtime value should remain because 'id' is not a pass-through
+      expect(isRuntimeValue(subState.inputs.mockId)).toBe(true);
+    });
+
+    test('handles chain of pass-throughs correctly', () => {
+      // Arrange
+      const staticValue = 'chained-value';
+      const firstPassThrough = createDesiredState(PassThroughResource, {
+        value: staticValue,
+      });
+      const secondPassThrough = createDesiredState(PassThroughResource, {
+        value: getRuntimeResourceValue(firstPassThrough, 'value'),
+      });
+      const consumerState = createDesiredState(ConsumerResource, {
+        consumedValue: getRuntimeResourceValue(secondPassThrough, 'value'),
+      });
+      const desiredState: ErasedDesiredState[] = [
+        firstPassThrough,
+        secondPassThrough,
+        consumerState,
+      ];
+
+      // Act
+      const generator = Generator.create(desiredState);
+
+      // Assert - Both should be resolved to the static value
+      expect(secondPassThrough.inputs.value).toBe(staticValue);
+      expect(isRuntimeValue(secondPassThrough.inputs.value)).toBe(false);
+      expect(consumerState.inputs.consumedValue).toBe(staticValue);
+      expect(isRuntimeValue(consumerState.inputs.consumedValue)).toBe(false);
+    });
+
+    test('replaces runtime value for MockResource text property which is a pass-through', () => {
+      // Arrange
+      const staticText = 'test-text';
+      const mockState = createDesiredState(MockResource, {
+        text: staticText,
+        number: 42,
+        boolean: true,
+      });
+      const consumerState = createDesiredState(ConsumerResource, {
+        consumedValue: getRuntimeResourceValue(mockState, 'text'),
+      });
+      const desiredState: ErasedDesiredState[] = [mockState, consumerState];
+
+      // Act
+      const generator = Generator.create(desiredState);
+
+      // Assert - 'text' is a pass-through in MockResource (exists in both inputs and outputs)
+      expect(consumerState.inputs.consumedValue).toBe(staticText);
+      expect(isRuntimeValue(consumerState.inputs.consumedValue)).toBe(false);
+    });
+
+    test('resolves runtime value through pass-through even when input is runtime', () => {
+      // Arrange
+      const staticText = 'test';
+      const mockState = createDesiredState(MockResource, {
+        text: staticText,
+        number: 42,
+        boolean: true,
+      });
+      const passThroughState = createDesiredState(PassThroughResource, {
+        value: getRuntimeResourceValue(mockState, 'text'),
+      });
+      const consumerState = createDesiredState(ConsumerResource, {
+        consumedValue: getRuntimeResourceValue(passThroughState, 'value'),
+      });
+      const desiredState: ErasedDesiredState[] = [
+        mockState,
+        passThroughState,
+        consumerState,
+      ];
+
+      // Act
+      const generator = Generator.create(desiredState);
+
+      // Assert - The chain should be fully resolved:
+      // 1. mockState.text = 'test' (static, tracked as pass-through)
+      // 2. passThroughState.value = runtime(mockState.text) -> replaced with 'test'
+      // 3. passThroughState.value now tracked as pass-through with value 'test'
+      // 4. consumerState.consumedValue = runtime(passThroughState.value) -> replaced with 'test'
+      expect(passThroughState.inputs.value).toBe(staticText);
+      expect(isRuntimeValue(passThroughState.inputs.value)).toBe(false);
+      expect(consumerState.inputs.consumedValue).toBe(staticText);
+      expect(isRuntimeValue(consumerState.inputs.consumedValue)).toBe(false);
+    });
+
+    test('pass-through replacement works end-to-end in generation', async () => {
+      // Arrange
+      const staticValue = 'e2e-test-value';
+      const passThroughState = createDesiredState(PassThroughResource, {
+        value: staticValue,
+      });
+      const consumerState = createDesiredState(ConsumerResource, {
+        consumedValue: getRuntimeResourceValue(passThroughState, 'value'),
+      });
+      const desiredState: ErasedDesiredState[] = [
+        passThroughState,
+        consumerState,
+      ];
+      const generator = Generator.create(desiredState);
+
+      // Act
+      const result = await generator.generateState();
+
+      // Assert
+      expect(result.createdState).toHaveLength(2);
+      const consumer = result.createdState.find(
+        (c) => c.desiredState.resource === ConsumerResource
+      );
+      expect(consumer?.outputs.consumedValue).toBe(staticValue);
     });
   });
 });

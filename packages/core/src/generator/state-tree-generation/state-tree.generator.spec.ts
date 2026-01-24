@@ -77,7 +77,7 @@ class ValidDependentInput extends PropertiesBase {
 }
 class ValidResource extends Resource<ValidDependentInput, AnyOutput> {
   constructor() {
-    super(new ValidDependentInput(), new AnyOutput(), 'id');
+    super(new ValidDependentInput(), new AnyOutput(), (o) => o.id);
   }
   create = () => Promise.resolve({ id: ++id });
 }
@@ -103,7 +103,7 @@ class CircularDependentInput extends PropertiesBase {
 }
 class CircularResource extends Resource<CircularDependentInput, AnyOutput> {
   constructor() {
-    super(new CircularDependentInput(), new AnyOutput(), 'id');
+    super(new CircularDependentInput(), new AnyOutput(), (o) => o.id);
   }
   create = () => Promise.resolve({ id: ++id });
 }
@@ -190,7 +190,7 @@ class AdvancedInput extends PropertiesBase {
 
 class AdvancedResource extends Resource<AdvancedInput, AnyOutput> {
   constructor() {
-    super(new AdvancedInput(), new AnyOutput(), 'id');
+    super(new AdvancedInput(), new AnyOutput(), (o) => o.id);
   }
   create = () => Promise.resolve({ id: ++id });
 }
@@ -549,7 +549,7 @@ describe('State tree creation', () => {
         super(
           new GreatGrandparentInputs(),
           new GreatGrandparentOutputs(),
-          'id'
+          (o) => o.id
         );
       }
       create({
@@ -584,7 +584,7 @@ describe('State tree creation', () => {
       GrandparentOutputs
     > {
       constructor() {
-        super(new GrandparentInputs(), new GrandparentOutputs(), 'id');
+        super(new GrandparentInputs(), new GrandparentOutputs(), (o) => o.id);
       }
       create(
         inputs: ResolvedValues<GrandparentInputs>
@@ -645,7 +645,7 @@ describe('State tree creation', () => {
     }
     class ParentResource extends Resource<ParentInputs, ParentOutputs> {
       constructor() {
-        super(new ParentInputs(), new ParentOutputs(), 'id');
+        super(new ParentInputs(), new ParentOutputs(), (o) => o.id);
       }
       create(
         inputs: ResolvedValues<ParentInputs>
@@ -781,7 +781,7 @@ describe('State tree creation', () => {
     }
     class ChildResource extends Resource<ChildInputs, ChildOutputs> {
       constructor() {
-        super(new ChildInputs(), new ChildOutputs(), 'id');
+        super(new ChildInputs(), new ChildOutputs(), (o) => o.id);
       }
       create(
         inputs: ResolvedValues<ChildInputs>

@@ -15,6 +15,7 @@ import {
   isRuntimeValue,
   RuntimeValue,
 } from '../resources/runtime-values/runtime-values';
+import { Expr } from '../resources/runtime-values/ast/expressions';
 import { Environment } from './environment';
 import { Context } from '../resources';
 import {
@@ -437,7 +438,93 @@ export class Generator {
       }
     }
 
+    // Resolve resource outputs to inputs
+    processKnownOutputs(nodes);
+
     return nodes;
+  }
+}
+
+/**
+ * Process nodes to resolve known output values from pass-through properties.
+ * Traverses the dependency graph in topological order, replacing runtime values
+ * with known static values where possible.
+ */
+function processKnownOutputs(nodes: StateNode[]): void {
+  // Local state to track well-known output values
+  // Map from state name -> property name -> value
+  const knownOutputs = new Map<string, Map<string, any>>();
+
+  // Track which nodes have been visited
+  const visited = new Set<StateNode>();
+
+  // Helper to extract simple property access from runtime value
+  const extractSimplePropertyAccess = (
+    runtimeValue: RuntimeValue<any>
+  ): { stateName: string; propertyName: string } | null => {
+    const expr = runtimeValue.expression;
+
+    // Check if it's GetProp(Variable, Literal)
+    if (Expr.isGetProp(expr)) {
+      if (Expr.isVariable(expr.obj) && Expr.isLiteral(expr.indexer)) {
+        return {
+          stateName: expr.obj.name.lexeme,
+          propertyName: expr.indexer.value,
+        };
+      }
+    }
+
+    return null;
+  };
+
+  // Function to process a single node
+  const processNode = (node: StateNode): void => {
+    if (visited.has(node)) return;
+
+    // Process all dependencies first (topological order)
+    for (const dep of node.dependencies) {
+      processNode(dep);
+    }
+
+    // Process this node's inputs - replace runtime values with known values
+    for (const inputKey of Object.keys(node.state.resource.inputs)) {
+      const inputValue = node.state.inputs[inputKey];
+
+      // Check if it's a runtime value with simple property access
+      if (isRuntimeValue(inputValue)) {
+        const simpleAccess = extractSimplePropertyAccess(inputValue);
+        if (simpleAccess) {
+          const { stateName, propertyName } = simpleAccess;
+          const knownValue = knownOutputs.get(stateName)?.get(propertyName);
+          if (knownValue !== undefined) {
+            // Replace the runtime value with the known value
+            node.state.inputs[inputKey] = knownValue;
+          }
+        }
+      }
+    }
+
+    // Check outputs for pass-throughs
+    for (const outputKey of Object.keys(node.state.resource.outputs)) {
+      // Check if this output is also defined as an input (pass-through)
+      if (outputKey in node.state.resource.inputs) {
+        const inputValue = node.state.inputs[outputKey];
+        if (inputValue !== undefined && !isRuntimeValue(inputValue)) {
+          // This is a pass-through with a known value
+          if (!knownOutputs.has(node.state.name)) {
+            knownOutputs.set(node.state.name, new Map());
+          }
+          knownOutputs.get(node.state.name)!.set(outputKey, inputValue);
+        }
+      }
+    }
+
+    visited.add(node);
+  };
+
+  // Process all nodes
+  for (const node of nodes) {
+    processNode(node);
   }
 }
 

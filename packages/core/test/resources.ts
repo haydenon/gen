@@ -27,7 +27,7 @@ class MockOutputs extends MockBase {
 
 class MockDefinition extends Resource<MockBase, MockOutputs> {
   constructor(private time?: number) {
-    super(new MockBase(), new MockOutputs(), 'id');
+    super(new MockBase(), new MockOutputs(), (o) => o.id);
   }
 
   create(inputs: ResolvedValues<MockBase>): Promise<OutputValues<MockOutputs>> {
@@ -51,7 +51,7 @@ export const DelayResource = new MockDefinition(100);
 
 class StallDefinition extends Resource<MockBase, MockOutputs> {
   constructor() {
-    super(new MockBase(), new MockOutputs(), 'id');
+    super(new MockBase(), new MockOutputs(), (o) => o.id);
   }
 
   create(): Promise<OutputValues<MockOutputs>> {
@@ -66,7 +66,7 @@ export const StallResource = new StallDefinition();
 
 class ErrorDefinition extends Resource<MockBase, MockOutputs> {
   constructor() {
-    super(new MockBase(), new MockOutputs(), 'id');
+    super(new MockBase(), new MockOutputs(), (o) => o.id);
   }
 
   create(): Promise<OutputValues<MockOutputs>> {
@@ -96,7 +96,7 @@ class SubOutputs extends SubBase {
 }
 class SubDefinition extends Resource<SubBase, SubOutputs> {
   constructor() {
-    super(new SubBase(), new SubOutputs(), 'id');
+    super(new SubBase(), new SubOutputs(), (o) => o.id);
   }
 
   create(inputs: ResolvedValues<SubBase>): Promise<OutputValues<SubOutputs>> {
@@ -130,7 +130,7 @@ class SubSubOutputs extends SubSubBase {
 }
 class SubSubDefinition extends Resource<SubSubBase, SubSubOutputs> {
   constructor() {
-    super(new SubSubBase(), new SubSubOutputs(), 'id');
+    super(new SubSubBase(), new SubSubOutputs(), (o) => o.id);
   }
 
   create(
@@ -143,3 +143,58 @@ class SubSubDefinition extends Resource<SubSubBase, SubSubOutputs> {
   }
 }
 export const SubSubResource = new SubSubDefinition();
+
+// PassThrough resource for testing processKnownOutputs
+// Has a 'value' property that is both an input and output (pass-through)
+let passThroughId = 1;
+class PassThroughBase extends PropertiesBase {
+  value: PropertyDefinition<string> = def(string());
+}
+class PassThroughOutputs extends PassThroughBase {
+  id: PropertyDefinition<number> = def(int());
+  value: PropertyDefinition<string> = def(string());
+}
+class PassThroughDefinition extends Resource<
+  PassThroughBase,
+  PassThroughOutputs
+> {
+  constructor() {
+    super(new PassThroughBase(), new PassThroughOutputs(), (o) => o.id);
+  }
+
+  create(
+    inputs: ResolvedValues<PassThroughBase>
+  ): Promise<OutputValues<PassThroughOutputs>> {
+    return Promise.resolve({
+      ...inputs,
+      id: passThroughId++,
+    });
+  }
+}
+export const PassThroughResource = new PassThroughDefinition();
+
+// Consumer resource for testing processKnownOutputs
+// Consumes values from other resources
+let consumerId = 1;
+class ConsumerBase extends PropertiesBase {
+  consumedValue: PropertyDefinition<string> = def(string());
+}
+class ConsumerOutputs extends ConsumerBase {
+  id: PropertyDefinition<number> = def(int());
+  consumedValue: PropertyDefinition<string> = def(string());
+}
+class ConsumerDefinition extends Resource<ConsumerBase, ConsumerOutputs> {
+  constructor() {
+    super(new ConsumerBase(), new ConsumerOutputs(), (o) => o.id);
+  }
+
+  create(
+    inputs: ResolvedValues<ConsumerBase>
+  ): Promise<OutputValues<ConsumerOutputs>> {
+    return Promise.resolve({
+      ...inputs,
+      id: consumerId++,
+    });
+  }
+}
+export const ConsumerResource = new ConsumerDefinition();
