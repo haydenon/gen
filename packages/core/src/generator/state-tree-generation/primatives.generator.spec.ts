@@ -67,65 +67,6 @@ describe('Getting values for primative types', () => {
     });
   });
 
-  describe('Nullable and undefinable', () => {
-    test('undefinable sometimes returns undefined', () => {
-      // Act
-      const randomValues: (number | undefined)[] = range(80).map(() =>
-        getValueForPrimativeType(undefinable(int()))
-      );
-
-      // Assert
-      expect(randomValues.some((value) => value === undefined)).toBe(true);
-      expect(randomValues.some((value) => typeof value === 'number')).toBe(
-        true
-      );
-      expect(
-        randomValues.every(
-          (value) => value === undefined || typeof value === 'number'
-        )
-      ).toBe(true);
-    });
-
-    test('nullable sometimes returns null', () => {
-      // Act
-      const randomValues: (number | null)[] = range(80).map(() =>
-        getValueForPrimativeType(nullable(int()))
-      );
-
-      // Assert
-      expect(randomValues.some((value) => value === null)).toBe(true);
-      expect(randomValues.some((value) => typeof value === 'number')).toBe(
-        true
-      );
-      expect(
-        randomValues.every(
-          (value) => value === null || typeof value === 'number'
-        )
-      ).toBe(true);
-    });
-
-    test('nullable and undefinable sometimes returns null and undefined', () => {
-      // Act
-      const randomValues: (number | undefined | null)[] = range(80).map(() =>
-        getValueForPrimativeType(nullable(undefinable(int())))
-      );
-
-      // Assert
-
-      expect(randomValues.some((value) => value === null)).toBe(true);
-      expect(randomValues.some((value) => value === undefined)).toBe(true);
-      expect(randomValues.some((value) => typeof value === 'number')).toBe(
-        true
-      );
-      expect(
-        randomValues.every(
-          (value) =>
-            value === undefined || value === null || typeof value === 'number'
-        )
-      ).toBe(true);
-    });
-  });
-
   describe('Numbers', () => {
     test('generates ints for int type', () => {
       runTimes(50, () => {

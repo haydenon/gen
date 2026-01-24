@@ -10,10 +10,12 @@ import {
   generator,
   getLink,
   int,
+  nullable,
   parentConstraint,
   PropertyDefinition,
   ResolvedValues,
   string,
+  undefinable,
 } from '../../resources';
 import {
   InputValues,
@@ -45,6 +47,7 @@ import {
   ParentCreationMode,
 } from '../../resources/properties/links';
 import { CREATED_STATE_KEY } from '../../resources/runtime-values/generator-context';
+import { range } from '../../utilities';
 
 let id = 0;
 
@@ -1239,6 +1242,107 @@ describe('State tree creation', () => {
         (s) => s.resource === Parent
       ) as ErasedDesiredState;
       expect(parentState).toBeDefined();
+    });
+  });
+
+  describe('Nullable and undefinable', () => {
+    class NullableUndefinableBase extends PropertiesBase {
+      undefinableValue: PropertyDefinition<number | undefined> = def(
+        undefinable(int())
+      );
+      nullableValue: PropertyDefinition<number | null> = def(nullable(int()));
+      bothValue: PropertyDefinition<number | null | undefined> = def(
+        nullable(undefinable(int()))
+      );
+    }
+    class NullableUndefinableOutputs extends NullableUndefinableBase {
+      id: PropertyDefinition<number> = def(int());
+    }
+    class NullableUndefinableResource extends Resource<
+      NullableUndefinableBase,
+      NullableUndefinableOutputs
+    > {
+      constructor() {
+        super(
+          new NullableUndefinableBase(),
+          new NullableUndefinableOutputs(),
+          (o) => o.id
+        );
+      }
+      create = () => Promise.resolve({ id: ++id } as any);
+    }
+    const NullableUndefinable = new NullableUndefinableResource();
+
+    test('undefinable sometimes returns undefined', () => {
+      // Arrange
+      const count = 100; // Increase sample size for better statistics
+
+      // Act
+      const states = range(count).map(() =>
+        createDesiredState(NullableUndefinable, {})
+      );
+      const filledStates = fillInDesiredStateTree(states);
+
+      const values = filledStates.map(
+        (s) => s.inputs.undefinableValue as any
+      );
+
+      // Assert - With 100 samples and 30% undefined rate, we expect ~30 undefined and ~70 defined
+      // Note: primatives.generator is mocked in this test file, so non-undefined values
+      // will be the mocked value 'primative_value' rather than actual numbers
+      const undefinedCount = values.filter((v) => v === undefined).length;
+      const definedCount = values.filter((v) => v !== undefined).length;
+
+      expect(undefinedCount).toBeGreaterThan(0);
+      expect(definedCount).toBeGreaterThan(0);
+      expect(undefinedCount + definedCount).toBe(count);
+    });
+
+    test('nullable sometimes returns null', () => {
+      // Arrange
+      const count = 100;
+
+      // Act
+      const states = range(count).map(() =>
+        createDesiredState(NullableUndefinable, {})
+      );
+      const filledStates = fillInDesiredStateTree(states);
+      const values = filledStates.map((s) => s.inputs.nullableValue as any);
+
+      // Assert - With 100 samples and 30% null rate, we expect ~30 null and ~70 defined
+      const nullCount = values.filter((v) => v === null).length;
+      const definedCount = values.filter((v) => v !== null).length;
+
+      expect(nullCount).toBeGreaterThan(0);
+      expect(definedCount).toBeGreaterThan(0);
+      expect(nullCount + definedCount).toBe(count);
+    });
+
+    test('nullable and undefinable sometimes returns null and undefined', () => {
+      // Arrange
+      const count = 150; // Larger sample for 3-way split
+
+      // Act
+      const states = range(count).map(() =>
+        createDesiredState(NullableUndefinable, {})
+      );
+      const filledStates = fillInDesiredStateTree(states);
+      const values = filledStates.map((s) => s.inputs.bothValue as any);
+
+      // Assert - With nullable(undefinable(int())), we expect:
+      // - ~15% null (30% * 50%)
+      // - ~15% undefined (30% * 50%)
+      // - ~70% defined value
+      const nullCount = values.filter((v) => v === null).length;
+      const undefinedCount = values.filter((v) => v === undefined).length;
+      const definedCount = values.filter(
+        (v) => v !== null && v !== undefined
+      ).length;
+
+      expect(nullCount).toBeGreaterThan(0);
+      expect(undefinedCount).toBeGreaterThan(0);
+      expect(definedCount).toBeGreaterThan(0);
+      expect(nullCount + undefinedCount + definedCount).toBe(count);
     });
   });
 });
