@@ -153,6 +153,26 @@ class NameToIdVisitor implements Visitor<Expr> {
   }
 }
 
+// Convert "${undefined}" strings to actual undefined values
+const parseUndefinedValues = (value: any): any => {
+  if (typeof value === 'string' && value === '${undefined}') {
+    return undefined;
+  }
+
+  if (value instanceof Array) {
+    return value.map((item) => parseUndefinedValues(item));
+  }
+
+  if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
+    return Object.keys(value).reduce((acc, key) => {
+      acc[key] = parseUndefinedValues(value[key]);
+      return acc;
+    }, {} as any);
+  }
+
+  return value;
+};
+
 // Convert RuntimeValue objects to FormRuntimeValue objects
 const convertToFormRuntimeValues = (
   value: any,
@@ -240,9 +260,12 @@ const ResourceAdd = ({ onAdd, onAddMultiple, onClearAll, resources }: AddProps) 
         const newResources = data.resources.map((stateItem: any, index: number) => {
           const { _type, _name, ...fieldData } = stateItem;
 
+          // First, convert "${undefined}" strings to actual undefined values
+          const undefinedParsedData = parseUndefinedValues(fieldData);
+
           // Parse runtime value templates (expressions like ${resource.property})
           const [parsedFieldData, errors] = replaceRuntimeValueTemplates(
-            fieldData,
+            undefinedParsedData,
             parse
           );
 
