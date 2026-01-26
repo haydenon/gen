@@ -110,8 +110,13 @@ interface Props {
 
 const ResourceList = ({ onMaximise }: Props) => {
   const { currentEnvironment } = useEnvironments();
-  const { desiredResources, updateResource, deleteResource, addResource } =
-    useDesiredResources();
+  const {
+    desiredResources,
+    updateResource,
+    deleteResource,
+    addResource,
+    addResources,
+  } = useDesiredResources();
   const [maximised, setMaximised] = useState<number | undefined>(undefined);
 
   const { loadResourceDefinitions, resources } = useResources();
@@ -152,6 +157,13 @@ const ResourceList = ({ onMaximise }: Props) => {
     },
     [onMaximise, setMaximised, closeMaximised, maximised]
   );
+
+  const onClearAll = useCallback(() => {
+    if (desiredResources.state === ItemState.Completed) {
+      const resourceIds = desiredResources.value.map((r) => r.id);
+      resourceIds.forEach((id) => deleteResource(id));
+    }
+  }, [desiredResources, deleteResource]);
 
   // Remove scrolling on background when modal is open
   useEffect(() => {
@@ -271,7 +283,12 @@ const ResourceList = ({ onMaximise }: Props) => {
             </ListItem>
           )),
           <ListItem key="add">
-            <ResourceAdd onAdd={addResource} resources={resources.value} />
+            <ResourceAdd
+              onAdd={addResource}
+              onAddMultiple={addResources}
+              onClearAll={onClearAll}
+              resources={resources.value}
+            />
           </ListItem>,
         ]}
       </AnimatePresence>

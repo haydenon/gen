@@ -74,6 +74,7 @@ export abstract class Resource<
   Outputs extends PropertyMap
 > {
   public name: string;
+  public description?: string;
   public identifierProperty: string;
   public dependencies: ResourceDependency[] = [];
 
@@ -81,9 +82,10 @@ export abstract class Resource<
     public inputs: Inputs,
     public outputs: Outputs,
     identifierAccessor: (outputs: OutputValues<Outputs>) => any,
-    name?: string
+    description?: string
   ) {
-    this.name = name ?? this.constructor.name;
+    this.name = this.constructor.name;
+    this.description = description;
     const identifierPath = getPathFromAccessor(identifierAccessor);
     if (
       identifierPath.length != 1 ||

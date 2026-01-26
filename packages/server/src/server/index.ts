@@ -19,3 +19,10 @@ export type {
   CreateServerMessage,
   ErrorMessage,
 } from './messages/create-state';
+export type {
+  AIScenarioGeneratorPlugin,
+  AIGenerationRequest,
+  AIGenerationResponse,
+  ResourceDescriptor,
+  PropertyDescriptor,
+} from './plugins/ai-plugin.interface';

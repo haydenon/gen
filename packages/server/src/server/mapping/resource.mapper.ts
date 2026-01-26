@@ -88,6 +88,7 @@ const mapPropertyDefinition = (
 ): PropertyDefinitionResponse => ({
   type: mapPropertyType(propertyDefinition.type),
   name,
+  description: propertyDefinition.description,
 });
 
 const mapPropertyMap = (propertyMap: PropertyMap): PropertyMapResponse =>
@@ -100,6 +101,7 @@ export const mapResourceToResponse = (
   resource: Resource<PropertyMap, PropertyMap>
 ): ResourceResponse => ({
   name: resource.name,
+  description: resource.description,
   inputs: mapPropertyMap(resource.inputs),
   outputs: mapPropertyMap(resource.outputs),
 });

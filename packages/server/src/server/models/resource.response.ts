@@ -65,6 +65,7 @@ export type PropertyTypeResponse =
 export interface PropertyDefinitionResponse {
   name: string;
   type: PropertyTypeResponse;
+  description?: string;
 }
 
 export interface PropertyMapResponse {
@@ -73,6 +74,7 @@ export interface PropertyMapResponse {
 
 export interface ResourceResponse {
   name: string;
+  description?: string;
   inputs: PropertyMapResponse;
   outputs: PropertyMapResponse;
 }

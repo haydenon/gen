@@ -45,6 +45,7 @@ export { createDesiredState, getAnonymousName } from './desired-state';
 export type { DesiredState, ErasedDesiredState } from './desired-state';
 export {
   RuntimeValue,
+  isRuntimeValue,
   mapValue,
   mapValues,
   mapPropTypeToExprType,
@@ -59,6 +60,7 @@ export {
   BASE_CONTEXT_TYPES,
   evaluate,
   resolve,
+  parse,
 } from './runtime-values';
 export type {
   ExprType,
@@ -82,3 +84,4 @@ export {
 } from './properties/constraints';
 export { isProvided } from './properties/utilities';
 export type { Constraint } from './properties/constraints';
+export { replaceRuntimeValueTemplates } from './mapping/runtime-value.mapper';

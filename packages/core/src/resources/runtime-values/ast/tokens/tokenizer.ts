@@ -4,6 +4,9 @@ import { TokenType } from './token-types';
 const isLetterOrIdentifier = (char: string): boolean =>
   char == '$' || char == '_' || isLetter(char);
 
+const isLetterOrDigitOrIdentifier = (char: string): boolean =>
+  char == '$' || char == '_' || isLetter(char) || isDigit(char);
+
 const isLetter = (char: string): boolean =>
   (char >= 'a' && char <= 'z') ||
   (char >= 'A' && char <= 'Z') ||
@@ -90,7 +93,7 @@ export class Tokenizer {
   }
 
   private identifier(): void {
-    while (isLetterOrIdentifier(this.peek())) this.advance();
+    while (isLetterOrDigitOrIdentifier(this.peek())) this.advance();
 
     const text = this.source.substring(this.start, this.current);
     const type = this.keywords[text] ?? TokenType.IDENTIFIER;

@@ -211,11 +211,16 @@ export type Value<T> = T | RuntimeValue<T>;
 
 export interface PropertyDefinition<T> {
   type: PropertyTypeForValue<T>;
+  description?: string;
 }
 
-export function def<T>(type: PropertyTypeForValue<T>): PropertyDefinition<T> {
+export function def<T>(
+  type: PropertyTypeForValue<T>,
+  description?: string
+): PropertyDefinition<T> {
   return {
     type,
+    description,
   };
 }
 

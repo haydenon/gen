@@ -156,6 +156,18 @@ export const useDesiredResources = () => {
     [desiredResources, setDesiredResources]
   );
 
+  const addResources = useCallback(
+    (newResources: DesiredResource[]) => {
+      if (desiredResources.state !== ItemState.Completed) {
+        return;
+      }
+
+      const resources = desiredResources.value;
+      setDesiredResources([...resources, ...newResources]);
+    },
+    [desiredResources, setDesiredResources]
+  );
+
   const resourceValues = desiredResources.value;
   const isCreating = useMemo(
     () => createState.requestState.state === ItemState.Loading,
@@ -318,6 +330,7 @@ export const useDesiredResources = () => {
     updateResource,
     deleteResource,
     addResource,
+    addResources,
     createDesiredState,
     isCreating,
     creatingState: createState,

@@ -12,8 +12,22 @@ import {
   GeneratorOptions,
   GenerationContext,
   Environment,
+  PropertyMap,
+  PropertyType,
+  Type,
+  PropertyDefinition,
 } from '@haydenon/gen-core';
-import { isStateRequest, StateRequest } from './models/state-requests';
+import {
+  isStateRequest,
+  StateRequest,
+  StateItem,
+} from './models/state-requests';
+import {
+  AIScenarioGeneratorPlugin,
+  AIGenerationRequest,
+  ResourceDescriptor,
+  PropertyDescriptor,
+} from './plugins/ai-plugin.interface';
 import {
   DesiredStateMapper,
   getContextForDesiredState,
@@ -35,15 +49,19 @@ import {
 interface ServerOptions {
   port?: number;
   environments: Environment[];
+  aiScenarioGeneratorPlugin?: AIScenarioGeneratorPlugin;
 }
 
-const defaultOptions: Required<Omit<ServerOptions, 'environments'>> = {
+const defaultOptions: Required<
+  Omit<ServerOptions, 'environments' | 'aiScenarioGeneratorPlugin'>
+> = {
   port: 8000,
 };
 
 export class GenServer {
-  private options: Required<ServerOptions>;
+  private options: Required<Omit<ServerOptions, 'aiScenarioGeneratorPlugin'>>;
   private mapper: DesiredStateMapper;
+  private aiPlugin?: AIScenarioGeneratorPlugin;
 
   constructor(
     private resources: Resource<PropertiesBase, PropertiesBase>[],
@@ -53,6 +71,7 @@ export class GenServer {
       throw new Error('Must provide environment details for server');
     }
     this.options = { ...defaultOptions, ...(serverOptions || {}) };
+    this.aiPlugin = serverOptions.aiScenarioGeneratorPlugin;
     this.mapper = getMapper(resources);
   }
 
@@ -63,6 +82,230 @@ export class GenServer {
         message: e.message,
       })),
     });
+  }
+
+  /**
+   * Get resources with all their parent dependencies included
+   */
+  private getResourcesWithParents(
+    resources: Resource<PropertyMap, PropertyMap>[]
+  ): Resource<PropertyMap, PropertyMap>[] {
+    const resourceSet = new Set(resources);
+    const visited = new Set<Resource<PropertyMap, PropertyMap>>();
+
+    const addResourceWithParents = (
+      resource: Resource<PropertyMap, PropertyMap>
+    ) => {
+      if (visited.has(resource)) {
+        return;
+      }
+      visited.add(resource);
+      resourceSet.add(resource);
+
+      // Get linked resources from inputs
+      const linkedResourceNames = this.getLinkedResourceNames(resource.inputs);
+      for (const name of linkedResourceNames) {
+        const linkedResource = this.resources.find((r) => r.name === name);
+        if (linkedResource) {
+          addResourceWithParents(linkedResource);
+        }
+      }
+    };
+
+    resources.forEach(addResourceWithParents);
+    return Array.from(resourceSet);
+  }
+
+  /**
+   * Get all linked resource names from a property map
+   */
+  private getLinkedResourceNames(propertyMap: PropertyMap): string[] {
+    const names: string[] = [];
+
+    const extractFromType = (type: PropertyType): void => {
+      switch (type.type) {
+        case Type.Link:
+          type.resources.forEach((r: any) => {
+            if (r.name && !names.includes(r.name)) {
+              names.push(r.name);
+            }
+          });
+          break;
+        case Type.Array:
+        case Type.Nullable:
+        case Type.Undefinable:
+          extractFromType(type.inner);
+          break;
+        case Type.Complex:
+          Object.values(type.fields).forEach(extractFromType);
+          break;
+      }
+    };
+
+    Object.values(propertyMap).forEach((prop: PropertyDefinition<any>) => {
+      extractFromType(prop.type);
+    });
+
+    return names;
+  }
+
+  /**
+   * Convert a Resource to a simplified ResourceDescriptor for AI context
+   */
+  private resourceToDescriptor = (
+    resource: Resource<PropertyMap, PropertyMap>
+  ): ResourceDescriptor => {
+    return {
+      name: resource.name,
+      description: resource.description,
+      inputs: this.propertyMapToDescriptors(resource.inputs),
+      outputs: this.propertyMapToDescriptors(resource.outputs),
+    };
+  };
+
+  /**
+   * Convert a PropertyMap to simplified PropertyDescriptors
+   */
+  private propertyMapToDescriptors(
+    propertyMap: PropertyMap
+  ): PropertyDescriptor[] {
+    return Object.entries(propertyMap).map(([name, prop]) => ({
+      name,
+      description: prop.description,
+      type: this.simplifyType(prop.type),
+      required: this.isRequired(prop.type),
+      linkedResources: this.getLinkedResourceNames({ [name]: prop }),
+    }));
+  }
+
+  /**
+   * Convert PropertyType to a simple string representation
+   */
+  private simplifyType(type: PropertyType): string {
+    switch (type.type) {
+      case Type.Boolean:
+        return 'boolean';
+      case Type.Int:
+        return 'integer';
+      case Type.Float:
+        return 'number';
+      case Type.String:
+        return 'string';
+      case Type.Date:
+        return 'date';
+      case Type.Array:
+        return `${this.simplifyType(type.inner)}[]`;
+      case Type.Nullable:
+        return `${this.simplifyType(type.inner)} | null`;
+      case Type.Undefinable:
+        return `${this.simplifyType(type.inner)} | undefined`;
+      case Type.Complex: {
+        const fields = Object.entries(type.fields)
+          .map(([key, val]) => `${key}: ${this.simplifyType(val)}`)
+          .join(', ');
+        return `{ ${fields} }`;
+      }
+      case Type.Link:
+        return this.simplifyType(type.inner);
+      default:
+        return 'unknown';
+    }
+  }
+
+  /**
+   * Check if a property type is required (not nullable or undefinable)
+   */
+  private isRequired(type: PropertyType): boolean {
+    return type.type !== Type.Nullable && type.type !== Type.Undefinable;
+  }
+
+  /**
+   * Build the full prompt with resource documentation and JSON schema
+   */
+  private buildFullPrompt(
+    scenarioPrompt: string,
+    resources: ResourceDescriptor[]
+  ): string {
+    const resourceDocs = resources
+      .map((r) => {
+        const inputDocs = r.inputs
+          .map(
+            (p) =>
+              `  - ${p.name}: ${p.type}${
+                p.description ? ` // ${p.description}` : ''
+              }${
+                p.linkedResources && p.linkedResources.length > 0
+                  ? ` (links to: ${p.linkedResources.join(', ')})`
+                  : ''
+              }`
+          )
+          .join('\n');
+
+        const outputDocs = r.outputs
+          .map(
+            (p) =>
+              `  - ${p.name}: ${p.type}${
+                p.description ? ` // ${p.description}` : ''
+              }`
+          )
+          .join('\n');
+
+        return `### ${r.name}${r.description ? `\n${r.description}` : ''}
+
+**Inputs (properties you can set):**
+${inputDocs || '  (none)'}
+
+**Outputs (properties generated after creation):**
+${outputDocs || '  (none)'}`;
+      })
+      .join('\n\n');
+
+    return `You are helping generate test data for a system. The user will describe a scenario they want to create, and you need to generate the appropriate resource instances.
+
+# Available Resources
+
+${resourceDocs}
+
+# Response Format
+
+You must respond with a JSON array of resource instances. Each instance must have:
+- \`_type\`: The resource name (e.g., "Member", "Product")
+- \`_name\`: (optional) A unique name to reference this instance (e.g., "seller", "buyer1")
+- All required input properties for that resource type
+- You can reference other resources by setting link properties to their \`_name\`
+
+Example:
+\`\`\`json
+[
+  {
+    "_type": "Member",
+    "_name": "seller",
+    "email": "seller@example.com",
+    "nickname": "SellerNick"
+  },
+  {
+    "_type": "Product",
+    "_name": "product1",
+    "sellerId": "seller",
+    "title": "Test Product",
+    "price": 100
+  }
+]
+\`\`\`
+
+# Important Guidelines
+
+1. Use \`_name\` to create relationships between resources
+2. Only use properties defined in the resource inputs above
+3. Make sure all required (non-optional) properties are included
+4. Use realistic test data values
+5. If you can't fulfill part of the request, include what you can and note the limitation
+
+# User Request
+
+${scenarioPrompt}
+
+Generate the resource instances as a JSON array:`;
   }
 
   run() {
@@ -91,8 +334,23 @@ export class GenServer {
       }
     });
 
-    app.get('/v1/resource', (_, res) => {
-      const resourcesResponse = this.resources.map(mapResourceToResponse);
+    app.get('/v1/resource', (req, res) => {
+      let selectedResources = this.resources;
+
+      // Filter by resource names if provided
+      if (req.query.resourceNames) {
+        const names = (req.query.resourceNames as string).split(',');
+        selectedResources = selectedResources.filter((r) =>
+          names.includes(r.name)
+        );
+      }
+
+      // Include parent resources if requested
+      if (req.query.includeParentResources === 'true') {
+        selectedResources = this.getResourcesWithParents(selectedResources);
+      }
+
+      const resourcesResponse = selectedResources.map(mapResourceToResponse);
       res.send({
         resources: resourcesResponse,
       });
@@ -140,6 +398,80 @@ export class GenServer {
         const status = resp.errorType === ErrorType.ClientError ? 400 : 500;
         res.status(status);
         res.send(createErrorResponse(resp.errors));
+      }
+    });
+
+    app.post('/v1/generate-scenario', async (req, res) => {
+      const { scenarioPrompt, environment: environmentName } = req.body;
+
+      // Validate input
+      if (!scenarioPrompt || typeof scenarioPrompt !== 'string') {
+        res.status(400);
+        res.send(
+          createErrorResponse('scenarioPrompt is required and must be a string')
+        );
+        return;
+      }
+
+      if (!environmentName || typeof environmentName !== 'string') {
+        res.status(400);
+        res.send(
+          createErrorResponse('environment is required and must be a string')
+        );
+        return;
+      }
+
+      // Check if AI plugin is registered
+      if (!this.aiPlugin) {
+        res.status(501);
+        res.send(
+          createErrorResponse(
+            'AI scenario generation is not enabled on this server'
+          )
+        );
+        return;
+      }
+
+      // Validate environment
+      const environment = this.options.environments.find(
+        (env) => env.name === environmentName
+      );
+      if (!environment) {
+        res.status(400);
+        res.send(
+          createErrorResponse(
+            `Invalid environment provided. Valid environments are: ${this.options.environments
+              .map((e) => e.name)
+              .join(', ')}.`
+          )
+        );
+        return;
+      }
+
+      try {
+        // Convert resources to descriptors
+        const availableResources = this.resources.map(
+          this.resourceToDescriptor
+        );
+
+        // Call AI plugin (plugin builds its own prompt)
+        const request: AIGenerationRequest = {
+          scenarioPrompt,
+          fullPrompt: '', // Plugin will build this
+          availableResources,
+          environment: environmentName,
+        };
+
+        const response = await this.aiPlugin.generateScenario(request);
+
+        res.send({
+          resources: response.resources,
+          errors: response.errors,
+        });
+      } catch (err) {
+        const error = err as Error;
+        res.status(500);
+        res.send(createErrorResponse(error.message));
       }
     });
 

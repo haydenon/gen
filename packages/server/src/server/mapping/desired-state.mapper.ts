@@ -9,6 +9,7 @@ import {
   PropertyType,
   RuntimeValue,
   BASE_CONTEXT_TYPES,
+  replaceRuntimeValueTemplates,
 } from '@haydenon/gen-core';
 import { validateInputValues } from '@haydenon/gen-core/src/resources/properties';
 import { validateResourceName } from '@haydenon/gen-core/src/resources/resource';
@@ -21,7 +22,6 @@ import {
   inferType,
 } from '@haydenon/gen-core/src/resources/runtime-values/types/inferrer/inferrer';
 import { StateItem } from '../models/state-requests';
-import { replaceRuntimeValueTemplates } from './runtime-value.mapper';
 
 export type DesiredStateMapper = (
   item: StateItem,
