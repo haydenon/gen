@@ -24,7 +24,7 @@ import {
   type FormatString,
   type FunctionValue,
 } from '@haydenon/gen-core';
-import { createFormRuntimeValue } from './runtime-value';
+import { createFormRuntimeValue, WELL_KNOWN_RUNTIME_VALUES } from './runtime-value';
 
 interface ResourceChooserProps {
   resources: ResourceResponse[];
@@ -153,10 +153,12 @@ class NameToIdVisitor implements Visitor<Expr> {
   }
 }
 
-// Convert "${undefined}" strings to actual undefined values
+// Convert "${undefined}" strings to the special WELL_KNOWN_RUNTIME_VALUES.undefined
+// This survives JSON serialization (unlike actual undefined which gets removed)
 const parseUndefinedValues = (value: any): any => {
+  // eslint-disable-next-line no-template-curly-in-string
   if (typeof value === 'string' && value === '${undefined}') {
-    return undefined;
+    return WELL_KNOWN_RUNTIME_VALUES.undefined;
   }
 
   if (value instanceof Array) {

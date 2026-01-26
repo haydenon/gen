@@ -34,6 +34,8 @@ export { identifier } from './ast/tokens/token';
 
 export { outputExpression } from './outputer/outputer';
 
+export { exprEquals } from './expr-equals';
+
 export { BASE_CONTEXT_TYPES } from './context';
 export type { Context, ContextTypes } from './context';
 

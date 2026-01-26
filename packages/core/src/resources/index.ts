@@ -56,6 +56,7 @@ export {
   Expr,
   acceptExpr,
   outputExpression,
+  exprEquals,
   identifier,
   BASE_CONTEXT_TYPES,
   evaluate,

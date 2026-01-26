@@ -10,7 +10,7 @@ import Button, { ButtonStyle } from '../../../components/Button';
 import CodeText from '../../../components/CodeText';
 import { ReadOnlyInput } from '../../../components/Input';
 import { generateDefaultValue } from '../../../utilities/default-value.generator';
-import { WELL_KNOWN_RUNTIME_VALUES } from '../runtime-value';
+import { WELL_KNOWN_RUNTIME_VALUES, formRuntimeValueEquals, isFormRuntimeValue } from '../runtime-value';
 import { BaseInputProps } from './props';
 import { InputForType } from './ResourceField';
 
@@ -34,7 +34,11 @@ interface ValueProps extends BaseInputProps {
   onChange: (value: any) => void;
 }
 const Value = ({ type, value, onChange, ...baseProps }: ValueProps) => {
-  if (value !== WELL_KNOWN_RUNTIME_VALUES.undefined && value !== null) {
+  // Check if value is the special undefined runtime value
+  const isUndefinedValue = isFormRuntimeValue(value) &&
+    formRuntimeValueEquals(value, WELL_KNOWN_RUNTIME_VALUES.undefined);
+
+  if (!isUndefinedValue && value !== null) {
     return (
       <InputForType
         {...baseProps}
@@ -70,6 +74,11 @@ const UndefinableNullableField = ({ parentActions, ...baseProps }: Props) => {
     type.inner.type === Type.Undefinable || type.inner.type === Type.Nullable
       ? type.inner.inner
       : type.inner;
+
+  // Check if value is the special undefined runtime value
+  const isUndefinedValue = isFormRuntimeValue(value) &&
+    formRuntimeValueEquals(value, WELL_KNOWN_RUNTIME_VALUES.undefined);
+
   return (
     <>
       <Value parentActions={null} {...baseProps} type={inner} />
@@ -81,7 +90,7 @@ const UndefinableNullableField = ({ parentActions, ...baseProps }: Props) => {
           <CodeText>null</CodeText>
         </IconButton>
       ) : null}
-      {undefinable && value !== WELL_KNOWN_RUNTIME_VALUES.undefined ? (
+      {undefinable && !isUndefinedValue ? (
         <IconButton
           buttonStyle={ButtonStyle.Icon}
           onClick={() => onChange(WELL_KNOWN_RUNTIME_VALUES.undefined)}
