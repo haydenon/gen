@@ -223,6 +223,60 @@ const Input = React.forwardRef<HTMLInputElement, Props>(
   }
 );
 
+const StyledTextArea = styled.textarea`
+  ${baseInputStyles}
+
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  height: auto;
+  min-height: 150px;
+  resize: vertical;
+
+  &:focus,
+  &:focus-visible {
+    outline: 2px solid #4374cb;
+    outline: 5px auto -webkit-focus-ring-color;
+    background-color: var(--colors-contentBackground-light-focused);
+  }
+  &:hover {
+    background-color: var(--colors-contentBackground-light-focusable);
+  }
+  &:disabled {
+    background-color: var(--colors-contentBackground-light-disabled);
+    cursor: not-allowed;
+  }
+`;
+
+interface TextAreaProps {
+  label: string;
+  className?: string;
+  placeholder?: string;
+  value?: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  minHeight?: string;
+}
+
+export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  ({ className, placeholder, label, value, onChange, disabled, minHeight }, ref) => {
+    const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
+      onChange(event.target.value);
+    };
+
+    return (
+      <Label className={className} label={label}>
+        <StyledTextArea
+          ref={ref}
+          placeholder={placeholder}
+          value={value}
+          onChange={handleChange}
+          disabled={disabled}
+          style={minHeight ? { minHeight } : undefined}
+        />
+      </Label>
+    );
+  }
+);
+
 const ReadOnlyInputBox = styled.div`
   ${baseInputStyles}
   display: flex;

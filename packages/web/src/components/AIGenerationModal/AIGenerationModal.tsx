@@ -2,6 +2,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import styled from 'styled-components';
 import Card from '../Card';
+import Button, { ButtonColour } from '../Button/Button';
+import { TextArea } from '../Input/Input';
 
 interface AIGenerationModalProps {
   isOpen: boolean;
@@ -31,32 +33,10 @@ const ModalCard = styled(Card)`
   z-index: 1001;
 `;
 
-const ModalContent = styled.div`
-  padding: var(--spacing-base);
-`;
-
 const Title = styled.h2`
   margin-top: 0;
   margin-bottom: var(--spacing-base);
   font-size: 1.5rem;
-`;
-
-const TextArea = styled.textarea`
-  width: 100%;
-  min-height: 150px;
-  padding: var(--spacing-small);
-  border: 1px solid var(--colour-border);
-  border-radius: var(--border-radius);
-  font-family: inherit;
-  font-size: 1rem;
-  resize: vertical;
-  background: var(--colour-background-input);
-  color: var(--colour-text);
-
-  &:focus {
-    outline: none;
-    border-color: var(--colour-primary);
-  }
 `;
 
 const CheckboxWrapper = styled.div`
@@ -81,27 +61,6 @@ const ButtonRow = styled.div`
   justify-content: flex-end;
   gap: var(--spacing-small);
   margin-top: var(--spacing-base);
-`;
-
-const Button = styled.button<{ $primary?: boolean }>`
-  padding: var(--spacing-small) var(--spacing-base);
-  border: 1px solid var(--colour-border);
-  border-radius: var(--border-radius);
-  background: ${(props) =>
-    props.$primary ? 'var(--colour-primary)' : 'var(--colour-background-input)'};
-  color: ${(props) =>
-    props.$primary ? 'white' : 'var(--colour-text)'};
-  font-size: 1rem;
-  cursor: pointer;
-
-  &:hover {
-    opacity: 0.9;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
 `;
 
 const ErrorMessage = styled.div`
@@ -167,46 +126,43 @@ const AIGenerationModal = ({
             onClick={(e) => e.stopPropagation()}
           >
             <ModalCard>
-              <ModalContent>
-                <Title>AI Scenario Generation</Title>
+              <Title>AI Scenario Generation</Title>
 
-                <TextArea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Describe the test scenario you want to create...
+              <TextArea
+                label=""
+                value={prompt}
+                onChange={setPrompt}
+                placeholder="Describe the test scenario you want to create... For example: 'Create a marketplace listing with 3 bids from different members'"
+                disabled={loading}
+              />
 
-For example: 'Create a marketplace listing with 3 bids from different members'"
+              <CheckboxWrapper>
+                <Checkbox
+                  type="checkbox"
+                  id="replace-mode"
+                  checked={replaceMode}
+                  onChange={(e) => setReplaceMode(e.target.checked)}
                   disabled={loading}
                 />
+                <Label htmlFor="replace-mode">
+                  Replace existing resources (clear all first)
+                </Label>
+              </CheckboxWrapper>
 
-                <CheckboxWrapper>
-                  <Checkbox
-                    type="checkbox"
-                    id="replace-mode"
-                    checked={replaceMode}
-                    onChange={(e) => setReplaceMode(e.target.checked)}
-                    disabled={loading}
-                  />
-                  <Label htmlFor="replace-mode">
-                    Replace existing resources (clear all first)
-                  </Label>
-                </CheckboxWrapper>
+              {error && <ErrorMessage>{error}</ErrorMessage>}
 
-                {error && <ErrorMessage>{error}</ErrorMessage>}
-
-                <ButtonRow>
-                  <Button onClick={handleClose} disabled={loading}>
-                    Cancel
-                  </Button>
-                  <Button
-                    $primary
-                    onClick={handleGenerate}
-                    disabled={loading || !prompt.trim()}
-                  >
-                    {loading ? 'Generating...' : 'Generate'}
-                  </Button>
-                </ButtonRow>
-              </ModalContent>
+              <ButtonRow>
+                <Button onClick={handleClose} disabled={loading}>
+                  Cancel
+                </Button>
+                <Button
+                  colour={ButtonColour.Success}
+                  onClick={handleGenerate}
+                  disabled={loading || !prompt.trim()}
+                >
+                  {loading ? 'Generating...' : 'Generate'}
+                </Button>
+              </ButtonRow>
             </ModalCard>
           </motion.div>
         </Overlay>

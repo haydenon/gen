@@ -6,6 +6,7 @@ import { Menu, MenuComboList } from '../../components/Menu/Menu';
 import { DesiredResource } from './desired-resources/desired-resource';
 import { useMemo, useState, useCallback } from 'react';
 import AIGenerationModal from '../../components/AIGenerationModal';
+import Button from '../../components/Button/Button';
 import { useEnvironments } from '../environments/environment.hook';
 import {
   replaceRuntimeValueTemplates,
@@ -24,7 +25,10 @@ import {
   type FormatString,
   type FunctionValue,
 } from '@haydenon/gen-core';
-import { createFormRuntimeValue, WELL_KNOWN_RUNTIME_VALUES } from './runtime-value';
+import {
+  createFormRuntimeValue,
+  WELL_KNOWN_RUNTIME_VALUES,
+} from './runtime-value';
 
 interface ResourceChooserProps {
   resources: ResourceResponse[];
@@ -63,24 +67,6 @@ const AddButton = styled.div`
   flex: 1;
   display: flex;
   justify-content: center;
-`;
-
-const AIButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-small) var(--spacing-base);
-  border: 1px solid var(--colour-border);
-  border-radius: var(--border-radius);
-  background: var(--colour-background-input);
-  color: var(--colour-text);
-  font-size: 1rem;
-  cursor: pointer;
-  white-space: nowrap;
-
-  &:hover {
-    opacity: 0.9;
-  }
 `;
 
 const AddIcon = styled(PlusCircle)`
@@ -211,7 +197,12 @@ const convertToFormRuntimeValues = (
   return value;
 };
 
-const ResourceAdd = ({ onAdd, onAddMultiple, onClearAll, resources }: AddProps) => {
+const ResourceAdd = ({
+  onAdd,
+  onAddMultiple,
+  onClearAll,
+  resources,
+}: AddProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { currentEnvironment } = useEnvironments();
 
@@ -259,35 +250,37 @@ const ResourceAdd = ({ onAdd, onAddMultiple, onClearAll, resources }: AddProps) 
           }
         });
 
-        const newResources = data.resources.map((stateItem: any, index: number) => {
-          const { _type, _name, ...fieldData } = stateItem;
+        const newResources = data.resources.map(
+          (stateItem: any, index: number) => {
+            const { _type, _name, ...fieldData } = stateItem;
 
-          // First, convert "${undefined}" strings to actual undefined values
-          const undefinedParsedData = parseUndefinedValues(fieldData);
+            // First, convert "${undefined}" strings to actual undefined values
+            const undefinedParsedData = parseUndefinedValues(fieldData);
 
-          // Parse runtime value templates (expressions like ${resource.property})
-          const [parsedFieldData, errors] = replaceRuntimeValueTemplates(
-            undefinedParsedData,
-            parse
-          );
+            // Parse runtime value templates (expressions like ${resource.property})
+            const [parsedFieldData, errors] = replaceRuntimeValueTemplates(
+              undefinedParsedData,
+              parse
+            );
 
-          if (errors.length > 0) {
-            console.error('Expression parsing errors:', errors);
+            if (errors.length > 0) {
+              console.error('Expression parsing errors:', errors);
+            }
+
+            // Convert RuntimeValue objects to FormRuntimeValue objects
+            const convertedFieldData = convertToFormRuntimeValues(
+              parsedFieldData,
+              nameToIdMap
+            );
+
+            return {
+              id: resourceIds[index],
+              type: _type,
+              name: _name,
+              fieldData: convertedFieldData as { [property: string]: any },
+            };
           }
-
-          // Convert RuntimeValue objects to FormRuntimeValue objects
-          const convertedFieldData = convertToFormRuntimeValues(
-            parsedFieldData,
-            nameToIdMap
-          );
-
-          return {
-            id: resourceIds[index],
-            type: _type,
-            name: _name,
-            fieldData: convertedFieldData as { [property: string]: any },
-          };
-        });
+        );
         onAddMultiple(newResources);
       }
 
@@ -312,9 +305,9 @@ const ResourceAdd = ({ onAdd, onAddMultiple, onClearAll, resources }: AddProps) 
           }
           resources={resources}
         />
-        <AIButton onClick={() => setIsModalOpen(true)}>
+        <Button onClick={() => setIsModalOpen(true)}>
           AI Generate <AIIcon size={18} />
-        </AIButton>
+        </Button>
       </AddWrapper>
 
       <AIGenerationModal

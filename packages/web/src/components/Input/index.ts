@@ -1,1 +1,1 @@
-export { default, ReadOnlyInput } from './Input';
+export { default, ReadOnlyInput, TextArea } from './Input';
