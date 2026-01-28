@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import path from 'path';
 import ws from 'ws';
+import { v4 as uuid } from 'uuid';
 
 import {
   Resource,
@@ -29,6 +30,11 @@ import {
   PropertyDescriptor,
 } from './plugins/ai-plugin.interface';
 import {
+  ScenarioLibraryPlugin,
+  SavedScenario,
+  ScenarioData,
+} from './plugins/scenario-library-plugin.interface';
+import {
   DesiredStateMapper,
   getContextForDesiredState,
   getMapper,
@@ -50,18 +56,20 @@ interface ServerOptions {
   port?: number;
   environments: Environment[];
   aiScenarioGeneratorPlugin?: AIScenarioGeneratorPlugin;
+  scenarioLibraryPlugin?: ScenarioLibraryPlugin;
 }
 
 const defaultOptions: Required<
-  Omit<ServerOptions, 'environments' | 'aiScenarioGeneratorPlugin'>
+  Omit<ServerOptions, 'environments' | 'aiScenarioGeneratorPlugin' | 'scenarioLibraryPlugin'>
 > = {
   port: 8000,
 };
 
 export class GenServer {
-  private options: Required<Omit<ServerOptions, 'aiScenarioGeneratorPlugin'>>;
+  private options: Required<Omit<ServerOptions, 'aiScenarioGeneratorPlugin' | 'scenarioLibraryPlugin'>>;
   private mapper: DesiredStateMapper;
   private aiPlugin?: AIScenarioGeneratorPlugin;
+  private scenarioLibraryPlugin?: ScenarioLibraryPlugin;
 
   constructor(
     private resources: Resource<PropertiesBase, PropertiesBase>[],
@@ -72,6 +80,7 @@ export class GenServer {
     }
     this.options = { ...defaultOptions, ...(serverOptions || {}) };
     this.aiPlugin = serverOptions.aiScenarioGeneratorPlugin;
+    this.scenarioLibraryPlugin = serverOptions.scenarioLibraryPlugin;
     this.mapper = getMapper(resources);
   }
 
@@ -471,6 +480,246 @@ Generate the resource instances as a JSON array:`;
       } catch (err) {
         const error = err as Error;
         res.status(500);
+        res.send(createErrorResponse(error.message));
+      }
+    });
+
+    // Scenario Library Endpoints
+
+    // GET /v1/scenarios/status - Check if scenario library is enabled
+    app.get('/v1/scenarios/status', (_, res) => {
+      res.send({
+        enabled: this.scenarioLibraryPlugin !== undefined,
+      });
+    });
+
+    // POST /v1/scenarios - Save a new scenario
+    app.post('/v1/scenarios', async (req, res) => {
+      if (!this.scenarioLibraryPlugin) {
+        res.status(501);
+        res.send(
+          createErrorResponse('Scenario library is not enabled on this server')
+        );
+        return;
+      }
+
+      const { title, description, scenario } = req.body;
+
+      // Validate input
+      if (!title || typeof title !== 'string') {
+        res.status(400);
+        res.send(createErrorResponse('title is required and must be a string'));
+        return;
+      }
+
+      if (description !== undefined && typeof description !== 'string') {
+        res.status(400);
+        res.send(createErrorResponse('description must be a string'));
+        return;
+      }
+
+      if (!scenario || typeof scenario !== 'object' || !Array.isArray(scenario.resources)) {
+        res.status(400);
+        res.send(
+          createErrorResponse(
+            'scenario is required and must be an object with a resources array'
+          )
+        );
+        return;
+      }
+
+      try {
+        const now = new Date().toISOString();
+        const savedScenario: SavedScenario = {
+          id: uuid(),
+          title,
+          description: description || '',
+          createdAt: now,
+          updatedAt: now,
+          scenario: scenario as ScenarioData,
+        };
+
+        await this.scenarioLibraryPlugin.saveScenario(savedScenario);
+
+        res.send({ id: savedScenario.id });
+      } catch (err) {
+        const error = err as Error;
+        res.status(500);
+        res.send(createErrorResponse(error.message));
+      }
+    });
+
+    // GET /v1/scenarios - List scenarios with pagination
+    app.get('/v1/scenarios', async (req, res) => {
+      if (!this.scenarioLibraryPlugin) {
+        res.status(501);
+        res.send(
+          createErrorResponse('Scenario library is not enabled on this server')
+        );
+        return;
+      }
+
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+      const pageSize = req.query.pageSize
+        ? parseInt(req.query.pageSize as string, 10)
+        : 20;
+
+      if (isNaN(page) || page < 1) {
+        res.status(400);
+        res.send(createErrorResponse('page must be a positive integer'));
+        return;
+      }
+
+      if (isNaN(pageSize) || pageSize < 1 || pageSize > 100) {
+        res.status(400);
+        res.send(
+          createErrorResponse('pageSize must be a positive integer between 1 and 100')
+        );
+        return;
+      }
+
+      try {
+        const result = await this.scenarioLibraryPlugin.listScenarios(
+          page,
+          pageSize
+        );
+        res.send(result);
+      } catch (err) {
+        const error = err as Error;
+        res.status(500);
+        res.send(createErrorResponse(error.message));
+      }
+    });
+
+    // GET /v1/scenarios/:id - Get a specific scenario
+    app.get('/v1/scenarios/:id', async (req, res) => {
+      if (!this.scenarioLibraryPlugin) {
+        res.status(501);
+        res.send(
+          createErrorResponse('Scenario library is not enabled on this server')
+        );
+        return;
+      }
+
+      const { id } = req.params;
+
+      if (!id || typeof id !== 'string') {
+        res.status(400);
+        res.send(createErrorResponse('id is required and must be a string'));
+        return;
+      }
+
+      try {
+        const scenario = await this.scenarioLibraryPlugin.loadScenario(id);
+        res.send(scenario);
+      } catch (err) {
+        const error = err as Error;
+        if (error.message.includes('not found')) {
+          res.status(404);
+        } else {
+          res.status(500);
+        }
+        res.send(createErrorResponse(error.message));
+      }
+    });
+
+    // DELETE /v1/scenarios/:id - Delete a scenario
+    app.delete('/v1/scenarios/:id', async (req, res) => {
+      if (!this.scenarioLibraryPlugin) {
+        res.status(501);
+        res.send(
+          createErrorResponse('Scenario library is not enabled on this server')
+        );
+        return;
+      }
+
+      const { id } = req.params;
+
+      if (!id || typeof id !== 'string') {
+        res.status(400);
+        res.send(createErrorResponse('id is required and must be a string'));
+        return;
+      }
+
+      try {
+        await this.scenarioLibraryPlugin.deleteScenario(id);
+        res.send({ success: true });
+      } catch (err) {
+        const error = err as Error;
+        if (error.message.includes('not found')) {
+          res.status(404);
+        } else {
+          res.status(500);
+        }
+        res.send(createErrorResponse(error.message));
+      }
+    });
+
+    // PUT /v1/scenarios/:id - Update a scenario
+    app.put('/v1/scenarios/:id', async (req, res) => {
+      if (!this.scenarioLibraryPlugin) {
+        res.status(501);
+        res.send(
+          createErrorResponse('Scenario library is not enabled on this server')
+        );
+        return;
+      }
+
+      const { id } = req.params;
+      const { title, description, scenario } = req.body;
+
+      // Validate input
+      if (!id || typeof id !== 'string') {
+        res.status(400);
+        res.send(createErrorResponse('id is required and must be a string'));
+        return;
+      }
+
+      if (!title || typeof title !== 'string') {
+        res.status(400);
+        res.send(createErrorResponse('title is required and must be a string'));
+        return;
+      }
+
+      if (description !== undefined && typeof description !== 'string') {
+        res.status(400);
+        res.send(createErrorResponse('description must be a string'));
+        return;
+      }
+
+      if (!scenario || typeof scenario !== 'object' || !Array.isArray(scenario.resources)) {
+        res.status(400);
+        res.send(
+          createErrorResponse(
+            'scenario is required and must be an object with a resources array'
+          )
+        );
+        return;
+      }
+
+      try {
+        // Load existing scenario to preserve createdAt
+        const existing = await this.scenarioLibraryPlugin.loadScenario(id);
+
+        const updatedScenario: SavedScenario = {
+          id,
+          title,
+          description: description || '',
+          createdAt: existing.createdAt, // Preserve original creation time
+          updatedAt: new Date().toISOString(),
+          scenario: scenario as ScenarioData,
+        };
+
+        await this.scenarioLibraryPlugin.updateScenario(updatedScenario);
+
+        res.send({ success: true });
+      } catch (err) {
+        const error = err as Error;
+        if (error.message.includes('not found')) {
+          res.status(404);
+        } else {
+          res.status(500);
+        }
         res.send(createErrorResponse(error.message));
       }
     });

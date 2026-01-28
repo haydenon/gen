@@ -19,6 +19,7 @@ export type {
   CreateServerMessage,
   ErrorMessage,
 } from './messages/create-state';
+export type { StateItem } from './models/state-requests';
 export type {
   AIScenarioGeneratorPlugin,
   AIGenerationRequest,
@@ -26,3 +27,10 @@ export type {
   ResourceDescriptor,
   PropertyDescriptor,
 } from './plugins/ai-plugin.interface';
+export type {
+  ScenarioLibraryPlugin,
+  SavedScenario,
+  ScenarioData,
+  ScenarioPage,
+} from './plugins/scenario-library-plugin.interface';
+export { FilesystemScenarioLibraryPlugin } from './plugins/filesystem-scenario-library.plugin';

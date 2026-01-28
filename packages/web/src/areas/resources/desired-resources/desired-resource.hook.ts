@@ -14,16 +14,15 @@ import {
   desiredResourceState,
 } from './desired-resource.state';
 import { DesiredResource } from './desired-resource';
-import { transformFormValues, convertDependentStateIdsToNames } from './desired-state.utilities';
 import { useResourceValidation } from './validation.hook';
 import useLocalStorage from 'react-use-localstorage';
+import { serializeScenario, deserializeScenario } from '../scenario-serialization';
 import {
   CreateServerMessage,
   CreateStateMessage,
   CreateStateServerTypes,
 } from '@haydenon/gen-server';
 import type { ErrorMessage } from '@haydenon/gen-server';
-import { getAnonymousName } from '@haydenon/gen-core';
 import { useWebsocket } from '../../../data/ws.hook';
 import { useEnvironments } from '../../environments/environment.hook';
 
@@ -44,6 +43,12 @@ export const useDesiredResources = () => {
   const websocket = useWebsocket();
 
   const [savedResources, setSavedResources] = useLocalStorage(
+    'Editor.Scenario.v2',
+    undefined
+  );
+
+  // For migration from old format
+  const [oldSavedResources, setOldSavedResources] = useLocalStorage(
     'Editor.DesiredResources',
     undefined
   );
@@ -51,7 +56,8 @@ export const useDesiredResources = () => {
   const setDesiredResources = useCallback(
     (resources: DesiredResource[]) => {
       setResources(createCompleted(resources));
-      setSavedResources(JSON.stringify(resources));
+      const scenarioData = serializeScenario(resources);
+      setSavedResources(JSON.stringify(scenarioData));
     },
     [setResources, setSavedResources]
   );
@@ -61,15 +67,34 @@ export const useDesiredResources = () => {
     if (desiredResourceStatus === ItemState.Uninitialised) {
       let resources: DesiredResource[];
       try {
-        const parsed = JSON.parse(savedResources);
-        resources =
-          parsed instanceof Array ? (parsed as DesiredResource[]) : [];
-      } catch {
+        // Try new format first
+        if (savedResources) {
+          const parsed = JSON.parse(savedResources);
+          resources = deserializeScenario(parsed);
+        } else if (oldSavedResources) {
+          // Migrate from old format
+          const parsed = JSON.parse(oldSavedResources);
+          resources =
+            parsed instanceof Array ? (parsed as DesiredResource[]) : [];
+
+          // Save in new format
+          if (resources.length > 0) {
+            const scenarioData = serializeScenario(resources);
+            setSavedResources(JSON.stringify(scenarioData));
+          }
+
+          // Clear old key
+          setOldSavedResources('');
+        } else {
+          resources = [];
+        }
+      } catch (error) {
+        console.error('Failed to load saved scenario:', error);
         resources = [];
       }
       setResources(createCompleted(resources));
     }
-  }, [desiredResourceStatus, savedResources, setResources]);
+  }, [desiredResourceStatus, savedResources, oldSavedResources, setResources, setSavedResources, setOldSavedResources]);
 
   const getDesiredResource = useCallback(
     (id: string) => {
@@ -292,21 +317,15 @@ export const useDesiredResources = () => {
       return;
     }
 
+    const scenarioData = serializeScenario(resourceValues);
     const stateBody = {
-      state: resourceValues.map((r) => ({
-        _type: r.type,
-        _name: r.name?.trim() ?? getAnonymousName(r.type),
-        _dependentOnStateNames: convertDependentStateIdsToNames(r, resourceValues),
-        ...transformFormValues(r.fieldData, {
-          desiredResources: resourceValues,
-        }),
-      })),
+      state: scenarioData.resources,
     };
 
     setCreatingState({
       requestState: createLoading(),
       resources: stateBody.state.reduce(
-        (acc, res) => ({ ...acc, [res._name]: createUninitialised() }),
+        (acc, res) => ({ ...acc, [res._name!]: createUninitialised() }),
         {} as CreatingState['resources']
       ),
     });
@@ -332,6 +351,7 @@ export const useDesiredResources = () => {
     deleteResource,
     addResource,
     addResources,
+    setDesiredResources,
     createDesiredState,
     isCreating,
     creatingState: createState,
