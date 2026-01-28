@@ -103,7 +103,7 @@ describe('Mapping expression strings', () => {
     // Assert
     expect(isRuntimeValue(result)).toBe(true);
     const runtimeVal = result as RuntimeValue<any>;
-    expect(runtimeVal.depdendentStateNames).toEqual([]);
+    expect(runtimeVal.dependentStateNames).toEqual([]);
     expect(runtimeVal.expression.type).toBe('FormatString');
     const formatString = runtimeVal.expression as FormatString;
     expect(formatString.strings.map((s) => s.value)).toEqual([
@@ -137,7 +137,7 @@ describe('Mapping expression strings', () => {
     // Assert
     expect(result).toBeInstanceOf(RuntimeValue);
     const runtimeVal = result as RuntimeValue<any>;
-    expect(runtimeVal.depdendentStateNames).toEqual(['first', 'second']);
+    expect(runtimeVal.dependentStateNames).toEqual(['first', 'second']);
     expect(runtimeVal.expression.type).toBe('FormatString');
     const formatString = runtimeVal.expression as FormatString;
     expect(formatString.strings.map((s) => s.value)).toEqual(['', ' ', '']);

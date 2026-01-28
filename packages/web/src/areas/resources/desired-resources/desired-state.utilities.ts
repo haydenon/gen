@@ -36,6 +36,19 @@ export function transformFormValues(
   }, {} as FieldObj);
 }
 
+export function convertDependentStateIdsToNames(
+  desiredResource: DesiredResource,
+  allResources: DesiredResource[]
+): string[] {
+  if (!desiredResource.dependentOnStateIds || desiredResource.dependentOnStateIds.length === 0) {
+    return [];
+  }
+
+  return desiredResource.dependentOnStateIds
+    .map(id => allResources.find(r => r.id === id)?.name)
+    .filter((name): name is string => name !== undefined);
+}
+
 function transformValue(value: any, context: TransformationContext): any {
   const primatives = ['string', 'number', 'boolean'];
   if (primatives.includes(typeof value)) {

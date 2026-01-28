@@ -61,7 +61,7 @@ function replaceStringRuntimeTemplates(
     }
     const [desired, exprs] = (parsed as RuntimeValue<any>[]).reduce(
       ([desired, exprs], runtime) => {
-        const newStates = runtime.depdendentStateNames.filter((rd) =>
+        const newStates = runtime.dependentStateNames.filter((rd) =>
           desired.every((d) => d !== rd)
         );
         return [

@@ -260,7 +260,7 @@ describe('State tree creation', () => {
         mockId: expect.any(RuntimeValue),
         text: expect.anything(),
         inheritedMockText: expect.objectContaining({
-          depdendentStateNames: [mockResource?.name],
+          dependentStateNames: [mockResource?.name],
           expression: Expr.GetProp(
             Expr.GetProp(
               Expr.GetProp(
@@ -288,7 +288,7 @@ describe('State tree creation', () => {
         subId: expect.any(RuntimeValue),
         text: expect.anything(),
         inheritedMockText: expect.objectContaining({
-          depdendentStateNames: [subResource?.name],
+          dependentStateNames: [subResource?.name],
           expression: Expr.GetProp(
             Expr.GetProp(
               Expr.GetProp(

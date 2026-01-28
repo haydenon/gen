@@ -19,7 +19,7 @@ import { CREATED_STATE_KEY } from './generator-context';
 import { getValueExpr } from './value-mapper';
 
 export class RuntimeValue<T> {
-  constructor(public depdendentStateNames: string[], public expression: Expr) {}
+  constructor(public dependentStateNames: string[], public expression: Expr) {}
 
   evaluate(context: Context): T {
     return evaluate(this.expression, context);
@@ -32,7 +32,7 @@ export function isRuntimeValue<T>(
   const val = value as any;
   return (
     val &&
-    val.depdendentStateNames instanceof Array &&
+    val.dependentStateNames instanceof Array &&
     val.expression !== undefined
   );
 }
@@ -43,7 +43,7 @@ export function mapValue<T, R>(
 ): Value<R> {
   if (isRuntimeValue(value)) {
     return new RuntimeValue<R>(
-      value.depdendentStateNames,
+      value.dependentStateNames,
       Expr.Call(Expr.FunctionValue(mapper), [value.expression])
     );
   }
@@ -58,7 +58,7 @@ export function mapValues<T extends any[], R>(
   if (values.some((v) => isRuntimeValue(v))) {
     const resourceOutputValues = Array.from(
       new Set(
-        values.flatMap((v) => (isRuntimeValue(v) ? v.depdendentStateNames : []))
+        values.flatMap((v) => (isRuntimeValue(v) ? v.dependentStateNames : []))
       )
     );
     const inputValues: Expr[] = values.map((val) => {
@@ -106,7 +106,7 @@ export function resolve<Res extends Resource<PropertyMap, PropertyMap>, T>(
   accessor: (outputs: OutputsForResource<Res>) => T
 ): RuntimeValue<T> {
   const idExpr = isRuntimeValue(value) ? value.expression : Expr.Literal(value);
-  const dependencies = isRuntimeValue(value) ? value.depdendentStateNames : [];
+  const dependencies = isRuntimeValue(value) ? value.dependentStateNames : [];
   const path = getPathFromAccessor(accessor);
   const getProp = (segment: PropertyPathSegment): any =>
     segment.type === PropertyPathType.ArrayIndexAccess

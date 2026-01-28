@@ -426,6 +426,25 @@ export class Generator {
       depedendents: new Set(),
     }));
 
+    const getNodeByName = (name: string) => nodes.find(n => n.state.name === name);
+
+    // Step 0: Process explicit state-level dependencies
+    for (const node of nodes) {
+      const dependentNames = node.state.dependentOnStateNames ?? [];
+      for (const depName of dependentNames) {
+        const depNode = getNodeByName(depName);
+        if (!depNode) {
+          throw new Error(
+            `State '${node.state.name}' has dependency on unknown state '${depName}'`
+          );
+        }
+        if (!node.dependencies.includes(depNode)) {
+          node.dependencies.push(depNode);
+          depNode.depedendents.add(node);
+        }
+      }
+    }
+
     // Step 1: Process explicit dependencies declared via dependsOn()
     // These must be added BEFORE processKnownOutputs so they're preserved
     for (const node of nodes) {
@@ -449,7 +468,7 @@ export class Generator {
 
         // If it's a RuntimeValue, extract dependent state names
         if (isRuntimeValue(propertyValue)) {
-          for (const dependentStateName of propertyValue.depdendentStateNames) {
+          for (const dependentStateName of propertyValue.dependentStateNames) {
             const dependentNode = getNode(nodes)(dependentStateName);
 
             // Verify the dependent state is of the expected resource type
@@ -489,7 +508,7 @@ export class Generator {
           inputDef.type
         );
         for (const item of runtimeValues.flatMap(
-          (l) => l.depdendentStateNames
+          (l) => l.dependentStateNames
         )) {
           const runtimeValueNode = getNode(nodes)(item);
           // Only add if not already added by explicit dependencies
@@ -526,7 +545,7 @@ function processKnownOutputs(nodes: StateNode[]): void {
     for (const inputKey of Object.keys(node.state.resource.inputs)) {
       const inputValue = node.state.inputs[inputKey];
       if (isRuntimeValue(inputValue)) {
-        for (const stateName of inputValue.depdendentStateNames) {
+        for (const stateName of inputValue.dependentStateNames) {
           const dependentOnNode = nodes.find((n) => n.state.name === stateName);
           if (dependentOnNode) {
             nodeDeps.add(dependentOnNode);

@@ -3,6 +3,7 @@ export interface DesiredResource {
   type: string;
   name?: string;
   fieldData: { [property: string]: any };
+  dependentOnStateIds?: string[];
 }
 
 export enum ErrorPathType {

@@ -108,7 +108,7 @@ export abstract class ValueAndPropertyVisitor<T>
   };
   visitNull = (type: Nullable): T => {
     if (isRuntimeValue(this.value)) {
-      const unknownContext = this.value.depdendentStateNames.reduce(
+      const unknownContext = this.value.dependentStateNames.reduce(
         (ctx, name) => {
           ctx[name] = unknownType;
           return ctx;
@@ -128,7 +128,7 @@ export abstract class ValueAndPropertyVisitor<T>
   };
   visitUndefined = (type: Undefinable): T => {
     if (isRuntimeValue(this.value)) {
-      const unknownContext = this.value.depdendentStateNames.reduce(
+      const unknownContext = this.value.dependentStateNames.reduce(
         (ctx, name) => {
           ctx[name] = unknownType;
           return ctx;

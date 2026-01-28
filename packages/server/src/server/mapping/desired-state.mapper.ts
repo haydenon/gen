@@ -79,7 +79,7 @@ export const getContextForDesiredState = (
 const createValidator = (context: DesiredStateContext) => {
   return (propType: PropertyType, value: RuntimeValue<any>) => {
     const requiredContext = Object.keys(context)
-      .filter((stateItem) => value.depdendentStateNames.includes(stateItem))
+      .filter((stateItem) => value.dependentStateNames.includes(stateItem))
       .reduce((acc, item) => {
         acc[item] = context[item];
         return acc;
@@ -109,7 +109,7 @@ export function getMapper(
   resources: Resource<PropertyMap, PropertyMap>[]
 ): DesiredStateMapper {
   return (state: StateItem, context: DesiredStateContext) => {
-    const { _type, _name, ...userSuppliedInputs } = state;
+    const { _type, _name, _dependentOnStateNames, ...userSuppliedInputs } = state;
     const resource = resources.find((r) => r.name === state._type);
     if (!resource) {
       return [
@@ -142,6 +142,6 @@ export function getMapper(
       return inputResult;
     }
 
-    return createDesiredState(resource, inputResult, _name);
+    return createDesiredState(resource, inputResult, _name, _dependentOnStateNames);
   };
 }

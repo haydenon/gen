@@ -21,6 +21,7 @@ import { generateDefaultValue } from '../../utilities/default-value.generator';
 import { InputState, ReadOnlyInput } from '../../components/Input/Input';
 import { useDesiredResources } from './desired-resources/desired-resource.hook';
 import { MenuComboList } from '../../components/Menu/Menu';
+import DependentStateInput from './fields/DependentStateInput';
 
 interface Props {
   resource: DesiredResource;
@@ -301,6 +302,19 @@ const ResourceCard = ({
           </Button>
         </ActionsWrapper>
       </Header>
+
+      {maximised && (
+        <DependentStateInput
+          currentResourceId={resource.id}
+          dependentOnStateIds={resource.dependentOnStateIds ?? []}
+          onChange={(newIds) => {
+            onChange({
+              ...resource,
+              dependentOnStateIds: newIds,
+            });
+          }}
+        />
+      )}
 
       {maximised && resourceDefinitionInputs.length ? (
         <motion.div

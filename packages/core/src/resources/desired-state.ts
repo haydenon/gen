@@ -4,6 +4,7 @@ export interface DesiredState<Res extends Resource<PropertyMap, PropertyMap>> {
   name: string;
   resource: Res;
   inputs: Partial<PropertyValues<Res['inputs']>>;
+  dependentOnStateNames?: string[];
 }
 
 export type ErasedDesiredState = DesiredState<
@@ -17,7 +18,8 @@ export function createDesiredState<
 >(
   resource: Res,
   inputs: Partial<InputValues<Res['inputs']>>,
-  name?: string
+  name?: string,
+  dependentOnStateNames?: string[]
 ): DesiredState<Res> {
   const resourceType = resource.name;
   let stateName;
@@ -30,6 +32,7 @@ export function createDesiredState<
     name: stateName,
     resource,
     inputs: inputs as Partial<PropertyValues<Res['inputs']>>,
+    dependentOnStateNames: dependentOnStateNames ?? [],
   };
 }
 

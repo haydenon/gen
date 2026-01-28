@@ -14,7 +14,7 @@ import {
   desiredResourceState,
 } from './desired-resource.state';
 import { DesiredResource } from './desired-resource';
-import { transformFormValues } from './desired-state.utilities';
+import { transformFormValues, convertDependentStateIdsToNames } from './desired-state.utilities';
 import { useResourceValidation } from './validation.hook';
 import useLocalStorage from 'react-use-localstorage';
 import {
@@ -296,6 +296,7 @@ export const useDesiredResources = () => {
       state: resourceValues.map((r) => ({
         _type: r.type,
         _name: r.name?.trim() ?? getAnonymousName(r.type),
+        _dependentOnStateNames: convertDependentStateIdsToNames(r, resourceValues),
         ...transformFormValues(r.fieldData, {
           desiredResources: resourceValues,
         }),

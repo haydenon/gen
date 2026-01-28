@@ -78,7 +78,7 @@ function fillInType(
       }
       // TODO: Better access and modeling for links
 
-      if (isRuntimeValue(value) && value.depdendentStateNames.length > 0) {
+      if (isRuntimeValue(value) && value.dependentStateNames.length > 0) {
         const ancestorConstraints = matchingConstraints
           .filter((c) => c.ancestorConstraints)
           .flatMap((c) => c.ancestorConstraints as StateConstraint[]);
@@ -87,7 +87,7 @@ function fillInType(
           [
             ...constraintsAndState,
             {
-              name: value.depdendentStateNames[0],
+              name: value.dependentStateNames[0],
               constraints: ancestorConstraints,
             },
           ],

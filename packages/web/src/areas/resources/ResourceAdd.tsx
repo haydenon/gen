@@ -168,7 +168,7 @@ const convertToFormRuntimeValues = (
 ): any => {
   if (isRuntimeValue(value)) {
     // Map dependent resource names to IDs
-    const dependentResourceIds = value.depdendentStateNames
+    const dependentResourceIds = value.dependentStateNames
       .map((name) => nameToIdMap[name])
       .filter((id) => id !== undefined);
 
@@ -252,7 +252,7 @@ const ResourceAdd = ({
 
         const newResources = data.resources.map(
           (stateItem: any, index: number) => {
-            const { _type, _name, ...fieldData } = stateItem;
+            const { _type, _name, _dependentOnStateNames, ...fieldData } = stateItem;
 
             // First, convert "${undefined}" strings to actual undefined values
             const undefinedParsedData = parseUndefinedValues(fieldData);
@@ -273,11 +273,19 @@ const ResourceAdd = ({
               nameToIdMap
             );
 
+            // Convert dependent state names to IDs
+            const dependentOnStateIds = _dependentOnStateNames
+              ? (_dependentOnStateNames as string[])
+                  .map((name: string) => nameToIdMap[name])
+                  .filter((id: string | undefined) => id !== undefined)
+              : undefined;
+
             return {
               id: resourceIds[index],
               type: _type,
               name: _name,
               fieldData: convertedFieldData as { [property: string]: any },
+              dependentOnStateIds,
             };
           }
         );
