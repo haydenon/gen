@@ -2,8 +2,6 @@ node_modules/
 dist/
 build/
 
-gen-spawner/scenarios
-
 .DS_Store
 
 .pnp.*
