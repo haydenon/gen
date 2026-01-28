@@ -25,7 +25,7 @@ const Overlay = styled(motion.div)`
   padding: var(--spacing-base);
 `;
 
-const ModalCard = styled(Card)`
+const ModalCard = styled(motion(Card))`
   width: clamp(400px, 90%, 600px);
   max-width: 100%;
   position: relative;
@@ -116,47 +116,45 @@ const SaveScenarioModal = ({
           exit={{ opacity: 0 }}
           onClick={handleClose}
         >
-          <motion.div
+          <ModalCard
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <ModalCard>
-              <Title>Save Scenario</Title>
+            <Title>Save Scenario</Title>
 
-              <Input
-                label="Title"
-                value={title}
-                onChange={setTitle}
-                placeholder="Enter a title for this scenario"
-              />
+            <Input
+              label="Title"
+              value={title}
+              onChange={setTitle}
+              placeholder="Enter a title for this scenario"
+            />
 
-              <TextArea
-                label="Description (optional)"
-                value={description}
-                onChange={setDescription}
-                placeholder="Add a description to help you remember what this scenario is for"
-                disabled={loading}
-              />
+            <TextArea
+              label="Description (optional)"
+              value={description}
+              onChange={setDescription}
+              placeholder="Add a description to help you remember what this scenario is for"
+              disabled={loading}
+            />
 
-              {error && <ErrorMessage>{error}</ErrorMessage>}
-              {success && <SuccessMessage>Scenario saved successfully!</SuccessMessage>}
+            {error && <ErrorMessage>{error}</ErrorMessage>}
+            {success && <SuccessMessage>Scenario saved successfully!</SuccessMessage>}
 
-              <ButtonRow>
-                <Button onClick={handleClose} disabled={loading}>
-                  Cancel
-                </Button>
-                <Button
-                  colour={ButtonColour.Success}
-                  onClick={handleSave}
-                  disabled={loading || !title.trim()}
-                >
-                  {loading ? 'Saving...' : 'Save'}
-                </Button>
-              </ButtonRow>
-            </ModalCard>
-          </motion.div>
+            <ButtonRow>
+              <Button onClick={handleClose} disabled={loading}>
+                Cancel
+              </Button>
+              <Button
+                colour={ButtonColour.Success}
+                onClick={handleSave}
+                disabled={loading || !title.trim()}
+              >
+                {loading ? 'Saving...' : 'Save'}
+              </Button>
+            </ButtonRow>
+          </ModalCard>
         </Overlay>
       )}
     </AnimatePresence>

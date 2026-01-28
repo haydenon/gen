@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import styled from 'styled-components';
 
 const CardBox = styled.div`
@@ -7,7 +8,7 @@ const CardBox = styled.div`
   margin-bottom: var(--spacing-base);
 `;
 
-interface Props {
+interface Props extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode | React.ReactNode[];
   className?: string;
   cardRef?:
@@ -17,12 +18,16 @@ interface Props {
     | undefined;
 }
 
-const Card = ({ children, className, cardRef }: Props) => {
-  return (
-    <CardBox ref={cardRef} className={className}>
-      {children}
-    </CardBox>
-  );
-};
+const Card = forwardRef<HTMLDivElement, Props>(
+  ({ children, className, cardRef, ...props }, ref) => {
+    return (
+      <CardBox ref={ref || cardRef} className={className} {...props}>
+        {children}
+      </CardBox>
+    );
+  }
+);
+
+Card.displayName = 'Card';
 
 export default Card;

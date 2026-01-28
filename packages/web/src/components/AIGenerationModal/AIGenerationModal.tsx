@@ -26,7 +26,7 @@ const Overlay = styled(motion.div)`
   padding: var(--spacing-base);
 `;
 
-const ModalCard = styled(Card)`
+const ModalCard = styled(motion(Card))`
   width: clamp(400px, 90%, 600px);
   max-width: 100%;
   position: relative;
@@ -76,7 +76,7 @@ const AIGenerationModal = ({
   environment,
 }: AIGenerationModalProps) => {
   const [prompt, setPrompt] = useState('');
-  const [replaceMode, setReplaceMode] = useState(false);
+  const [replaceMode, setReplaceMode] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
@@ -92,7 +92,7 @@ const AIGenerationModal = ({
     try {
       await onGenerate(prompt, replaceMode);
       setPrompt('');
-      setReplaceMode(false);
+      setReplaceMode(true);
       onClose();
     } catch (err) {
       const error = err as Error;
@@ -119,52 +119,50 @@ const AIGenerationModal = ({
           exit={{ opacity: 0 }}
           onClick={handleClose}
         >
-          <motion.div
+          <ModalCard
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <ModalCard>
-              <Title>AI Scenario Generation</Title>
+            <Title>AI Scenario Generation</Title>
 
-              <TextArea
-                label=""
-                value={prompt}
-                onChange={setPrompt}
-                placeholder="Describe the test scenario you want to create... For example: 'Create a marketplace listing with 3 bids from different members'"
+            <TextArea
+              label=""
+              value={prompt}
+              onChange={setPrompt}
+              placeholder="Describe the test scenario you want to create. For example: 'Create an auction with 3 bids from different users'"
+              disabled={loading}
+            />
+
+            <CheckboxWrapper>
+              <Checkbox
+                type="checkbox"
+                id="replace-mode"
+                checked={replaceMode}
+                onChange={(e) => setReplaceMode(e.target.checked)}
                 disabled={loading}
               />
+              <Label htmlFor="replace-mode">
+                Replace existing resources (clear all first)
+              </Label>
+            </CheckboxWrapper>
 
-              <CheckboxWrapper>
-                <Checkbox
-                  type="checkbox"
-                  id="replace-mode"
-                  checked={replaceMode}
-                  onChange={(e) => setReplaceMode(e.target.checked)}
-                  disabled={loading}
-                />
-                <Label htmlFor="replace-mode">
-                  Replace existing resources (clear all first)
-                </Label>
-              </CheckboxWrapper>
+            {error && <ErrorMessage>{error}</ErrorMessage>}
 
-              {error && <ErrorMessage>{error}</ErrorMessage>}
-
-              <ButtonRow>
-                <Button onClick={handleClose} disabled={loading}>
-                  Cancel
-                </Button>
-                <Button
-                  colour={ButtonColour.Success}
-                  onClick={handleGenerate}
-                  disabled={loading || !prompt.trim()}
-                >
-                  {loading ? 'Generating...' : 'Generate'}
-                </Button>
-              </ButtonRow>
-            </ModalCard>
-          </motion.div>
+            <ButtonRow>
+              <Button onClick={handleClose} disabled={loading}>
+                Cancel
+              </Button>
+              <Button
+                colour={ButtonColour.Success}
+                onClick={handleGenerate}
+                disabled={loading || !prompt.trim()}
+              >
+                {loading ? 'Generating...' : 'Generate'}
+              </Button>
+            </ButtonRow>
+          </ModalCard>
         </Overlay>
       )}
     </AnimatePresence>

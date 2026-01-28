@@ -28,7 +28,7 @@ const Overlay = styled(motion.div)`
   padding: var(--spacing-base);
 `;
 
-const ModalCard = styled(Card)`
+const ModalCard = styled(motion(Card))`
   width: clamp(500px, 90%, 800px);
   max-width: 100%;
   max-height: 80vh;
@@ -237,13 +237,12 @@ const ScenarioLibraryModal = ({
           exit={{ opacity: 0 }}
           onClick={handleClose}
         >
-          <motion.div
+          <ModalCard
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <ModalCard>
               <Title>Scenario Library</Title>
 
               {error && <ErrorMessage>{error}</ErrorMessage>}
@@ -314,8 +313,7 @@ const ScenarioLibraryModal = ({
                   Close
                 </Button>
               </ButtonRow>
-            </ModalCard>
-          </motion.div>
+          </ModalCard>
         </Overlay>
       )}
     </AnimatePresence>
