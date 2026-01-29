@@ -255,7 +255,6 @@ export function def<T>(
         console.error('[relatesTo] Failed to extract property names:', error);
       }
 
-      console.log('[relatesTo] Setting related property names:', relatedNames);
       this.relatedPropertyNames = relatedNames;
       return this;
     },
