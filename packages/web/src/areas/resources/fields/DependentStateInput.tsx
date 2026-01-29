@@ -56,7 +56,7 @@ const DependentStateInput = ({
   onChange,
 }: Props) => {
   const { desiredResources } = useDesiredResources();
-  const resources = desiredResources.value ?? [];
+  const resources = useMemo(() => desiredResources.value ?? [], [desiredResources.value]);
 
   const availableResources = useMemo(() => {
     return resources.filter(
