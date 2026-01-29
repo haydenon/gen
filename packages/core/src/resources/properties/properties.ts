@@ -12,6 +12,7 @@ import {
   LinkConstraint,
 } from './constraints';
 import { ParentCreationMode } from './links';
+import { getPathFromAccessor, PropertyPathType } from '../utilities/proxy-path';
 
 export enum Type {
   Boolean = 'Boolean',
@@ -212,7 +213,12 @@ export type Value<T> = T | RuntimeValue<T>;
 export interface PropertyDefinition<T> {
   type: PropertyTypeForValue<T>;
   description?: string;
+  relatedPropertyNames?: string[];
   setDescription(description: string): PropertyDefinition<T>;
+  relatesTo<Props extends PropertyMap>(
+    properties: Props,
+    accessor: (props: Props) => PropertyDefinition<any>[]
+  ): PropertyDefinition<T>;
 }
 
 export function def<T>(
@@ -221,8 +227,36 @@ export function def<T>(
   const propDef: PropertyDefinition<T> = {
     type,
     description: undefined,
+    relatedPropertyNames: undefined,
     setDescription(desc: string): PropertyDefinition<T> {
       this.description = desc;
+      return this;
+    },
+    relatesTo<Props extends PropertyMap>(
+      properties: Props,
+      accessor: (props: Props) => PropertyDefinition<any>[]
+    ): PropertyDefinition<T> {
+      // Use getPathFromAccessor to extract property names from the accessor function
+      // This allows us to get property names even if the properties don't exist yet
+      const relatedNames: string[] = [];
+
+      // We need to call the accessor and capture which properties it accesses
+      // For each property in the returned array, extract its path
+      try {
+        const paths = getPathFromAccessor(accessor as any);
+
+        // Each path should be a simple property access (top-level property name)
+        for (const segment of paths) {
+          if (segment.type === PropertyPathType.PropertyAccess) {
+            relatedNames.push(segment.propertyName);
+          }
+        }
+      } catch (error) {
+        console.error('[relatesTo] Failed to extract property names:', error);
+      }
+
+      console.log('[relatesTo] Setting related property names:', relatedNames);
+      this.relatedPropertyNames = relatedNames;
       return this;
     },
   };

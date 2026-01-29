@@ -1,4 +1,5 @@
 import { StateItem } from '../models/state-requests';
+import { Resource, PropertyMap } from '@haydenon/gen-core';
 
 /**
  * Simplified resource descriptor for AI context
@@ -19,6 +20,7 @@ export interface PropertyDescriptor {
   type: string;
   required: boolean;
   linkedResources?: string[];
+  relatedPropertyNames?: string[];
 }
 
 /**
@@ -27,7 +29,7 @@ export interface PropertyDescriptor {
 export interface AIGenerationRequest {
   scenarioPrompt: string;
   fullPrompt: string;
-  availableResources: ResourceDescriptor[];
+  availableResources: Resource<PropertyMap, PropertyMap>[];
   environment: string;
 }
 

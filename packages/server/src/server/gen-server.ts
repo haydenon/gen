@@ -26,8 +26,6 @@ import {
 import {
   AIScenarioGeneratorPlugin,
   AIGenerationRequest,
-  ResourceDescriptor,
-  PropertyDescriptor,
 } from './plugins/ai-plugin.interface';
 import {
   ScenarioLibraryPlugin,
@@ -176,165 +174,6 @@ export class GenServer {
     return names;
   }
 
-  /**
-   * Convert a Resource to a simplified ResourceDescriptor for AI context
-   */
-  private resourceToDescriptor = (
-    resource: Resource<PropertyMap, PropertyMap>
-  ): ResourceDescriptor => {
-    return {
-      name: resource.name,
-      description: resource.description,
-      inputs: this.propertyMapToDescriptors(resource.inputs),
-      outputs: this.propertyMapToDescriptors(resource.outputs),
-    };
-  };
-
-  /**
-   * Convert a PropertyMap to simplified PropertyDescriptors
-   */
-  private propertyMapToDescriptors(
-    propertyMap: PropertyMap
-  ): PropertyDescriptor[] {
-    return Object.entries(propertyMap).map(([name, prop]) => ({
-      name,
-      description: prop.description,
-      type: this.simplifyType(prop.type),
-      required: this.isRequired(prop.type),
-      linkedResources: this.getLinkedResourceNames({ [name]: prop }),
-    }));
-  }
-
-  /**
-   * Convert PropertyType to a simple string representation
-   */
-  private simplifyType(type: PropertyType): string {
-    switch (type.type) {
-      case Type.Boolean:
-        return 'boolean';
-      case Type.Int:
-        return 'integer';
-      case Type.Float:
-        return 'number';
-      case Type.String:
-        return 'string';
-      case Type.Date:
-        return 'date';
-      case Type.Array:
-        return `${this.simplifyType(type.inner)}[]`;
-      case Type.Nullable:
-        return `${this.simplifyType(type.inner)} | null`;
-      case Type.Undefinable:
-        return `${this.simplifyType(type.inner)} | undefined`;
-      case Type.Complex: {
-        const fields = Object.entries(type.fields)
-          .map(([key, val]) => `${key}: ${this.simplifyType(val)}`)
-          .join(', ');
-        return `{ ${fields} }`;
-      }
-      case Type.Link:
-        return this.simplifyType(type.inner);
-      default:
-        return 'unknown';
-    }
-  }
-
-  /**
-   * Check if a property type is required (not nullable or undefinable)
-   */
-  private isRequired(type: PropertyType): boolean {
-    return type.type !== Type.Nullable && type.type !== Type.Undefinable;
-  }
-
-  /**
-   * Build the full prompt with resource documentation and JSON schema
-   */
-  private buildFullPrompt(
-    scenarioPrompt: string,
-    resources: ResourceDescriptor[]
-  ): string {
-    const resourceDocs = resources
-      .map((r) => {
-        const inputDocs = r.inputs
-          .map(
-            (p) =>
-              `  - ${p.name}: ${p.type}${
-                p.description ? ` // ${p.description}` : ''
-              }${
-                p.linkedResources && p.linkedResources.length > 0
-                  ? ` (links to: ${p.linkedResources.join(', ')})`
-                  : ''
-              }`
-          )
-          .join('\n');
-
-        const outputDocs = r.outputs
-          .map(
-            (p) =>
-              `  - ${p.name}: ${p.type}${
-                p.description ? ` // ${p.description}` : ''
-              }`
-          )
-          .join('\n');
-
-        return `### ${r.name}${r.description ? `\n${r.description}` : ''}
-
-**Inputs (properties you can set):**
-${inputDocs || '  (none)'}
-
-**Outputs (properties generated after creation):**
-${outputDocs || '  (none)'}`;
-      })
-      .join('\n\n');
-
-    return `You are helping generate test data for a system. The user will describe a scenario they want to create, and you need to generate the appropriate resource instances.
-
-# Available Resources
-
-${resourceDocs}
-
-# Response Format
-
-You must respond with a JSON array of resource instances. Each instance must have:
-- \`_type\`: The resource name (e.g., "Member", "Product")
-- \`_name\`: (optional) A unique name to reference this instance (e.g., "seller", "buyer1")
-- All required input properties for that resource type
-- You can reference other resources by setting link properties to their \`_name\`
-
-Example:
-\`\`\`json
-[
-  {
-    "_type": "Member",
-    "_name": "seller",
-    "email": "seller@example.com",
-    "nickname": "SellerNick"
-  },
-  {
-    "_type": "Product",
-    "_name": "product1",
-    "sellerId": "seller",
-    "title": "Test Product",
-    "price": 100
-  }
-]
-\`\`\`
-
-# Important Guidelines
-
-1. Use \`_name\` to create relationships between resources
-2. Only use properties defined in the resource inputs above
-3. Make sure all required (non-optional) properties are included
-4. Use realistic test data values
-5. If you can't fulfill part of the request, include what you can and note the limitation
-
-# User Request
-
-${scenarioPrompt}
-
-Generate the resource instances as a JSON array:`;
-  }
-
   run() {
     const app = express();
     app.use(bodyParser.json());
@@ -476,16 +315,11 @@ Generate the resource instances as a JSON array:`;
       }
 
       try {
-        // Convert resources to descriptors
-        const availableResources = this.resources.map(
-          this.resourceToDescriptor
-        );
-
-        // Call AI plugin (plugin builds its own prompt)
+        // Call AI plugin with raw resources (plugin builds its own prompt and converts as needed)
         const request: AIGenerationRequest = {
           scenarioPrompt,
           fullPrompt: '', // Plugin will build this
-          availableResources,
+          availableResources: this.resources,
           environment: environmentName,
         };
 
