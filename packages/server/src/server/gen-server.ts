@@ -51,25 +51,29 @@ import {
   CreateStateMessage,
   CreateStateServerTypes,
 } from './messages/create-state';
+import { loadTypeDocFile, ParsedTypeDoc } from './typedoc-loader';
+import { populateDocumentationFromTypeDoc } from './typedoc-documentation';
 
-interface ServerOptions {
+export interface ServerOptions {
   port?: number;
   environments: Environment[];
   aiScenarioGeneratorPlugin?: AIScenarioGeneratorPlugin;
   scenarioLibraryPlugin?: ScenarioLibraryPlugin;
+  typedocFile?: string;
 }
 
 const defaultOptions: Required<
-  Omit<ServerOptions, 'environments' | 'aiScenarioGeneratorPlugin' | 'scenarioLibraryPlugin'>
+  Omit<ServerOptions, 'environments' | 'aiScenarioGeneratorPlugin' | 'scenarioLibraryPlugin' | 'typedocFile'>
 > = {
   port: 8000,
 };
 
 export class GenServer {
-  private options: Required<Omit<ServerOptions, 'aiScenarioGeneratorPlugin' | 'scenarioLibraryPlugin'>>;
+  private options: Required<Omit<ServerOptions, 'aiScenarioGeneratorPlugin' | 'scenarioLibraryPlugin' | 'typedocFile'>>;
   private mapper: DesiredStateMapper;
   private aiPlugin?: AIScenarioGeneratorPlugin;
   private scenarioLibraryPlugin?: ScenarioLibraryPlugin;
+  private typedoc?: ParsedTypeDoc;
 
   constructor(
     private resources: Resource<PropertiesBase, PropertiesBase>[],
@@ -82,6 +86,20 @@ export class GenServer {
     this.aiPlugin = serverOptions.aiScenarioGeneratorPlugin;
     this.scenarioLibraryPlugin = serverOptions.scenarioLibraryPlugin;
     this.mapper = getMapper(resources);
+
+    // Load TypeDoc file if provided
+    if (serverOptions.typedocFile) {
+      try {
+        this.typedoc = loadTypeDocFile(serverOptions.typedocFile);
+        console.log(`Loaded TypeDoc from ${serverOptions.typedocFile}`);
+
+        // Populate resource and property descriptions from TypeDoc
+        populateDocumentationFromTypeDoc(resources, this.typedoc);
+      } catch (err) {
+        console.error(`Failed to load TypeDoc file: ${(err as Error).message}`);
+        throw err;
+      }
+    }
   }
 
   private sendErrors(res: any, errors: Error[]) {

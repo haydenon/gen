@@ -1,4 +1,5 @@
 export { GenServer } from './gen-server';
+export type { ServerOptions } from './gen-server';
 export type {
   ResourceResponse,
   PropertyDefinitionResponse,
@@ -34,3 +35,15 @@ export type {
   ScenarioPage,
 } from './plugins/scenario-library-plugin.interface';
 export { FilesystemScenarioLibraryPlugin } from './plugins/filesystem-scenario-library.plugin';
+export {
+  loadTypeDocFile,
+  extractCommentText,
+  findReflection,
+} from './typedoc-loader';
+export type {
+  TypeDocReflection,
+  TypeDocTypeReference,
+  TypeDocJSON,
+  ParsedTypeDoc,
+} from './typedoc-loader';
+export { populateDocumentationFromTypeDoc } from './typedoc-documentation';

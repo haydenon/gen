@@ -81,11 +81,9 @@ export abstract class Resource<
   constructor(
     public inputs: Inputs,
     public outputs: Outputs,
-    identifierAccessor: (outputs: OutputValues<Outputs>) => any,
-    description?: string
+    identifierAccessor: (outputs: OutputValues<Outputs>) => any
   ) {
     this.name = this.constructor.name;
-    this.description = description;
     const identifierPath = getPathFromAccessor(identifierAccessor);
     if (
       identifierPath.length != 1 ||
@@ -95,6 +93,22 @@ export abstract class Resource<
     }
 
     this.identifierProperty = identifierPath[0].propertyName;
+  }
+
+  /**
+   * Set the description for this resource.
+   * This can be called in the constructor to document what the resource represents.
+   *
+   * @param description The description text for this resource
+   *
+   * @example
+   * constructor() {
+   *   super(new MyResourceBase(), new MyResourceOutputs(), (r) => r.id);
+   *   this.description('Creates a user account in the system');
+   * }
+   */
+  protected setDescription(description: string): void {
+    this.description = description;
   }
 
   /**

@@ -212,16 +212,21 @@ export type Value<T> = T | RuntimeValue<T>;
 export interface PropertyDefinition<T> {
   type: PropertyTypeForValue<T>;
   description?: string;
+  setDescription(description: string): PropertyDefinition<T>;
 }
 
 export function def<T>(
-  type: PropertyTypeForValue<T>,
-  description?: string
+  type: PropertyTypeForValue<T>
 ): PropertyDefinition<T> {
-  return {
+  const propDef: PropertyDefinition<T> = {
     type,
-    description,
+    description: undefined,
+    setDescription(desc: string): PropertyDefinition<T> {
+      this.description = desc;
+      return this;
+    },
   };
+  return propDef;
 }
 
 export function lookup<Prop extends PropertyType>(
